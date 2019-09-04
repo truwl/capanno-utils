@@ -1,11 +1,14 @@
 
+from pathlib import Path
 from tests.test_base import TestBase
 from src.content_maps import make_tools_map, make_script_map, make_script_maps
 
 class TestToolMaps(TestBase):
 
     def test_make_tools_map(self):
-        make_tools_map()
+        tools_dir = Path.cwd() / 'tests' / 'test_content' / 'cwl-tools'
+        outfile_path = Path.cwd() / 'test' / 'test_tool_map.yaml'
+        make_tools_map(tools_dir, outfile_path)
         return
 
 

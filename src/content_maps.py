@@ -1,17 +1,26 @@
 
+from pathlib import Path
 from ruamel.yaml import safe_load, YAML
 from src.config import CWL_TOOL_DIR, BASE_DIR, CWL_SCRIPT_DIR, CONTENT_MAPS_DIR
 from src.classes.script_metadata import ScriptMetadata
 from src.classes.tool_metadata import ToolMetadata, ParentToolMetadata, SubtoolMetadata
 from src.helpers.get_paths import get_cwl_tool, get_tool_inputs, get_cwl_tool_metadata, get_tool_version_dir, get_script_version_dir, get_metadata_path, get_relative_path
 
-def make_tools_map(outfile_name='tool-maps'):
+def make_tools_map(tool_dir, outfile_path):
+    """
+    Make a yaml file that specifies paths and attributes of tools in tool_dir.
+    :param tool_dir (Path): Path of directory that contains tools.
+    :param outfile_name(str): name of file that will be made.
+    :return:
+        None
+    """
+    if not isinstance(outfile_path, Path):
+        outfile_path = Path(outfile_path)
     content_map = {}
-    for tool_dir in  CWL_TOOL_DIR.iterdir():
+    for tool_dir in  tool_dir.iterdir():
         for version_dir in tool_dir.iterdir():
             tool_map = make_tool_map(tool_dir.name, version_dir.name)
             content_map[f"{tool_dir.name}__{version_dir.name}"] = tool_map
-    outfile_path = CONTENT_MAPS_DIR / f"{outfile_name}.yaml"
     yaml = YAML(pure=True)
     yaml.default_flow_style = False
     yaml.indent(mapping=2, sequence=4, offset=2)

@@ -1,0 +1,23 @@
+# REQUIRED
+
+applicationSuite:
+  name: STAR
+  softwareVersion: 2.5
+  identifier: TL_8ab263.82
+
+name: genomeGenerate
+
+version: 1.0.0
+
+identifier: TL_8ab263_95.82
+
+# RECOMMENDED
+
+description: genomeGenerate option directs STAR to run genome indices generation job.
+
+# OPTIONAL
+
+alternateName: []
+
+
+parentMetadata: ../common/STAR-metadata.yaml

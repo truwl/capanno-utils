@@ -9,6 +9,7 @@ from ruamel.yaml import safe_load
 from content_maps import script_maps
 from tests.test_base import TestBase
 from src.classes.script_metadata import ScriptMetadata
+from src.helpers.get_paths import get_cwl_script, get_metadata_path
 
 class TestScriptMetadata(TestBase):
 
@@ -30,7 +31,8 @@ class TestScriptMetadata(TestBase):
         os.remove(test_filename)
 
     def test_make_script_metadata_from_file(self):
-        metadata_path = TestBase.get_metadata_path(script_maps.ENCODE_atac_seq['ST_43baaf.f7']) # encode_ataqc.cwl
+        script_path = get_cwl_script('ENCODE-DCC', 'atac-seq-pipline','v1.1', 'encode_ataqc')
+        metadata_path = get_metadata_path(script_path)
         st_metadata = ScriptMetadata.load_from_file(metadata_path)
         return
 
