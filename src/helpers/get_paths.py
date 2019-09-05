@@ -66,6 +66,24 @@ def get_script_inputs():
 
 # cwl-workflows
 
+def get_workflow_version_dir(group_name, project_name, version):
+    workflow_ver_dir = config[os.environ['CONFIG_KEY']]['cwl_workflows_dir'] / group_name / project_name / version
+    return workflow_ver_dir
+
+def get_cwl_workflow(group_name, project_name, version, workflow_name):
+    workflow_ver_dir = get_workflow_version_dir(group_name, project_name, version)
+    workflow_path = workflow_ver_dir / f"{workflow_name}.cwl"
+    return workflow_path
+
+def get_workflow_metadata(group_name, project_name, version, workflow_name):
+    workflow_ver_dir = get_workflow_version_dir(group_name, project_name, version)
+    workflow_metadata_path = workflow_ver_dir / f"{workflow_name}-metadata.yaml"
+    return workflow_metadata_path
+
+def get_workflow_inputs():
+    raise NotImplementedError
+
+
 
 # helpers
 
