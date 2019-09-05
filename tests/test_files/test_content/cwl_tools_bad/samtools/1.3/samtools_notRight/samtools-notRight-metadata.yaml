@@ -34,4 +34,4 @@ keywords: []
 alternateName: []
 
 
-parentMetadata: ../../cwl-tools/samtools/1.3/common/samtools-metadata.yaml
+parentMetadata: ../common/samtools-metadata.yaml
