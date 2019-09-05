@@ -1,6 +1,6 @@
-
+import os
 from pathlib import Path
-from src.config import CWL_TOOL_DIR, CWL_SCRIPT_DIR, BASE_DIR
+from src.config import config
 
 # Misc
 
@@ -13,7 +13,7 @@ def get_inputs_schema_template():
 # cwl-tools
 
 def get_tool_version_dir(tool_name, tool_version):
-    version_dir = CWL_TOOL_DIR / tool_name / tool_version
+    version_dir = config[os.environ['CONFIG_KEY']]['cwl_tool_dir'] / tool_name / tool_version
     return version_dir
 
 
@@ -46,7 +46,7 @@ def get_tool_inputs(tool_name, tool_version, input_hash, subtool_name=None):
 # cwl-scripts
 
 def get_script_version_dir(group_name, project_name, version):
-    script_ver_dir = CWL_SCRIPT_DIR / group_name / project_name / version
+    script_ver_dir = config[os.environ['CONFIG_KEY']]['cwl_script_dir'] / group_name / project_name / version
     return script_ver_dir
 
 def get_cwl_script(group_name, project_name, version, script_name):
@@ -69,7 +69,7 @@ def get_script_inputs():
 
 # helpers
 
-def get_relative_path(full_path, base_path=BASE_DIR):
+def get_relative_path(full_path, base_path=Path.cwd()):
 
     return full_path.relative_to(base_path)
 

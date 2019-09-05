@@ -1,7 +1,7 @@
-
+import os
 from pathlib import Path
 from ruamel.yaml import safe_load, YAML
-from src.config import CWL_TOOL_DIR, BASE_DIR, CWL_SCRIPT_DIR, CONTENT_MAPS_DIR
+from src.config import config
 from src.classes.script_metadata import ScriptMetadata
 from src.classes.tool_metadata import ToolMetadata, ParentToolMetadata, SubtoolMetadata
 from src.helpers.get_paths import get_cwl_tool, get_tool_inputs, get_cwl_tool_metadata, get_tool_version_dir, get_script_version_dir, get_metadata_path, get_relative_path
@@ -69,11 +69,11 @@ def make_tool_map(tool_name, tool_version):
 
 def make_script_maps(outfile_name="script-maps"):
     script_maps = {}
-    for group_dir in CWL_SCRIPT_DIR.iterdir():
+    for group_dir in config[os.environ['CONFIG_KEY']]['cwl_script_dir'].iterdir():
         for project_dir in group_dir.iterdir():
             for version_dir in project_dir.iterdir():
                 script_maps[f"{group_dir.name}_{project_dir.name}_{version_dir.name}"] = make_script_map(group_dir.name, project_dir.name, version_dir.name)
-    outfile_path = CONTENT_MAPS_DIR / f"{outfile_name}.yaml"
+    outfile_path = config[os.environ['CONFIG_KEY']]['content_maps_dir'] / f"{outfile_name}.yaml"
     yaml = YAML(pure=True)
     yaml.default_flow_style = False
     yaml.indent(mapping=2, sequence=4, offset=2)
@@ -108,7 +108,7 @@ def combine_yaml_files_into_dict(file_path, *file_paths):
 
 def make_master_map(file_name, *file_names, outfile_name="master_map"):
 
-    file_path = CONTENT_MAPS_DIR / f"{file_name}.yaml"
+    file_path = config[os.environ['CONFIG_KEY']]['content_maps_dir'] / f"{file_name}.yaml"
 
     raise NotImplementedError
 

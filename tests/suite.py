@@ -1,6 +1,5 @@
 import unittest
 import logging
-import tempfile
 import os
 import argparse
 from unittest import defaultTestLoader, TestSuite
@@ -111,8 +110,8 @@ def run_tests():
 
 
     # Set temp directory
-    test_temp_dir = tempfile.TemporaryDirectory(prefix='cwlTest_')
-    os.environ['TEST_TMP_DIR'] = test_temp_dir.name
+
+    os.environ['CONFIG_KEY'] = 'TEST'
     unittest.TextTestRunner().run(test_suite)
     return
 
