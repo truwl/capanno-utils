@@ -1,11 +1,12 @@
 
 from pathlib import Path
+import os
 from urllib.parse import urlparse
-from pprint import pprint
 from ruamel.yaml import YAML, safe_load
 from schema_salad.main import main as schema_salad_tool
 import schema_salad
 from cwltool.process import shortname
+from src.config import config
 from src.classes.cwl.command_line_tool import load_document
 from src.helpers.dict_tools import get_dict_from_list
 from src.helpers.get_paths import get_inputs_schema_template, get_cwl_tool, get_tool_inputs, get_cwl_script, get_script_inputs
@@ -29,7 +30,7 @@ def validate_tool_inputs(tool_name, tool_version, input_hash, subtool_name=None)
         _, inputs_field_index = get_dict_from_list(template_dict['$graph'], 'name', 'InputsField')
         template_dict['$graph'][inputs_field_index]['fields'] = fields_for_inputs_schema
 
-    test_file = Path.cwd() / 'temp' / 'test.yaml'
+    test_file = Path(config[os.environ.get('CONFIG_KEY')]['temp_dir'].name) / 'test.yaml'
 
     yaml = YAML(pure=True)
     yaml.default_flow_style = False
@@ -37,8 +38,7 @@ def validate_tool_inputs(tool_name, tool_version, input_hash, subtool_name=None)
 
     with test_file.open('w') as tf:
         yaml.dump(template_dict, tf)
-
-    schema_salad_validate(test_file, inputs)
+        schema_salad_validate(test_file, inputs)
 
     return
 

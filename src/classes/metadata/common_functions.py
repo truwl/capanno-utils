@@ -2,10 +2,9 @@
 # * This file is subject to the terms and conditions defined in
 # * file 'LICENSE.txt', which is part of this source code package.
 
-from src.classes.metadata_base import object_attributes
+from src.classes.metadata.metadata_base import object_attributes
 from hashlib import md5
 import uuid
-import base64
 
 
 def _mk_hashes(arg1, *args):

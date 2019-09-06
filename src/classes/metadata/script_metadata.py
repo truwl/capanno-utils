@@ -1,12 +1,11 @@
-from abc import abstractmethod
 from pathlib import Path
 import re
 from collections import OrderedDict
 from ruamel.yaml import safe_load
-from src.classes.common_functions import is_attr_empty, NameSoftwareVersionMixin, _mk_hashes
-from src.classes.shared_properties import WebSite, CodeRepository, Person, Publication, Keyword, ParentScript, \
+from src.classes.metadata.common_functions import is_attr_empty, NameSoftwareVersionMixin, _mk_hashes
+from src.classes.metadata.shared_properties import WebSite, CodeRepository, Person, Publication, Keyword, ParentScript, \
     Tool
-from src.classes.metadata_base import MetadataBase
+from src.classes.metadata.metadata_base import MetadataBase
 
 
 class ScriptMetadataBase(MetadataBase):

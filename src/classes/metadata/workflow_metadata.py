@@ -7,9 +7,9 @@ from pathlib import Path
 import re
 from abc import abstractmethod
 from ruamel.yaml import safe_load
-from src.classes.shared_properties import CodeRepository, WebSite, Person, Publication, Keyword, CallMap
-from src.classes.common_functions import _mk_hashes
-from src.classes.metadata_base import MetadataBase
+from src.classes.metadata.shared_properties import CodeRepository, WebSite, Person, Publication, Keyword, CallMap
+from src.classes.metadata.common_functions import _mk_hashes
+from src.classes.metadata.metadata_base import MetadataBase
 
 class WorkflowMetadataBase(MetadataBase):
     @abstractmethod

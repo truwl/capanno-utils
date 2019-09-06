@@ -3,8 +3,8 @@ from tests.test_base import TestBase
 from pathlib import Path
 from src.helpers.get_paths import get_cwl_tool_metadata
 from src.validate import metadata_validator_factory
-from src.classes.tool_metadata import ToolMetadata, ParentToolMetadata, SubtoolMetadata
-from content_maps import tool_maps, script_maps, workflow_maps
+from src.classes.metadata.tool_metadata import ToolMetadata, ParentToolMetadata, SubtoolMetadata
+
 
 class TestValidateMetadata(TestBase):
 

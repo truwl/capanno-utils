@@ -1,6 +1,6 @@
 
 from pathlib import Path
-from src.classes.script_metadata import ScriptMetadata, CommonScriptMetadata
+from src.classes.metadata.script_metadata import ScriptMetadata, CommonScriptMetadata
 
 def _get_script_directory(group_name, project_name, script_version):
     """

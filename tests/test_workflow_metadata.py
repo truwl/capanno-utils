@@ -8,8 +8,7 @@ from ruamel.yaml import safe_load
 from tests.test_base import TestBase
 from src.config import config
 from src.helpers.get_paths import get_workflow_metadata
-from content_maps import workflow_maps
-from src.classes.workflow_metadata import WorkflowMetadata
+from src.classes.metadata.workflow_metadata import WorkflowMetadata
 
 
 class TestWorkflowMetadata(TestBase):

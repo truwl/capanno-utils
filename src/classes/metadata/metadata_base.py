@@ -9,7 +9,7 @@ from pathlib import Path
 import semantic_version
 from ruamel.yaml.comments import CommentedMap
 from ruamel.yaml import YAML
-from src.classes.shared_properties import CodeRepository, Person, Publication, WebSite, Keyword, ApplicationSuite, ParentScript, Tool, IOObjectItem, CallMap
+from src.classes.metadata.shared_properties import CodeRepository, Person, Publication, WebSite, Keyword, ApplicationSuite, ParentScript, Tool, IOObjectItem, CallMap
 
 object_attributes = (CodeRepository, Person, Publication, WebSite, Keyword, ApplicationSuite, ParentScript, Tool, IOObjectItem, CallMap)
 

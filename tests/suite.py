@@ -13,11 +13,9 @@ from tests.test_validate_all_metadata_in_maps import TestValidateContent
 from tests.test_validate_tool_inputs import TestValidateInputs
 
 
-parser = argparse.ArgumentParser()
-parser.add_argument("module", nargs='?', default='full',
-                    help='Specify the test suite that you would like to run. All suites will run if not specified')
-parser.add_argument("--log_level", help="Set logging level", choices=['debug', 'info', 'warning', 'error', 'critical'])
-args = parser.parse_args()
+
+
+
 
 
 def suite_full():
@@ -69,9 +67,31 @@ def suite_workflow_metadata():
     suite = defaultTestLoader.loadTestsFromTestCase(TestWorkflowMetadata)
     return suite
 
+def suite_dict():
+    suite_dict = {'content_maps': suite_content_maps(),
+                  'get_metadata': suite_get_metadata(),
+                  'full': suite_full(),
+                  'script_metadata': suite_script_metadata(),
+                  'tool_metadata': suite_tool_metadata(),
+                  'validate': suite_validate(),
+                  'validate_all_metadata_in_maps': suite_validate_all_metadata_in_maps(),
+                  'validate_tool_inputs': suite_validate_tool_inputs(),
+                  'workflow_metadata': suite_workflow_metadata(),
+                  }
+    return suite_dict
+
+parser = argparse.ArgumentParser(description="Run test suite")
+parser.add_argument("module", nargs='?', default='full', choices= suite_dict().keys(),
+                    help='Specify the test suite that you would like to run. All suites will run if not specified')
+parser.add_argument("--log_level", help="Set logging level", choices=['debug', 'info', 'warning', 'error', 'critical'])
+args = parser.parse_args()
+
+
+
+
 
 def run_tests():
-    logging.basicConfig(level=logging.CRITICAL)
+    # logging.basicConfig(level=logging.CRITICAL)
     if args.log_level:
         if args.log_level=='debug':
             log_level = logging.DEBUG
@@ -86,25 +106,15 @@ def run_tests():
         else:
             raise ValueError  # Should never hit this.
     else:
-        log_level = logging.WARNING  # default level.
+        log_level = logging.CRITICAL  # default level.
 
     logging.getLogger().setLevel(log_level)
 
     # update this dictionary when new suites are added.
-    suite_dict = {'content_maps': suite_content_maps(),
-                  'get_metadata': suite_get_metadata(),
-                  'full': suite_full(),
-                  'script_metadata': suite_script_metadata(),
-                  'tool_metadata': suite_tool_metadata(),
-                  'validate': suite_validate(),
-                  'validate_all_metadata_in_maps': suite_validate_all_metadata_in_maps(),
-                  'validate_tool_inputs': suite_validate_tool_inputs(),
-                  'workflow_metadata': suite_workflow_metadata(),
-                  }
 
 
     try:
-        test_suite = suite_dict[args.module]
+        test_suite = suite_dict()[args.module]
     except KeyError:
         raise ValueError(f"Test suite {args.module} not recognized.")
 

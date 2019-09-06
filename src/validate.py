@@ -3,9 +3,9 @@
 import argparse
 import sys
 import logging
-from src.classes.tool_metadata import ToolMetadata, ParentToolMetadata, SubtoolMetadata
-from src.classes.script_metadata import ScriptMetadata, CommonScriptMetadata
-from src.classes.workflow_metadata import WorkflowMetadata
+from src.classes.metadata.tool_metadata import ToolMetadata, ParentToolMetadata, SubtoolMetadata
+from src.classes.metadata.script_metadata import ScriptMetadata, CommonScriptMetadata
+from src.classes.metadata.workflow_metadata import WorkflowMetadata
 
 
 parser = argparse.ArgumentParser(description="Validate metadata files.")

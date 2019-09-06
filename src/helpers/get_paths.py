@@ -92,6 +92,8 @@ def get_relative_path(full_path, base_path=Path.cwd()):
     return full_path.relative_to(base_path)
 
 def get_metadata_path(cwl_path):
+    if not isinstance(cwl_path, Path):
+        cwl_path = Path(cwl_path)
     path_dir = cwl_path.parent
     metafile_name = f"{cwl_path.stem}-metadata.yaml"
     metadata_path = path_dir / metafile_name

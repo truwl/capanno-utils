@@ -1,10 +1,9 @@
 import os
 import shutil
-from unittest import skip
 from pathlib import Path
 from ruamel.yaml import safe_load
 from tests.test_base import TestBase
-from src.classes.tool_metadata import ToolMetadata, ParentToolMetadata, SubtoolMetadata
+from src.classes.metadata.tool_metadata import ToolMetadata, ParentToolMetadata, SubtoolMetadata
 from src.add.add_tools import add_tool, add_subtool, add_parent_tool
 
 

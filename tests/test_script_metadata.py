@@ -3,13 +3,11 @@
 # * file 'LICENSE.txt', which is part of this source code package.
 
 import os
-from unittest import skip
 from pathlib import Path
 from ruamel.yaml import safe_load
 from src.config import config
-from content_maps import script_maps
 from tests.test_base import TestBase
-from src.classes.script_metadata import ScriptMetadata
+from src.classes.metadata.script_metadata import ScriptMetadata
 from src.helpers.get_paths import get_cwl_script, get_metadata_path
 
 class TestScriptMetadata(TestBase):
