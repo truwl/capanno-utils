@@ -1,7 +1,10 @@
 
 import tempfile
 from pathlib import Path
+from urllib.parse import urlparse
 from copy import deepcopy
+from ruamel.yaml import YAML, safe_load, dump
+import schema_salad
 from src.classes.cwl.command_line_tool import load_document
 from src.helpers.string_tools import uri_name
 from src.helpers.dict_tools import get_dict_from_list
@@ -140,7 +143,7 @@ class InputsSchema:
                      '$namespaces': {'cwl': 'https://w3id.org/cwl/cwl#',
                                      'rdfs': 'http://www.w3.org/2000/01/rdf-schema#',
                                      'sld': 'https://w3id.org/cwl/salad#'},
-                     '$graph': [SaladSchemaBase.metaschema_base,
+                     '$graph': [ {'$import': 'null'},  # Replace with path to metaschema-base temp file.
                                 {'extends': 'sld:PrimitiveType',
                                  'name': 'CWLType',
                                  'symbols': ['cwl:File', 'cwl:Directory'],
@@ -223,7 +226,10 @@ class InputsSchema:
         return self._cwl_schema_def_requirement
 
     def validate_inputs(self, document_path):
-       raise NotImplementedError
+        metaschema_path = self._make_metaschema_base_file()
+        inputs_schema_path = self._make_temp_schema_file(metaschema_path)
+        self._schema_salad_validate(inputs_schema_path, document_path)
+        return
 
     def _make_schema_dict(self):
         inputs_fields = {}
@@ -235,13 +241,73 @@ class InputsSchema:
         schema_dict['$graph'][inputs_field_index]['fields'] = inputs_fields
         return  schema_dict
 
+    def _make_metaschema_base_file(self):
+        yaml = YAML(pure=True)
+        yaml.default_flow_style = False
+        yaml.indent(mapping=2, sequence=4, offset=2)
+        metaschema_file = tempfile.NamedTemporaryFile(delete=False, prefix='metaschema_base', suffix='.yml')
+        with metaschema_file as tempf:
+            yaml.dump(SaladSchemaBase.metaschema_base, tempf)
+        return metaschema_file.name
 
 
-    def make_schema_file(self, outfile_path):
+    def _make_temp_schema_file(self, metaschema_path):
+        schema_dict = self._make_schema_dict()
+        import_dict, import_index = get_dict_from_list(schema_dict['$graph'], '$import', 'null')
+        schema_dict['$graph'][import_index] = {'$import': metaschema_path}
+        yaml = YAML(pure=True)
+        yaml.default_flow_style = False
+        yaml.indent(mapping=2, sequence=4, offset=2)
+        schema_file = tempfile.NamedTemporaryFile(delete=False, prefix='inputs_schema', suffix='.yml')
+        with schema_file as tempf:
+            yaml.dump(schema_dict, tempf)
+        return schema_file.name
 
-        raise NotImplementedError
+    def _schema_salad_validate(self, schema_path, document_path):
+        '''
+        Adapted from schema_salad main().
+        :param schema_path:
+        :param document_path:
+        :return:
+        '''
 
-    def make_temp_schema_file(self):
-        with tempfile.NamedTemporaryFile(delete=False, prefix='inputs_schema', suffix='.yml') as tempf:
-            pass
-        raise NotImplementedError
+        strict_foreign_properties = False
+        strict = True
+        metaschema_names, metaschema_doc, metaschema_loader = schema_salad.main.schema.get_metaschema()
+        schema_uri = str(schema_path)
+        if not (urlparse(schema_uri)[0] and urlparse(schema_uri)[0] in ['http', 'https', 'file']):
+            schema_uri = schema_salad.main.file_uri(schema_uri)
+        schema_raw_doc = metaschema_loader.fetch(schema_uri)
+
+        schema_doc, schema_metadata = metaschema_loader.resolve_all(schema_raw_doc, schema_uri)
+
+        # Validate schema against metaschema
+        schema_salad.main.schema.validate_doc(metaschema_names, schema_doc, metaschema_loader, True)
+
+        # Get the json-ld context and RDFS representation from the schema
+        metactx = schema_salad.main.schema.collect_namespaces(schema_metadata)
+        if "$base" in schema_metadata:
+            metactx["@base"] = schema_metadata["$base"]
+
+        (schema_ctx, rdfs) = schema_salad.main.jsonld_context.salad_to_jsonld_context(
+            schema_doc, metactx)
+
+        # Create the loader that will be used to load the target document.
+        document_loader = schema_salad.main.Loader(schema_ctx, skip_schemas=False)
+
+        # Make the Avro validation that will be used to validate the target
+        # document
+
+        avsc_obj = schema_salad.main.schema.make_avro(schema_doc, document_loader)
+
+        avsc_names = schema_salad.main.schema.make_avro_schema_from_avro(avsc_obj)
+
+        # Load target document and resolve refs
+        uri = str(document_path)
+        document, doc_metadata = document_loader.resolve_ref(uri, strict_foreign_properties=strict_foreign_properties,
+                                                             checklinks=False)  # This is what's getting us around file link checking.
+
+        schema_salad.main.schema.validate_doc(avsc_names, document, document_loader, strict=strict,
+                                              strict_foreign_properties=strict_foreign_properties)
+
+        return

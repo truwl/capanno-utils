@@ -6,7 +6,7 @@ from src.config import config
 
 def get_inputs_schema_template():
 
-    schema_template_path = Path.cwd() / 'tests/test_files/schema-salad/inputs_schema_template.yml'
+    schema_template_path = Path.cwd() / 'tests/test_files/schema_salad/inputs_schema_template.yml'
 
     return schema_template_path
 
