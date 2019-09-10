@@ -4,8 +4,7 @@ from pathlib import Path
 from ruamel.yaml import safe_load
 from src.config import config
 from src.helpers.get_paths import get_metadata_path
-from content_maps import workflow_maps
-from src.validate import main
+from src.validate_metadata import main
 
 class TestValidateContent(TestBase):
 

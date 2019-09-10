@@ -3,9 +3,9 @@
 import argparse
 import sys
 import logging
-from src.classes.metadata.tool_metadata import ToolMetadata, ParentToolMetadata, SubtoolMetadata
-from src.classes.metadata.script_metadata import ScriptMetadata, CommonScriptMetadata
-from src.classes.metadata.workflow_metadata import WorkflowMetadata
+from .classes.metadata.tool_metadata import ToolMetadata, ParentToolMetadata, SubtoolMetadata
+from .classes.metadata.script_metadata import ScriptMetadata, CommonScriptMetadata
+from .classes.metadata.workflow_metadata import WorkflowMetadata
 
 
 parser = argparse.ArgumentParser(description="Validate metadata files.")
@@ -32,7 +32,7 @@ validate_workflow.add_argument('path', help="Path to workflow metadata")
 def metadata_validator_factory(class_to_validate):
     def metadata_validator(metadata_path):
         try:
-            metadata = class_to_validate.load_from_file(metadata_path)
+            metadata_instance = class_to_validate.load_from_file(metadata_path)
             # print(f"Metadata in {metadata_path} is valid {str(class_to_validate)}")
             logging.info(f"Metadata in {metadata_path} is valid {str(class_to_validate)}")
         except:
@@ -70,5 +70,6 @@ def main(command, path):
 
 if __name__ == "__main__":
     args = parser.parse_args()
+    print(args.command)
     main(args.command, args.path)
     sys.exit(0)

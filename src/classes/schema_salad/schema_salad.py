@@ -4,7 +4,9 @@ from pathlib import Path
 from urllib.parse import urlparse
 from copy import deepcopy
 from ruamel.yaml import YAML, safe_load, dump
-import schema_salad
+from schema_salad.ref_resolver import file_uri, Loader
+from schema_salad.jsonld_context import salad_to_jsonld_context
+from schema_salad.schema import get_metaschema, validate_doc, collect_namespaces, make_avro, make_avro_schema_from_avro
 from src.classes.cwl.command_line_tool import load_document
 from src.helpers.string_tools import uri_name
 from src.helpers.dict_tools import get_dict_from_list
@@ -273,41 +275,41 @@ class InputsSchema:
 
         strict_foreign_properties = False
         strict = True
-        metaschema_names, metaschema_doc, metaschema_loader = schema_salad.main.schema.get_metaschema()
+        metaschema_names, metaschema_doc, metaschema_loader = get_metaschema()
         schema_uri = str(schema_path)
         if not (urlparse(schema_uri)[0] and urlparse(schema_uri)[0] in ['http', 'https', 'file']):
-            schema_uri = schema_salad.main.file_uri(schema_uri)
+            schema_uri = file_uri(schema_uri)
         schema_raw_doc = metaschema_loader.fetch(schema_uri)
 
         schema_doc, schema_metadata = metaschema_loader.resolve_all(schema_raw_doc, schema_uri)
 
         # Validate schema against metaschema
-        schema_salad.main.schema.validate_doc(metaschema_names, schema_doc, metaschema_loader, True)
+        validate_doc(metaschema_names, schema_doc, metaschema_loader, True)
 
         # Get the json-ld context and RDFS representation from the schema
-        metactx = schema_salad.main.schema.collect_namespaces(schema_metadata)
+        metactx = collect_namespaces(schema_metadata)
         if "$base" in schema_metadata:
             metactx["@base"] = schema_metadata["$base"]
 
-        (schema_ctx, rdfs) = schema_salad.main.jsonld_context.salad_to_jsonld_context(
+        (schema_ctx, rdfs) = salad_to_jsonld_context(
             schema_doc, metactx)
 
         # Create the loader that will be used to load the target document.
-        document_loader = schema_salad.main.Loader(schema_ctx, skip_schemas=False)
+        document_loader = Loader(schema_ctx, skip_schemas=False)
 
         # Make the Avro validation that will be used to validate the target
         # document
 
-        avsc_obj = schema_salad.main.schema.make_avro(schema_doc, document_loader)
+        avsc_obj = make_avro(schema_doc, document_loader)
 
-        avsc_names = schema_salad.main.schema.make_avro_schema_from_avro(avsc_obj)
+        avsc_names = make_avro_schema_from_avro(avsc_obj)
 
         # Load target document and resolve refs
         uri = str(document_path)
         document, doc_metadata = document_loader.resolve_ref(uri, strict_foreign_properties=strict_foreign_properties,
                                                              checklinks=False)  # This is what's getting us around file link checking.
 
-        schema_salad.main.schema.validate_doc(avsc_names, document, document_loader, strict=strict,
+        validate_doc(avsc_names, document, document_loader, strict=strict,
                                               strict_foreign_properties=strict_foreign_properties)
 
         return

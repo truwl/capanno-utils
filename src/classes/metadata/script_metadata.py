@@ -2,10 +2,10 @@ from pathlib import Path
 import re
 from collections import OrderedDict
 from ruamel.yaml import safe_load
-from src.classes.metadata.common_functions import is_attr_empty, NameSoftwareVersionMixin, _mk_hashes
-from src.classes.metadata.shared_properties import WebSite, CodeRepository, Person, Publication, Keyword, ParentScript, \
+from ...classes.metadata.common_functions import is_attr_empty, NameSoftwareVersionMixin, _mk_hashes
+from ...classes.metadata.shared_properties import WebSite, CodeRepository, Person, Publication, Keyword, ParentScript, \
     Tool
-from src.classes.metadata.metadata_base import MetadataBase
+from ...classes.metadata.metadata_base import MetadataBase
 
 
 class ScriptMetadataBase(MetadataBase):

@@ -2,7 +2,7 @@
 from tests.test_base import TestBase
 from pathlib import Path
 from src.helpers.get_paths import get_cwl_tool_metadata
-from src.validate import metadata_validator_factory
+from src.validate_metadata import metadata_validator_factory
 from src.classes.metadata.tool_metadata import ToolMetadata, ParentToolMetadata, SubtoolMetadata
 
 

@@ -4,10 +4,10 @@ from collections import OrderedDict
 from abc import abstractmethod
 import re
 from ruamel.yaml import safe_load
-from src.classes.metadata.metadata_base import MetadataBase
-from src.classes.metadata.shared_properties import CodeRepository, Person, Publication, WebSite, Keyword, ApplicationSuite
-from src.helpers.get_metadata_from_biotools import make_tool_metadata_kwargs_from_biotools
-from src.classes.metadata.common_functions import _mk_hashes, NameSoftwareVersionMixin
+from ...classes.metadata.metadata_base import MetadataBase
+from ...classes.metadata.shared_properties import CodeRepository, Person, Publication, WebSite, Keyword, ApplicationSuite
+from ...helpers.get_metadata_from_biotools import make_tool_metadata_kwargs_from_biotools
+from ...classes.metadata.common_functions import _mk_hashes, NameSoftwareVersionMixin
 
 
 class ToolMetadataBase(MetadataBase):

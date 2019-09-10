@@ -1,0 +1,65 @@
+ST_29b258.f7:
+  path: /home/ksebby/PycharmProjects/xD-CWL-utils/tests/test_files/test_content/cwl-scripts/ENCODE-DCC/atac-seq-pipeline/v1.1/encode_naive_overlap/encode_naive_overlap.cwl
+  name: encode_naive_overlap.py
+  softwareVersion: v1.1.5
+  version: 1.0.0
+ST_ae51d1.f7:
+  path: /home/ksebby/PycharmProjects/xD-CWL-utils/tests/test_files/test_content/cwl-scripts/ENCODE-DCC/atac-seq-pipeline/v1.1/encode_reproducibility_qc/encode_reproducibility_qc.cwl
+  name: encode_reproducibility_qc.py
+  softwareVersion: v1.1.5
+  version: 1.0.0
+ST_cff563.f7:
+  path: /home/ksebby/PycharmProjects/xD-CWL-utils/tests/test_files/test_content/cwl-scripts/ENCODE-DCC/atac-seq-pipeline/v1.1/encode_bowtie2/encode_bowtie2.cwl
+  name: encode_bowtie2.py
+  softwareVersion: v1.1.5
+  version: 1.0.0
+ST_5f34e1.f7:
+  path: /home/ksebby/PycharmProjects/xD-CWL-utils/tests/test_files/test_content/cwl-scripts/ENCODE-DCC/atac-seq-pipeline/v1.1/encode_filter/encode_filter.cwl
+  name: encode_filter.py
+  softwareVersion: v1.1.5
+  version: 1.0.0
+ST_14c72b.f7:
+  path: /home/ksebby/PycharmProjects/xD-CWL-utils/tests/test_files/test_content/cwl-scripts/ENCODE-DCC/atac-seq-pipeline/v1.1/encode_spr/encode_spr.cwl
+  name: encode_spr.py
+  softwareVersion: v1.1.5
+  version: 1.0.0
+ST_78d274.f7:
+  path: /home/ksebby/PycharmProjects/xD-CWL-utils/tests/test_files/test_content/cwl-scripts/ENCODE-DCC/atac-seq-pipeline/v1.1/encode_pool_ta/encode_pool_ta.cwl
+  name: encode_pool_ta.py
+  softwareVersion: v1.1.5
+  version: 1.0.0
+ST_43baaf.f7:
+  path: /home/ksebby/PycharmProjects/xD-CWL-utils/tests/test_files/test_content/cwl-scripts/ENCODE-DCC/atac-seq-pipeline/v1.1/encode_ataqc/encode_ataqc.cwl
+  name: encode_ataqc.py
+  softwareVersion: v1.1.5
+  version: 1.0.0
+ST_23a390.f7:
+  path: /home/ksebby/PycharmProjects/xD-CWL-utils/tests/test_files/test_content/cwl-scripts/ENCODE-DCC/atac-seq-pipeline/v1.1/encode_xcor/encode_xcor.cwl
+  name: encode_xcor.py
+  softwareVersion: v1.1.5
+  version: 1.0.0
+ST_49b9f4.f7:
+  path: /home/ksebby/PycharmProjects/xD-CWL-utils/tests/test_files/test_content/cwl-scripts/ENCODE-DCC/atac-seq-pipeline/v1.1/encode_bam2ta/encode_bam2ta.cwl
+  name: encode_bam2ta.py
+  softwareVersion: v1.1.5
+  version: 1.0.0
+ST_263ee1.f7:
+  path: /home/ksebby/PycharmProjects/xD-CWL-utils/tests/test_files/test_content/cwl-scripts/ENCODE-DCC/atac-seq-pipeline/v1.1/encode_trim_adapter/encode_trim_adapter.cwl
+  name: encode_trim_adapter.py
+  softwareVersion: v1.1.5
+  version: 1.0.0
+ST_8646fc.f7:
+  path: /home/ksebby/PycharmProjects/xD-CWL-utils/tests/test_files/test_content/cwl-scripts/ENCODE-DCC/atac-seq-pipeline/v1.1/encode_idr/encode_idr.cwl
+  name: encode_idr.py
+  softwareVersion: v1.1.5
+  version: 1.0.0
+ST_da7194.f7:
+  path: /home/ksebby/PycharmProjects/xD-CWL-utils/tests/test_files/test_content/cwl-scripts/ENCODE-DCC/atac-seq-pipeline/v1.1/encode_macs2_atac/encode_macs2_atac.cwl
+  name: encode_macs2_atac.py
+  softwareVersion: v1.1.5
+  version: 1.0.0
+ST_3b3a64.f7:
+  path: /home/ksebby/PycharmProjects/xD-CWL-utils/tests/test_files/test_content/cwl-scripts/ENCODE-DCC/atac-seq-pipeline/v1.1/encode_qc_report/encode_qc_report.cwl
+  name: encode_qc_report.py
+  softwareVersion: v1.1.5
+  version: 1.0.0
