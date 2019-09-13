@@ -1,17 +1,28 @@
-
+import os
+from pathlib import Path
 from ruamel.yaml import safe_load, YAML
-from src.config import CWL_TOOL_DIR, BASE_DIR, CWL_SCRIPT_DIR, CONTENT_MAPS_DIR
-from src.classes.script_metadata import ScriptMetadata
-from src.classes.tool_metadata import ToolMetadata, ParentToolMetadata, SubtoolMetadata
-from src.helpers.get_paths import get_cwl_tool, get_tool_inputs, get_cwl_tool_metadata, get_tool_version_dir, get_script_version_dir, get_metadata_path, get_relative_path
+from src.config import config
+from src.classes.metadata.script_metadata import ScriptMetadata
+from src.classes.metadata.tool_metadata import ToolMetadata, ParentToolMetadata, SubtoolMetadata
+from src.classes.metadata.workflow_metadata import WorkflowMetadata
+from src.helpers.get_paths import get_cwl_tool, get_cwl_tool_metadata, get_tool_version_dir, \
+    get_script_version_dir, get_metadata_path, get_relative_path, get_workflow_version_dir
 
-def make_tools_map(outfile_name='tool-maps'):
+def make_tools_map(tool_dir, outfile_path):
+    """
+    Make a yaml file that specifies paths and attributes of tools in tool_dir.
+    :param tool_dir (Path): Path of directory that contains tools.
+    :param outfile_name(str): name of file that will be made.
+    :return:
+        None
+    """
+    if not isinstance(outfile_path, Path):
+        outfile_path = Path(outfile_path)
     content_map = {}
-    for tool_dir in  CWL_TOOL_DIR.iterdir():
+    for tool_dir in  tool_dir.iterdir():
         for version_dir in tool_dir.iterdir():
             tool_map = make_tool_map(tool_dir.name, version_dir.name)
-            content_map[f"{tool_dir.name}__{version_dir.name}"] = tool_map
-    outfile_path = CONTENT_MAPS_DIR / f"{outfile_name}.yaml"
+            content_map.update(tool_map)
     yaml = YAML(pure=True)
     yaml.default_flow_style = False
     yaml.indent(mapping=2, sequence=4, offset=2)
@@ -21,7 +32,7 @@ def make_tools_map(outfile_name='tool-maps'):
 
 
 def make_tool_map(tool_name, tool_version):
-    tool_map = []
+    tool_map = {}
     tool_version_dir = get_tool_version_dir(tool_name, tool_version)
     subdir_names = [subdir.name for subdir in tool_version_dir.iterdir()]
     has_common_dir = True if 'common' in subdir_names else False  # This is the sign of a complex tool. Could also choose len(subdir_names > 1)
@@ -29,8 +40,7 @@ def make_tool_map(tool_name, tool_version):
         parent_metadata_path = get_cwl_tool_metadata(tool_name, tool_version, parent=True)
         parent_metadata = ParentToolMetadata.load_from_file(parent_metadata_path)
         parent_rel_path = get_relative_path(parent_metadata_path)
-        tool_map.append({'identifier': parent_metadata.identifier, 'path': str(parent_rel_path), 'version': parent_metadata.version, 'name': parent_metadata.name, 'softwareVersion': parent_metadata.softwareVersion, 'type': 'parent'})
-        # tool_map[parent_identifier] = str(parent_metadata_path)
+        tool_map[parent_metadata.identifier] = {'path': str(parent_rel_path), 'version': parent_metadata.version, 'name': parent_metadata.name, 'softwareVersion': parent_metadata.softwareVersion, 'type': 'parent'}
         subdir_names.remove('common')
         for subdir_name in subdir_names:
             subtool_name_parts = subdir_name.split('_')
@@ -48,23 +58,23 @@ def make_tool_map(tool_name, tool_version):
             subtool_rel_path = get_relative_path(subtool_cwl_path)
             subtool_metadata_path = get_cwl_tool_metadata(tool_name, tool_version, subtool_name=subtool_name, parent=False)
             subtool_metadata = SubtoolMetadata.load_from_file(subtool_metadata_path)
-            tool_map.append({'identifier': subtool_metadata.identifier, 'path': str(subtool_rel_path), 'name': subtool_metadata.name, 'version': subtool_metadata.version, 'type': 'subtool'})
+            tool_map[subtool_metadata.identifier] = {'path': str(subtool_rel_path), 'name': subtool_metadata.name, 'version': subtool_metadata.version, 'type': 'subtool'}
     else: # Not a complex tool. Should just have one directory for main tool.
         metadata_path = get_cwl_tool_metadata(tool_name, tool_version)
         metadata = ToolMetadata.load_from_file(metadata_path)
         tool_rel_path = get_relative_path((get_cwl_tool(tool_name, tool_version)))
-        tool_map.append({'identifier': metadata.identifier, 'path': str(tool_rel_path), 'name': metadata.name, 'softwareVersion': metadata.softwareVersion, 'version': metadata.version, 'type': 'tool'})
+        tool_map[metadata.identifier] = {'path': str(tool_rel_path), 'name': metadata.name, 'softwareVersion': metadata.softwareVersion, 'version': metadata.version, 'type': 'tool'}
 
     return tool_map
 
 
 def make_script_maps(outfile_name="script-maps"):
     script_maps = {}
-    for group_dir in CWL_SCRIPT_DIR.iterdir():
+    for group_dir in config[os.environ['CONFIG_KEY']]['cwl_script_dir'].iterdir():
         for project_dir in group_dir.iterdir():
             for version_dir in project_dir.iterdir():
-                script_maps[f"{group_dir.name}_{project_dir.name}_{version_dir.name}"] = make_script_map(group_dir.name, project_dir.name, version_dir.name)
-    outfile_path = CONTENT_MAPS_DIR / f"{outfile_name}.yaml"
+                script_maps.update(make_script_map(group_dir.name, project_dir.name, version_dir.name))
+    outfile_path = config[os.environ['CONFIG_KEY']]['content_maps_dir'] / f"{outfile_name}.yaml"
     yaml = YAML(pure=True)
     yaml.default_flow_style = False
     yaml.indent(mapping=2, sequence=4, offset=2)
@@ -87,6 +97,33 @@ def make_script_map(group_name, project_name, version):
 
 
 
+def make_workflow_maps(outfile_name='workflow-maps'):
+    master_workflow_map = {}
+    for group_dir in config[os.environ['CONFIG_KEY']]['cwl_workflows_dir'].iterdir():
+        for project_dir in group_dir.iterdir():
+            for version_dir in project_dir.iterdir():
+                workflow_dict = make_workflow_map(group_dir.name, project_dir.name, version_dir.name)
+                master_workflow_map.update(workflow_dict)
+    outfile_path = config[os.environ['CONFIG_KEY']]['content_maps_dir'] / f"{outfile_name}.yaml"
+    yaml = YAML(pure=True)
+    yaml.default_flow_style = False
+    yaml.indent(mapping=2, sequence=4, offset=2)
+    with outfile_path.open('w') as outfile:
+        yaml.dump(master_workflow_map, outfile)
+    return
+
+
+def make_workflow_map(group_name, project_name, version):
+    workflow_map = {}
+    workflow_ver_dir = get_workflow_version_dir(group_name, project_name, version)
+    workflow_path = workflow_ver_dir / f"{project_name}.cwl"
+    workflow_metadata_path = get_metadata_path(workflow_path)
+    workflow_metadata = WorkflowMetadata.load_from_file(workflow_metadata_path)
+    workflow_map[workflow_metadata.identifier] = {'path': str(workflow_path), 'name': workflow_metadata.name, 'softwareVersion': workflow_metadata.softwareVersion, 'version': workflow_metadata.version}
+    return workflow_map
+
+
+
 def combine_yaml_files_into_dict(file_path, *file_paths):
     # make a 'master map' that contains all file
     combined_dict = {}
@@ -99,7 +136,7 @@ def combine_yaml_files_into_dict(file_path, *file_paths):
 
 def make_master_map(file_name, *file_names, outfile_name="master_map"):
 
-    file_path = CONTENT_MAPS_DIR / f"{file_name}.yaml"
+    file_path = config[os.environ['CONFIG_KEY']]['content_maps_dir'] / f"{file_name}.yaml"
 
     raise NotImplementedError
 

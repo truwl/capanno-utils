@@ -1,6 +1,6 @@
 
 from pathlib import Path
-from src.classes.workflow_metadata import WorkflowMetadata
+from src.classes.metadata.workflow_metadata import WorkflowMetadata
 
 
 def _get_workflow_directory(group_name, workflow_name, workflow_version):

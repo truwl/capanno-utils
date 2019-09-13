@@ -1,39 +1,46 @@
+import os
 from tests.test_base import TestBase
 from pathlib import Path
 from ruamel.yaml import safe_load
-from content_maps import tool_maps, script_maps, workflow_maps
-from src.validate import main
+from src.config import config
+from src.helpers.get_paths import get_metadata_path
+from src.validate_metadata import main
 
 class TestValidateContent(TestBase):
 
     def test_validate_tools(self):
-        for identifier, tool_path in tool_maps.everything.items():
-            path = Path(tool_path)
-            if path.suffix == '.yaml':
-                if not 'common' in path.parts:
-                    raise ValueError(f"Have a parent-like path that is not in a common directory {path}")
+        tool_map = config[os.environ.get('CONFIG_KEY')]['content_maps_dir'] / 'tool-maps.yaml'
+        with tool_map.open('r') as tm:
+            tool_map_dict = safe_load(tm)
+        for identifier, values in tool_map_dict.items():
+            path = Path(values['path'])
+            tool_type = values['type']
+            if tool_type == 'parent':
+                if not 'common' in path.parts:  # values[type] would be better test.
+                    raise ValueError(f"Have a parent tool that is not in a common directory {path}")
                 meta_type = 'parent_tool'
                 meta_path = path
             else:  # either a subtool or standalone tool.
-                meta_path = TestBase.get_metadata_path(path)
-                with meta_path.open('r') as f:
-                    meta_dict = safe_load(f)
-                if meta_dict.get('parentMetadata'):
-                    meta_type = 'subtool'
-                else:
-                    meta_type = 'tool'
-            main(meta_type, meta_path)
+                meta_path = get_metadata_path(path)
+                meta_type = tool_type
+            main([meta_type, str(meta_path)])
         return
 
     def test_validate_scripts(self):
-        for script_identifier, script_path in script_maps.everything.items():
-            metadata_path = TestBase.get_metadata_path(script_path)
-            main('script', metadata_path)
+        script_map_path = config[os.environ.get('CONFIG_KEY')]['content_maps_dir'] / 'script-maps.yaml'
+        with script_map_path.open('r') as sm:
+            script_map = safe_load(sm)
+        for script_identifier, script_values in script_map.items():
+            metadata_path = get_metadata_path(Path(script_values['path']))
+            main(['script', str(metadata_path)])
         return
 
 
     def test_validate_workflows(self):
-        for workflow_identifier, workflow_cwl_path in workflow_maps.everything.items():
-            metadata_path = TestBase.get_metadata_path(workflow_cwl_path)
-            main('workflow', metadata_path)
+        workflow_maps_path =config[os.environ.get('CONFIG_KEY')]['content_maps_dir'] / 'workflow-maps.yaml'
+        with workflow_maps_path.open('r') as wm:
+            workflow_map = safe_load(wm)
+        for workflow_identifier, workflow_values in workflow_map.items():
+            metadata_path = get_metadata_path(workflow_values['path'])
+            main(['workflow', str(metadata_path)])
         return
