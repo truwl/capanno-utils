@@ -8,26 +8,26 @@ from .classes.metadata.script_metadata import ScriptMetadata, CommonScriptMetada
 from .classes.metadata.workflow_metadata import WorkflowMetadata
 
 
-parser = argparse.ArgumentParser(description="Validate metadata files.")
-subparsers = parser.add_subparsers(description="Specify type of metadata to validate.", dest='command')
-
-validate_tool = subparsers.add_parser('tool', help="Validate tool metadata.")
-validate_tool.add_argument('path', help="Path to tool metadata file.")
-
-validate_parent_tool = subparsers.add_parser('parent_tool', help="Validate parent tool metadata.")
-validate_parent_tool.add_argument('path', help="Path to parent tool metadata file.")
-
-validate_subtool = subparsers.add_parser('subtool', help="Validate subtool metadata.")
-validate_subtool.add_argument('path', help="Path to subtool metadata file.")
-
-validate_script = subparsers.add_parser('script', help="Validate script metadata")
-validate_script.add_argument('path', help="Path to script metadata file.")
-
-validate_script_common = subparsers.add_parser('script_common', help="Validate common script metadata.")
-validate_script_common.add_argument('path', help="Validate common script metadata")
-
-validate_workflow = subparsers.add_parser('workflow', help="Validate workflow metadata.")
-validate_workflow.add_argument('path', help="Path to workflow metadata")
+# parser = argparse.ArgumentParser(description="Validate metadata files.")
+# subparsers = parser.add_subparsers(description="Specify type of metadata to validate.", dest='command')
+#
+# validate_tool = subparsers.add_parser('tool', help="Validate tool metadata.")
+# validate_tool.add_argument('path', help="Path to tool metadata file.")
+#
+# validate_parent_tool = subparsers.add_parser('parent_tool', help="Validate parent tool metadata.")
+# validate_parent_tool.add_argument('path', help="Path to parent tool metadata file.")
+#
+# validate_subtool = subparsers.add_parser('subtool', help="Validate subtool metadata.")
+# validate_subtool.add_argument('path', help="Path to subtool metadata file.")
+#
+# validate_script = subparsers.add_parser('script', help="Validate script metadata")
+# validate_script.add_argument('path', help="Path to script metadata file.")
+#
+# validate_script_common = subparsers.add_parser('script_common', help="Validate common script metadata.")
+# validate_script_common.add_argument('path', help="Validate common script metadata")
+#
+# validate_workflow = subparsers.add_parser('workflow', help="Validate workflow metadata.")
+# validate_workflow.add_argument('path', help="Path to workflow metadata")
 
 def metadata_validator_factory(class_to_validate):
     def metadata_validator(metadata_path):
@@ -41,7 +41,37 @@ def metadata_validator_factory(class_to_validate):
         return
     return metadata_validator
 
-def main(command, path):
+def main(argsl):
+    if not argsl:
+        argsl = sys.argv[1:]
+
+
+
+    parser = argparse.ArgumentParser(description="Validate metadata files.")
+    subparsers = parser.add_subparsers(description="Specify type of metadata to validate.", dest='command')
+
+    validate_tool = subparsers.add_parser('tool', help="Validate tool metadata.")
+    validate_tool.add_argument('path', help="Path to tool metadata file.")
+
+    validate_parent_tool = subparsers.add_parser('parent_tool', help="Validate parent tool metadata.")
+    validate_parent_tool.add_argument('path', help="Path to parent tool metadata file.")
+
+    validate_subtool = subparsers.add_parser('subtool', help="Validate subtool metadata.")
+    validate_subtool.add_argument('path', help="Path to subtool metadata file.")
+
+    validate_script = subparsers.add_parser('script', help="Validate script metadata")
+    validate_script.add_argument('path', help="Path to script metadata file.")
+
+    validate_script_common = subparsers.add_parser('script_common', help="Validate common script metadata.")
+    validate_script_common.add_argument('path', help="Validate common script metadata")
+
+    validate_workflow = subparsers.add_parser('workflow', help="Validate workflow metadata.")
+    validate_workflow.add_argument('path', help="Path to workflow metadata")
+
+    args = parser.parse_args(argsl)
+    command = args.command
+    path =args.path
+
     if command == 'tool':
         validate_tool_metadata = metadata_validator_factory(ToolMetadata)
         validate_tool_metadata(path)
@@ -66,10 +96,7 @@ def main(command, path):
         validate_workflow_metadata(path)
     else:
         parser.print_help()
-    return
+    return 0
 
 if __name__ == "__main__":
-    args = parser.parse_args()
-    print(args.command)
-    main(args.command, args.path)
-    sys.exit(0)
+    sys.exit(main(sys.argv[1:]))

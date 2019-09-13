@@ -1,6 +1,6 @@
 
-import os
-import sys
 
-os.environ['CONFIG_KEY'] =\
-    'DEFAULT'
+
+def main():
+    """Entry point."""
+    pass

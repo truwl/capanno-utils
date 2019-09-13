@@ -23,7 +23,7 @@ class TestValidateContent(TestBase):
             else:  # either a subtool or standalone tool.
                 meta_path = get_metadata_path(path)
                 meta_type = tool_type
-            main(meta_type, meta_path)
+            main([meta_type, str(meta_path)])
         return
 
     def test_validate_scripts(self):
@@ -32,7 +32,7 @@ class TestValidateContent(TestBase):
             script_map = safe_load(sm)
         for script_identifier, script_values in script_map.items():
             metadata_path = get_metadata_path(Path(script_values['path']))
-            main('script', metadata_path)
+            main(['script', str(metadata_path)])
         return
 
 
@@ -42,5 +42,5 @@ class TestValidateContent(TestBase):
             workflow_map = safe_load(wm)
         for workflow_identifier, workflow_values in workflow_map.items():
             metadata_path = get_metadata_path(workflow_values['path'])
-            main('workflow', metadata_path)
+            main(['workflow', str(metadata_path)])
         return
