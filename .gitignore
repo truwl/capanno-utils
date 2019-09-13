@@ -17,3 +17,6 @@ __pycache__/
 *.so
 
 temp/
+dist/
+build/
+*.egg-info/
