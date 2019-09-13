@@ -24,7 +24,7 @@ setup(
         'cwltool',
     ],
     entry_points={
-        'console_scripts': ['xd-cwl-validate=src.validate_metadata:main']
+        'console_scripts': ["xd-cwl-validate=src.validate_metadata:main"]
                   },
     classifiers=[
         "Development Status :: 3 - Alpha",

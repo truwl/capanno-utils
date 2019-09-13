@@ -41,7 +41,7 @@ def metadata_validator_factory(class_to_validate):
         return
     return metadata_validator
 
-def main(argsl):
+def main(argsl=None):
     if not argsl:
         argsl = sys.argv[1:]
 
