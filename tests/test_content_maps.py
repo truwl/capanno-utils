@@ -1,8 +1,7 @@
 import os
-from pathlib import Path
 from tests.test_base import TestBase
-from src.config import config
-from src.content_maps import make_tools_map, make_script_map, make_script_maps
+from xd_cwl_utils.config import config
+from xd_cwl_utils.content_maps import make_tools_map, make_script_map, make_script_maps
 
 class TestToolMaps(TestBase):
 

@@ -13,8 +13,7 @@ import itertools
 import os
 import re
 import traceback
-from typing import (Any, AnyStr, Callable, Dict, List, MutableMapping,
-                    MutableSequence, Pattern, Tuple, Union)
+from typing import (Any, AnyStr, Callable, Pattern, Tuple)
 from future.utils import raise_from
 
 import ruamel.yaml
@@ -22,7 +21,7 @@ import six
 from ruamel.yaml.comments import CommentedBase, CommentedMap, CommentedSeq
 from typing_extensions import Text  # pylint: disable=unused-import
 # move to a regular typing import when Python 3.3-3.6 is no longer supported
-from src.classes.cwl.command_line_tool_mixins import CommandLineToolMixin, CommandInputParameterMixin, SchemaDefRequirementMixin
+from .command_line_tool_mixins import CommandLineToolMixin, CommandInputParameterMixin, SchemaDefRequirementMixin
 
 
 lineno_re = re.compile(u"^(.*?:[0-9]+:[0-9]+: )(( *)(.*))")

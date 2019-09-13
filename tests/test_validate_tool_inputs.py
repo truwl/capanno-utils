@@ -1,11 +1,9 @@
 import os
 import unittest
 from tests.test_base import TestBase
-from src.config import config
+from xd_cwl_utils.config import config
 from ruamel.yaml import safe_load
-from src.validate_inputs import validate_inputs_for_instance
-from src.helpers.get_paths import get_cwl_tool, get_tool_instance_path
-from src.classes.schema_salad.schema_salad import InputsSchema
+from xd_cwl_utils.validate_inputs import validate_inputs_for_instance
 
 class TestValidateInputs(TestBase):
 

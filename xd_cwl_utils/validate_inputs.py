@@ -1,6 +1,6 @@
 
-from .helpers.get_paths import get_cwl_tool, get_tool_instance_path, get_tool_dir
-from .classes.schema_salad.schema_salad import InputsSchema
+from xd_cwl_utils.helpers.get_paths import get_cwl_tool, get_tool_instance_path, get_tool_dir
+from xd_cwl_utils.classes.schema_salad.schema_salad import InputsSchema
 
 def validate_inputs_for_instance(tool_name, tool_version, instance_hash, subtool_name=None):
     cwl_path = get_cwl_tool(tool_name, tool_version, subtool_name=subtool_name)

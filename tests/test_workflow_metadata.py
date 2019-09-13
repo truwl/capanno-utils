@@ -6,9 +6,9 @@ import os
 from pathlib import Path
 from ruamel.yaml import safe_load
 from tests.test_base import TestBase
-from src.config import config
-from src.helpers.get_paths import get_workflow_metadata
-from src.classes.metadata.workflow_metadata import WorkflowMetadata
+from xd_cwl_utils.config import config
+from xd_cwl_utils.helpers.get_paths import get_workflow_metadata
+from xd_cwl_utils.classes.metadata.workflow_metadata import WorkflowMetadata
 
 
 class TestWorkflowMetadata(TestBase):

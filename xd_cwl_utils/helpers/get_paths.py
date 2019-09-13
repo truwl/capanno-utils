@@ -1,6 +1,6 @@
 import os
 from pathlib import Path
-from src.config import config
+from xd_cwl_utils.config import config
 
 # IDEA: Using Path class, it might be better to generate the get methods by getting longest path, then using Path.parents
 # for parent directories. More maintainable if we change path structure. Maybe not.

@@ -1,11 +1,11 @@
 import os
 from pathlib import Path
 from ruamel.yaml import safe_load, YAML
-from src.config import config
-from src.classes.metadata.script_metadata import ScriptMetadata
-from src.classes.metadata.tool_metadata import ToolMetadata, ParentToolMetadata, SubtoolMetadata
-from src.classes.metadata.workflow_metadata import WorkflowMetadata
-from src.helpers.get_paths import get_cwl_tool, get_cwl_tool_metadata, get_tool_version_dir, \
+from xd_cwl_utils.config import config
+from xd_cwl_utils.classes.metadata.script_metadata import ScriptMetadata
+from xd_cwl_utils.classes.metadata.tool_metadata import ToolMetadata, ParentToolMetadata, SubtoolMetadata
+from xd_cwl_utils.classes.metadata.workflow_metadata import WorkflowMetadata
+from xd_cwl_utils.helpers.get_paths import get_cwl_tool, get_cwl_tool_metadata, get_tool_version_dir, \
     get_script_version_dir, get_metadata_path, get_relative_path, get_workflow_version_dir
 
 def make_tools_map(tool_dir, outfile_path):

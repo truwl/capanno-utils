@@ -3,13 +3,13 @@ import tempfile
 from pathlib import Path
 from urllib.parse import urlparse
 from copy import deepcopy
-from ruamel.yaml import YAML, safe_load, dump
+from ruamel.yaml import YAML
 from schema_salad.ref_resolver import file_uri, Loader
 from schema_salad.jsonld_context import salad_to_jsonld_context
 from schema_salad.schema import get_metaschema, validate_doc, collect_namespaces, make_avro, make_avro_schema_from_avro
-from src.classes.cwl.command_line_tool import load_document
-from src.helpers.string_tools import uri_name
-from src.helpers.dict_tools import get_dict_from_list
+from xd_cwl_utils.classes.cwl.command_line_tool import load_document
+from xd_cwl_utils.helpers.string_tools import uri_name
+from xd_cwl_utils.helpers.dict_tools import get_dict_from_list
 
 
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 from pathlib import Path
-from src.classes.metadata.tool_metadata import ToolMetadata, ParentToolMetadata
+from xd_cwl_utils.classes.metadata.tool_metadata import ToolMetadata, ParentToolMetadata
 
 
 def add_parent_tool(tool_name, tool_version, subtool_names=None, biotools_id=None):
