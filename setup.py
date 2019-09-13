@@ -6,7 +6,7 @@ with open('README.md', 'r') as fh:
 
 setup(
     name='xd_cwl_utils',
-    version='0.1.1',
+    version='0.1.2',
     packages=find_packages(),
     url='https://github.com/xDBio-Inc/xd-cwl-utils',
     license='Apache 2.0',
