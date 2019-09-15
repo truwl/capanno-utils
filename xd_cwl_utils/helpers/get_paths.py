@@ -15,6 +15,15 @@ def get_inputs_schema_template():
 
 # cwl-tools
 
+def get_root_tools_dir():
+    tool_dir = config[os.environ['CONFIG_KEY']]['cwl_tool_dir']
+    return tool_dir
+
+def get_main_tool_dir(tool_name):
+    root_tools_dir = get_root_tools_dir()
+    main_tool_dir = root_tools_dir / tool_name
+    return main_tool_dir
+
 def get_tool_version_dir(tool_name, tool_version):
     version_dir = config[os.environ['CONFIG_KEY']]['cwl_tool_dir'] / tool_name / tool_version
     return version_dir
