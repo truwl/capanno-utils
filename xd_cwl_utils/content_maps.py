@@ -8,7 +8,7 @@ from xd_cwl_utils.classes.metadata.workflow_metadata import WorkflowMetadata
 from xd_cwl_utils.helpers.get_paths import get_cwl_tool, get_cwl_tool_metadata, get_tool_version_dir, \
     get_script_version_dir, get_metadata_path, get_relative_path, get_workflow_version_dir
 
-def make_tools_map(outfile_path):
+def make_tools_map(outfile_path, cwl_tools_dir=None):
     """
     Make a yaml file that specifies paths and attributes of tools in tool_dir.
     :param tool_dir (Path): Path of directory that contains tools.
@@ -16,9 +16,11 @@ def make_tools_map(outfile_path):
     :return:
         None
     """
+    if not cwl_tools_dir:
+        cwl_tools_dir = config[os.environ['CONFIG_KEY']]['cwl_tool_dir']
     content_map = {}
     outfile_path = Path(outfile_path)
-    for tool_dir in  config[os.environ['CONFIG_KEY']]['cwl_tool_dir'].iterdir():
+    for tool_dir in  cwl_tools_dir.iterdir():
         for version_dir in tool_dir.iterdir():
             tool_map = make_tool_map(tool_dir.name, version_dir.name)
             content_map.update(tool_map)
@@ -67,13 +69,15 @@ def make_tool_map(tool_name, tool_version):
     return tool_map
 
 
-def make_script_maps(outfile_name="script-maps"):
+def make_script_maps(outfile_path, cwl_scripts_dir=None):
+    if not cwl_scripts_dir:
+        cwl_scripts_dir = config[os.environ['CONFIG_KEY']]['cwl_script_dir']
     script_maps = {}
-    for group_dir in config[os.environ['CONFIG_KEY']]['cwl_script_dir'].iterdir():
+    outfile_path = Path(outfile_path)
+    for group_dir in cwl_scripts_dir.iterdir():
         for project_dir in group_dir.iterdir():
             for version_dir in project_dir.iterdir():
                 script_maps.update(make_script_map(group_dir.name, project_dir.name, version_dir.name))
-    outfile_path = config[os.environ['CONFIG_KEY']]['content_maps_dir'] / f"{outfile_name}.yaml"
     yaml = YAML(pure=True)
     yaml.default_flow_style = False
     yaml.indent(mapping=2, sequence=4, offset=2)
