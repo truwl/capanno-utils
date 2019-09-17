@@ -7,7 +7,7 @@ from .content_maps import make_tools_map, make_script_maps
 from .validate_metadata import main as validate_meta
 from .helpers.get_paths import get_metadata_path
 from .helpers.validate_cwl import validate_cwl_tool, validate_cwl_tool_2
-
+from .validate_inputs import validate_all_inputs_for_tool
 
 def validate_tool_instances(cwl_file, instances_dir):
     raise NotImplementedError
@@ -44,7 +44,9 @@ def validate_tools_dir(cwl_tools_dir=None):
             if file_version >= Version('1.0.0'):
                 validate_cwl_tool_2(tool_path)
 
-            # TODO: validate instances.  Work on this one.
+                # validate instances
+                validate_all_inputs_for_tool(tool_path)
+
     return
 
 
@@ -63,7 +65,7 @@ def validate_scripts_dir(cwl_scripts_dir=None):
         document_version = Version(values['version'])
         if document_version >= Version('1.0.0'):
             validate_cwl_tool_2(values['path'])
-
+        # TODO validate instances.
     return
 
 

@@ -61,6 +61,10 @@ def get_tool_inputs_dir(tool_name, tool_version, subtool_name=None):
     instances_dir = cwl_tool_dir / 'instances'
     return instances_dir
 
+def get_tool_instances_dir_from_cwl_path(cwl_path):
+    cwl_path = Path(cwl_path)
+    instances_dir = cwl_path.parent / 'instances'
+    return instances_dir
 
 
 def get_tool_instance_path(tool_name, tool_version, input_hash, subtool_name=None):
