@@ -6,9 +6,8 @@ from xd_cwl_utils.content_maps import make_tools_map, make_script_map, make_scri
 class TestToolMaps(TestBase):
 
     def test_make_tools_map(self):
-        tools_dir = config[os.environ.get('CONFIG_KEY')]['cwl_tool_dir']
         outfile_path = config[os.environ.get('CONFIG_KEY')]['content_maps_dir'] / 'tool-maps.yaml'
-        make_tools_map(tools_dir, outfile_path)
+        make_tools_map(outfile_path)
         return
 
 

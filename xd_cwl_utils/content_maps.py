@@ -8,7 +8,7 @@ from xd_cwl_utils.classes.metadata.workflow_metadata import WorkflowMetadata
 from xd_cwl_utils.helpers.get_paths import get_cwl_tool, get_cwl_tool_metadata, get_tool_version_dir, \
     get_script_version_dir, get_metadata_path, get_relative_path, get_workflow_version_dir
 
-def make_tools_map(tool_dir, outfile_path):
+def make_tools_map(outfile_path):
     """
     Make a yaml file that specifies paths and attributes of tools in tool_dir.
     :param tool_dir (Path): Path of directory that contains tools.
@@ -16,10 +16,9 @@ def make_tools_map(tool_dir, outfile_path):
     :return:
         None
     """
-    if not isinstance(outfile_path, Path):
-        outfile_path = Path(outfile_path)
     content_map = {}
-    for tool_dir in  tool_dir.iterdir():
+    outfile_path = Path(outfile_path)
+    for tool_dir in  config[os.environ['CONFIG_KEY']]['cwl_tool_dir'].iterdir():
         for version_dir in tool_dir.iterdir():
             tool_map = make_tool_map(tool_dir.name, version_dir.name)
             content_map.update(tool_map)
