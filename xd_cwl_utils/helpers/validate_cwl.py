@@ -4,7 +4,11 @@ import cwltool.main
 
 
 def validate_cwl_tool(cwl_tool_path):
-
+    """
+    Wrapper to call cwltool --validate cwl_tool_path
+    :param cwl_tool_path:
+    :return:
+    """
     # works, but I can't get logger to shut up.
     cwl_path = str(cwl_tool_path)  # in case it is a Path object.
     logger_handler = logging.NullHandler()

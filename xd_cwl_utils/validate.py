@@ -9,8 +9,6 @@ from .helpers.get_paths import get_metadata_path
 from .helpers.validate_cwl import validate_cwl_tool, validate_cwl_tool_2
 from .validate_inputs import validate_all_inputs_for_tool
 
-def validate_tool_instances(cwl_file, instances_dir):
-    raise NotImplementedError
 
 def validate_tools_dir(cwl_tools_dir=None):
     """
@@ -58,16 +56,19 @@ def validate_scripts_dir(cwl_scripts_dir=None):
         script_map_dict = safe_load(script_map)
     for identifier, values in script_map_dict.items():
         # validate metadata
-        metadata_path = get_metadata_path(values['path'])
+        script_path = values['path']
+        metadata_path = get_metadata_path(script_path)
         validate_meta(['script', str(metadata_path)])
 
         # validate cwl
         document_version = Version(values['version'])
         if document_version >= Version('1.0.0'):
             validate_cwl_tool_2(values['path'])
-        # TODO validate instances.
+            validate_all_inputs_for_tool(script_path)
     return
 
 
-def validate_repo():
-    raise NotImplementedError
+def validate_repo(cwl_tools_dir=None, cwl_scripts_dir=None):
+    validate_tools_dir(cwl_tools_dir=cwl_tools_dir)
+    validate_scripts_dir(cwl_scripts_dir=cwl_scripts_dir)
+    return
