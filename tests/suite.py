@@ -7,8 +7,8 @@ from tests.test_tool_metadata import TestMakeToolMetadata, TestMakeParentToolMet
 from tests.test_script_metadata import TestScriptMetadata
 from tests.test_content_maps import TestToolMaps
 from tests.test_workflow_metadata import TestWorkflowMetadata
-from tests.test_get_metadata import TestMetadataFromBioTools
 from tests.test_validate import TestValidateMetadata
+from tests.test_validate_all import TestValidateDirectories
 from tests.test_validate_all_metadata_in_maps import TestValidateContent
 from tests.test_validate_tool_inputs import TestValidateInputs
 
@@ -17,10 +17,10 @@ from tests.test_validate_tool_inputs import TestValidateInputs
 def suite_full():
     suite = TestSuite()
     suite.addTest(suite_content_maps())
-    suite.addTest(suite_get_metadata())
     suite.addTest(suite_script_metadata())
     suite.addTest(suite_validate())
     suite.addTest(suite_validate_all_metadata_in_maps())
+    suite.addTest(suite_validate_directories())
     suite.addTest(suite_validate_tool_inputs())
     suite.addTest(suite_workflow_metadata())
     return suite
@@ -30,9 +30,6 @@ def suite_content_maps():
     suite = defaultTestLoader.loadTestsFromTestCase(TestToolMaps)
     return suite
 
-def suite_get_metadata():
-    suite = defaultTestLoader.loadTestsFromTestCase(TestMetadataFromBioTools)
-    return suite
 
 def suite_script_metadata():
     suite = defaultTestLoader.loadTestsFromTestCase(TestScriptMetadata)
@@ -47,6 +44,10 @@ def suite_tool_metadata():
 
 def suite_validate():
     suite = defaultTestLoader.loadTestsFromTestCase(TestValidateMetadata)
+    return suite
+
+def suite_validate_directories():
+    suite = defaultTestLoader.loadTestsFromTestCase(TestValidateDirectories)
     return suite
 
 def suite_validate_all_metadata_in_maps():
@@ -65,7 +66,6 @@ def suite_workflow_metadata():
 
 def suite_dict():
     suite_dict = {'content_maps': suite_content_maps(),
-                  'get_metadata': suite_get_metadata(),
                   'full': suite_full(),
                   'script_metadata': suite_script_metadata(),
                   'tool_metadata': suite_tool_metadata(),

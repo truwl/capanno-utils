@@ -5,10 +5,10 @@
 import os
 from pathlib import Path
 from ruamel.yaml import safe_load
-from src.config import config
+from xd_cwl_utils.config import config
 from tests.test_base import TestBase
-from src.classes.metadata.script_metadata import ScriptMetadata
-from src.helpers.get_paths import get_cwl_script, get_metadata_path
+from xd_cwl_utils.classes.metadata.script_metadata import ScriptMetadata
+from xd_cwl_utils.helpers.get_paths import get_cwl_script, get_metadata_path
 
 class TestScriptMetadata(TestBase):
 

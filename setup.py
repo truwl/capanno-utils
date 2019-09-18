@@ -5,10 +5,10 @@ with open('README.md', 'r') as fh:
     long_description = fh.read()
 
 setup(
-    name='xd-cwl-utils',
-    version='0.1.0',
-    packages=['src', 'src.add', 'src.classes', 'src.classes.cwl', 'src.helpers', 'tests'],
-    url='https://github.com/xDBio-Inc/xD-CWL-utils',
+    name='xd_cwl_utils',
+    version='0.2.0',
+    packages=find_packages(),
+    url='https://github.com/xDBio-Inc/xd-cwl-utils',
     license='Apache 2.0',
     author='Karl Sebby',
     author_email='karl.sebby@xdbio.com',
@@ -24,7 +24,7 @@ setup(
         'cwltool',
     ],
     entry_points={
-        'console_scripts': ["xd-cwl-validate=src.validate_metadata:main"]
+        'console_scripts': ["xd-cwl-validate=xd_cwl_utils.validate_metadata:main"]
                   },
     classifiers=[
         "Development Status :: 3 - Alpha",

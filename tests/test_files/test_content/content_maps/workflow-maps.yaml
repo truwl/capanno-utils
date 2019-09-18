@@ -1,5 +1,5 @@
 WF_1f4d8f.cb:
-  path: /home/ksebby/PycharmProjects/xd-cwl-utils/tests/test_files/test_content/cwl-workflows/example_workflows/cat_sort/1.0/cat_sort.cwl
+  path: /home/ksebby/PycharmProjects/xd_cwl_utils/tests/test_files/test_content/cwl-workflows/example_workflows/cat_sort/1.0/cat_sort.cwl
   name: cat sort
   softwareVersion: 0.1
   version: 1.0.0

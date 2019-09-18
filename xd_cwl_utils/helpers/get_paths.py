@@ -1,6 +1,6 @@
 import os
 from pathlib import Path
-from src.config import config
+from xd_cwl_utils.config import config
 
 # IDEA: Using Path class, it might be better to generate the get methods by getting longest path, then using Path.parents
 # for parent directories. More maintainable if we change path structure. Maybe not.
@@ -14,6 +14,15 @@ def get_inputs_schema_template():
     return schema_template_path
 
 # cwl-tools
+
+def get_root_tools_dir():
+    tool_dir = config[os.environ['CONFIG_KEY']]['cwl_tool_dir']
+    return tool_dir
+
+def get_main_tool_dir(tool_name):
+    root_tools_dir = get_root_tools_dir()
+    main_tool_dir = root_tools_dir / tool_name
+    return main_tool_dir
 
 def get_tool_version_dir(tool_name, tool_version):
     version_dir = config[os.environ['CONFIG_KEY']]['cwl_tool_dir'] / tool_name / tool_version
@@ -52,6 +61,10 @@ def get_tool_inputs_dir(tool_name, tool_version, subtool_name=None):
     instances_dir = cwl_tool_dir / 'instances'
     return instances_dir
 
+def get_tool_instances_dir_from_cwl_path(cwl_path):
+    cwl_path = Path(cwl_path)
+    instances_dir = cwl_path.parent / 'instances'
+    return instances_dir
 
 
 def get_tool_instance_path(tool_name, tool_version, input_hash, subtool_name=None):

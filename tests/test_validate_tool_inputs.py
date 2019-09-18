@@ -1,11 +1,10 @@
 import os
 import unittest
 from tests.test_base import TestBase
-from src.config import config
+from xd_cwl_utils.config import config
 from ruamel.yaml import safe_load
-from src.validate_inputs import validate_inputs_for_instance
-from src.helpers.get_paths import get_cwl_tool, get_tool_instance_path
-from src.classes.schema_salad.schema_salad import InputsSchema
+from xd_cwl_utils.validate_inputs import validate_inputs_for_instance
+from xd_cwl_utils.helpers.get_paths import get_tool_instance_path, get_cwl_tool
 
 class TestValidateInputs(TestBase):
 
@@ -14,7 +13,9 @@ class TestValidateInputs(TestBase):
         tool_name = 'cat'
         tool_version = '8.25'
         input_hash = '8a6c'
-        validate_inputs_for_instance(tool_name, tool_version, input_hash)
+        cwl_docuument_path = get_cwl_tool(tool_name, tool_version)
+        instance_path = get_tool_instance_path(tool_name, tool_version, input_hash)
+        validate_inputs_for_instance(instance_path, cwl_tool_path=cwl_docuument_path)
         return
 
 
@@ -24,7 +25,9 @@ class TestValidateInputs(TestBase):
         tool_version = '1.3'
         subtool = 'flagstat'
         instance_hash = '395d'
-        validate_inputs_for_instance(tool_name, tool_version, instance_hash, subtool_name=subtool)
+        cwl_document_path = get_cwl_tool(tool_name, tool_version, subtool_name=subtool)
+        instance_path = get_tool_instance_path(tool_name, tool_version, instance_hash, subtool_name=subtool)
+        validate_inputs_for_instance(instance_path, cwl_tool_path=cwl_document_path)
         return
 
     @unittest.skip('')

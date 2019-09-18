@@ -7,7 +7,7 @@ content_base_path = Path.cwd()
 
 # Default values for using tool in repos.
 _default = {
-    'cwl_tool_directory': content_base_path / 'cwl-tools',
+    'cwl_tool_dir': content_base_path / 'cwl-tools',
     'cwl_script_dir': content_base_path / 'cwl-scripts',
     'cwl_workflows_dir': test_rel_content_path / 'cwl-workflows',
     'content_maps_dir': Path.cwd() / 'content_maps',

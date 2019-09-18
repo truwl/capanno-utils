@@ -8,7 +8,7 @@ version: 1.0
 description: cat - concatenate files and print on the standard output.
 codeRepository:
   name: GitHub
-  URL: https://github.com/coreutils/coreutils/blob/master/src/cat.c
+  URL: https://github.com/coreutils/coreutils/blob/master/xd_cwl_utils/cat.c
 license: GPL-3.0-only
 WebSite:
   - name: GNU coreutils

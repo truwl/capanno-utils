@@ -2,9 +2,9 @@ import os
 from tests.test_base import TestBase
 from pathlib import Path
 from ruamel.yaml import safe_load
-from src.config import config
-from src.helpers.get_paths import get_metadata_path
-from src.validate_metadata import main
+from xd_cwl_utils.config import config
+from xd_cwl_utils.helpers.get_paths import get_metadata_path
+from xd_cwl_utils.validate_metadata import main
 
 class TestValidateContent(TestBase):
 
