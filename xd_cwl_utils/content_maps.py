@@ -63,7 +63,7 @@ def make_tool_map(tool_name, tool_version, base_dir=None):
     else: # Not a complex tool. Should just have one directory for main tool.
         metadata_path = get_cwl_tool_metadata(tool_name, tool_version, base_dir=base_dir)
         metadata = ToolMetadata.load_from_file(metadata_path)
-        tool_rel_path = get_relative_path((get_cwl_tool(tool_name, tool_version)))
+        tool_rel_path = get_relative_path((get_cwl_tool(tool_name, tool_version, base_dir=base_dir)))
         tool_map[metadata.identifier] = {'path': str(tool_rel_path), 'name': metadata.name, 'softwareVersion': metadata.softwareVersion, 'version': metadata.version, 'type': 'tool'}
 
     return tool_map
