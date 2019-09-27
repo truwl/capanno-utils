@@ -62,7 +62,7 @@ def get_cwl_tool_metadata(tool_name, tool_version, subtool_name=None, parent=Fal
     if parent:
         cwl_tool_metadata_path = version_dir / 'common' / f"{tool_name}-metadata.yaml"
     else:
-        cwl_tool_metadata_path = get_metadata_path(get_cwl_tool(tool_name, tool_version, subtool_name=subtool_name))
+        cwl_tool_metadata_path = get_metadata_path(get_cwl_tool(tool_name, tool_version, subtool_name=subtool_name, base_dir=base_dir))
     return cwl_tool_metadata_path
 
 
