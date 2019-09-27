@@ -22,7 +22,7 @@ def make_tools_map(outfile_path, base_dir=None):
     outfile_path = Path(outfile_path)
     for tool_dir in  cwl_tools_dir.iterdir():
         for version_dir in tool_dir.iterdir():
-            tool_map = make_tool_map(tool_dir.name, version_dir.name)
+            tool_map = make_tool_map(tool_dir.name, version_dir.name, base_dir=base_dir)
             content_map.update(tool_map)
     yaml = YAML(pure=True)
     yaml.default_flow_style = False
