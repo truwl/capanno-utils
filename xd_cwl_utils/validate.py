@@ -10,13 +10,13 @@ from .helpers.validate_cwl import validate_cwl_tool, validate_cwl_tool_2
 from .validate_inputs import validate_all_inputs_for_tool
 
 
-def validate_tools_dir(cwl_tools_dir=None):
+def validate_tools_dir(base_dir=None):
     """
     Validate all cwl files, metadata files, instances and instance metadata in a cwl-tools directory
     :return:
     """
     tool_map_temp_file = tempfile.NamedTemporaryFile(prefix='tools_map', suffix='.yaml', delete=True)  # Change to False if file doesn't persist long enough.
-    make_tools_map(tool_map_temp_file.name, cwl_tools_dir=cwl_tools_dir)
+    make_tools_map(tool_map_temp_file.name, base_dir=base_dir)
     with tool_map_temp_file as tool_map:
         tool_map_dict = safe_load(tool_map)
     for identifier, values in tool_map_dict.items():
@@ -68,7 +68,7 @@ def validate_scripts_dir(cwl_scripts_dir=None):
     return
 
 
-def validate_repo(cwl_tools_dir=None, cwl_scripts_dir=None):
-    validate_tools_dir(cwl_tools_dir=cwl_tools_dir)
+def validate_repo(cwl_scripts_dir=None):
+    validate_tools_dir()
     validate_scripts_dir(cwl_scripts_dir=cwl_scripts_dir)
     return
