@@ -16,9 +16,6 @@ def make_config_dict(base_path):
     base_path = Path(base_path)  # Make sure any string values are turned into Path objects.
     config_dict = {
         'base_path': base_path,
-        'cwl_tool_dir': base_path / tools_dir_name,
-        'cwl_script_dir': base_path / scripts_dir_name,
-        'cwl_workflows_dir': base_path / workflow_dir_name,
         'content_maps_dir': base_path / content_maps_dir_name,
         'temp_dir': tempfile.TemporaryDirectory(prefix='cwlTest_'),
     }

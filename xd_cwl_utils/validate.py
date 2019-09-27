@@ -48,10 +48,10 @@ def validate_tools_dir(base_dir=None):
     return
 
 
-def validate_scripts_dir(cwl_scripts_dir=None):
+def validate_scripts_dir(base_dir=None):
 
     script_map_temp_file = tempfile.NamedTemporaryFile(prefix='scripts_map', suffix='.yaml', delete=True)  # Change to False if file doesn't persist long enough.
-    make_script_maps(script_map_temp_file.name, cwl_scripts_dir=cwl_scripts_dir)
+    make_script_maps(script_map_temp_file.name, base_dir=base_dir)
     with script_map_temp_file as script_map:
         script_map_dict = safe_load(script_map)
     for identifier, values in script_map_dict.items():
@@ -68,7 +68,7 @@ def validate_scripts_dir(cwl_scripts_dir=None):
     return
 
 
-def validate_repo(cwl_scripts_dir=None):
-    validate_tools_dir()
-    validate_scripts_dir(cwl_scripts_dir=cwl_scripts_dir)
+def validate_repo(base_dir=None):
+    validate_tools_dir(base_dir=base_dir)
+    validate_scripts_dir(base_dir=base_dir)
     return

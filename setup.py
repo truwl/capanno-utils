@@ -1,12 +1,15 @@
 from setuptools import setup, find_packages
+from semantic_version import Version
 
 
 with open('README.md', 'r') as fh:
     long_description = fh.read()
 
+package_version = Version(major=0, minor=3, patch=0, prerelease=('alpha', '1'))
+
 setup(
     name='xd_cwl_utils',
-    version='0.2.1',
+    version=str(package_version),
     packages=find_packages(),
     url='https://github.com/xDBio-Inc/xd-cwl-utils',
     license='Apache 2.0',
