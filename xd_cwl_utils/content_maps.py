@@ -34,7 +34,7 @@ def make_tools_map(outfile_path, base_dir=None):
 
 def make_tool_map(tool_name, tool_version, base_dir=None):
     tool_map = {}
-    tool_version_dir = get_tool_version_dir(tool_name, tool_version)
+    tool_version_dir = get_tool_version_dir(tool_name, tool_version, base_dir=base_dir)
     subdir_names = [subdir.name for subdir in tool_version_dir.iterdir()]
     has_common_dir = True if 'common' in subdir_names else False  # This is the sign of a complex tool. Could also choose len(subdir_names > 1)
     if has_common_dir:
