@@ -40,7 +40,7 @@ def make_tool_map(tool_name, tool_version, base_dir=None):
     if has_common_dir:
         parent_metadata_path = get_cwl_tool_metadata(tool_name, tool_version, parent=True, base_dir=base_dir)
         parent_metadata = ParentToolMetadata.load_from_file(parent_metadata_path)
-        parent_rel_path = get_relative_path(parent_metadata_path)
+        parent_rel_path = get_relative_path(parent_metadata_path, base_path=base_dir)
         tool_map[parent_metadata.identifier] = {'path': str(parent_rel_path), 'version': parent_metadata.version, 'name': parent_metadata.name, 'softwareVersion': parent_metadata.softwareVersion, 'type': 'parent'}
         subdir_names.remove('common')
         for subdir_name in subdir_names:
@@ -56,14 +56,14 @@ def make_tool_map(tool_name, tool_version, base_dir=None):
                     f"There are zero or more than one underscore in directory {subdir_name}. Can't handle this yet.")
             assert (tool_name_from_dir == tool_name), f"{tool_name} should be equal to {tool_name_from_dir}."
             subtool_cwl_path = get_cwl_tool(tool_name, tool_version, subtool_name=subtool_name, base_dir=base_dir)
-            subtool_rel_path = get_relative_path(subtool_cwl_path)
+            subtool_rel_path = get_relative_path(subtool_cwl_path, base_path=base_dir)
             subtool_metadata_path = get_cwl_tool_metadata(tool_name, tool_version, subtool_name=subtool_name, parent=False, base_dir=base_dir)
             subtool_metadata = SubtoolMetadata.load_from_file(subtool_metadata_path)
             tool_map[subtool_metadata.identifier] = {'path': str(subtool_rel_path), 'name': subtool_metadata.name, 'version': subtool_metadata.version, 'type': 'subtool'}
     else: # Not a complex tool. Should just have one directory for main tool.
         metadata_path = get_cwl_tool_metadata(tool_name, tool_version, base_dir=base_dir)
         metadata = ToolMetadata.load_from_file(metadata_path)
-        tool_rel_path = get_relative_path((get_cwl_tool(tool_name, tool_version, base_dir=base_dir)))
+        tool_rel_path = get_relative_path((get_cwl_tool(tool_name, tool_version, base_dir=base_dir)), base_path=base_dir)
         tool_map[metadata.identifier] = {'path': str(tool_rel_path), 'name': metadata.name, 'softwareVersion': metadata.softwareVersion, 'version': metadata.version, 'type': 'tool'}
 
     return tool_map
