@@ -6,9 +6,9 @@ from xd_cwl_utils.classes.metadata.script_metadata import ScriptMetadata
 from xd_cwl_utils.classes.metadata.tool_metadata import ToolMetadata, ParentToolMetadata, SubtoolMetadata
 from xd_cwl_utils.classes.metadata.workflow_metadata import WorkflowMetadata
 from xd_cwl_utils.helpers.get_paths import get_cwl_tool, get_cwl_tool_metadata, get_tool_version_dir, \
-    get_script_version_dir, get_metadata_path, get_relative_path, get_workflow_version_dir
+    get_script_version_dir, get_metadata_path, get_relative_path, get_workflow_version_dir, get_root_tools_dir, get_root_scripts_dir
 
-def make_tools_map(outfile_path, cwl_tools_dir=None):
+def make_tools_map(outfile_path, base_dir=None):
     """
     Make a yaml file that specifies paths and attributes of tools in tool_dir.
     :param tool_dir (Path): Path of directory that contains tools.
@@ -16,8 +16,8 @@ def make_tools_map(outfile_path, cwl_tools_dir=None):
     :return:
         None
     """
-    if not cwl_tools_dir:
-        cwl_tools_dir = config[os.environ['CONFIG_KEY']]['cwl_tool_dir']
+
+    cwl_tools_dir = get_root_tools_dir(base_dir=base_dir)
     content_map = {}
     outfile_path = Path(outfile_path)
     for tool_dir in  cwl_tools_dir.iterdir():
@@ -69,11 +69,10 @@ def make_tool_map(tool_name, tool_version):
     return tool_map
 
 
-def make_script_maps(outfile_path, cwl_scripts_dir=None):
-    if not cwl_scripts_dir:
-        cwl_scripts_dir = config[os.environ['CONFIG_KEY']]['cwl_script_dir']
-    script_maps = {}
+def make_script_maps(outfile_path, base_dir=None):
+    cwl_scripts_dir = get_root_scripts_dir(base_dir=base_dir)
     outfile_path = Path(outfile_path)
+    script_maps = {}
     for group_dir in cwl_scripts_dir.iterdir():
         for project_dir in group_dir.iterdir():
             for version_dir in project_dir.iterdir():
