@@ -65,7 +65,7 @@ class NameSoftwareVersionMixin:
 
     @property
     def softwareVersion(self):
-        return self._softwareVersion
+        return str(self._softwareVersion)
 
     @softwareVersion.setter
     def softwareVersion(self, new_softwareVersion):

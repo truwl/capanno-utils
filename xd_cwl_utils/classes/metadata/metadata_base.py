@@ -33,7 +33,7 @@ class MetadataBase(ABC):
 
     @property
     def version(self):
-        return self._version
+        return str(self._version)
 
     @version.setter
     def version(self, new_version):
@@ -42,7 +42,7 @@ class MetadataBase(ABC):
         if is_semantic:
             v = semantic_version.Version(new_version)
         else:
-            logging.info(f"'{new_version}' is not a properly formatted semantic version")
+            logging.info(f"'{new_version}' is not a properly formatted semantic version. Trying partial semantic version.")
             try:
                 v = semantic_version.Version(new_version, partial=True)
             except ValueError:

@@ -86,9 +86,32 @@ def get_tool_instance_path(tool_name, tool_version, input_hash, subtool_name=Non
 
 def get_tool_args_from_path(cwl_tool_path):
     cwl_tool_path = Path(cwl_tool_path)
-    parents = cwl_tool_path.parents
-    print('Parents ', parents)
-    return
+    tool_type = get_tool_type_from_path(cwl_tool_path)
+    path_parts = cwl_tool_path.parts
+
+    tool_name = path_parts[-4]
+    tool_version = path_parts[-3]
+    subtool_name = path_parts[-2].split('_')[-1] if tool_type=='subtool' else None
+
+    return tool_name, tool_version, subtool_name
+
+def get_tool_type_from_path(tool_path):
+    tool_path = Path(tool_path)
+    if tool_path.suffix == '.yaml':
+        if not tool_path.parent == 'common':
+            raise ValueError(f"Provided a .yaml file {tool_path} for file that is not in a 'common' directory")
+        tool_type = "parent"
+    elif tool_path.suffix == '.cwl':
+        common_dir = tool_path.parents[1] / 'common'
+        if common_dir.exists():
+            tool_type = 'subtool'
+        else:
+            tool_type = 'tool'
+    else:
+        raise ValueError(f"Do not recognize {tool_path} as a path to a tool.")
+
+    return tool_type
+
 
 # cwl-scripts
 
