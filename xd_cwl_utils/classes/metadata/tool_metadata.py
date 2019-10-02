@@ -106,6 +106,7 @@ class ToolMetadata(NameSoftwareVersionMixin, ToolMetadataBase):
             file_dict = safe_load(file)
         return cls(**file_dict)
 
+
     @classmethod
     def create_from_biotools(cls, biotools_id, softwareVersion, version='0.1.1'):
         kwargs = make_tool_metadata_kwargs_from_biotools(biotools_id)
@@ -117,7 +118,7 @@ class ToolMetadata(NameSoftwareVersionMixin, ToolMetadataBase):
         raise NotImplementedError
 
 
-class ParentToolMetadata(ToolMetadataBase):
+class ParentToolMetadata(NameSoftwareVersionMixin, ToolMetadataBase):
 
     @staticmethod
     def _init_metadata():

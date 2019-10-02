@@ -20,7 +20,7 @@ def validate_tools_dir(base_dir=None):
     with tool_map_temp_file as tool_map:
         tool_map_dict = safe_load(tool_map)
     for identifier, values in tool_map_dict.items():
-        tool_path = Path(values['path'])
+        tool_path = base_dir / values['path']
         tool_type = values['type']
         file_version = Version(values['version'])
 
