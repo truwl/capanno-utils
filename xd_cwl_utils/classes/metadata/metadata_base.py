@@ -55,7 +55,6 @@ class MetadataBase(ABC):
     def _get_metafile_keys(self):
         return list(self._init_metadata())
 
-
     def __init__(self, **kwargs):
         init_metadata = self._init_metadata()
 
@@ -70,7 +69,9 @@ class MetadataBase(ABC):
                 try:
                     if getattr(self, k):  # value has already been set by derived class __init__. Second highest priority.
                         continue
-                    else:
+                    elif getattr(self, k) == None:  # None values are okay.
+                        continue
+                    else:  # Have an empty dict, list, or something.
                         raise NotImplementedError(f"Figure out what's happening here and fix it.")
                 except AttributeError:
                     setattr(self, k, v)  # Set to default value provided in self._init_metadata. Last resort.
@@ -85,7 +86,7 @@ class MetadataBase(ABC):
             if key.startswith('_'):
                 continue
             attr_value = getattr(self, key)
-            if isinstance(attr_value, object_attributes):
+            if isinstance(attr_value, object_attributes):  #Todo. Something better here, now that defaults are set to None instead of empty objects.
                 meta_map[key] = attr_value.dump()
             elif isinstance(attr_value, list):
                 if isinstance(attr_value[0], object_attributes):

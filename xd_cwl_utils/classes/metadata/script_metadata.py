@@ -2,7 +2,7 @@ from pathlib import Path
 import re
 from collections import OrderedDict
 from ruamel.yaml import safe_load
-from ...classes.metadata.common_functions import is_attr_empty, NameSoftwareVersionMixin, _mk_hashes
+from ...classes.metadata.common_functions import is_attr_empty, CommonPropsMixin, _mk_hashes
 from ...classes.metadata.shared_properties import WebSite, CodeRepository, Person, Publication, Keyword, ParentScript, \
     Tool
 from ...classes.metadata.metadata_base import MetadataBase
@@ -67,7 +67,7 @@ class ScriptMetadataBase(MetadataBase):
 
 
 
-class ScriptMetadata(NameSoftwareVersionMixin, ScriptMetadataBase):
+class ScriptMetadata(CommonPropsMixin, ScriptMetadataBase):
 
 
     @staticmethod
@@ -78,16 +78,16 @@ class ScriptMetadata(NameSoftwareVersionMixin, ScriptMetadataBase):
             ('identifier', None),
             ('version', '0.1'),
             ('description', None),
-            ('codeRepository', CodeRepository()),
+            ('codeRepository', None),
             ('WebSite', [WebSite()]),
             ('license', None),
-            ('contactPoint', [Person()]),
-            ('publication', [Publication()]),
+            ('contactPoint', None),
+            ('publication', None),
             ('keywords', [Keyword()]),
             ('parentScripts', None),
             ('tools', None),
             ('alternateName', None),
-            ('creator', [Person()]),
+            ('creator', None),
             ('programmingLanguage', None),
             ('datePublished', None),
             ('parentMetadata', None),
@@ -229,13 +229,13 @@ class CommonScriptMetadata(ScriptMetadataBase):
         return OrderedDict([
             ('softwareVersion', None),
             ('description', None),
-            ('codeRepository', CodeRepository()),
+            ('codeRepository', None),
             ('WebSite', [WebSite()]),
             ('license', None),
-            ('contactPoint', [Person()]),
-            ('publication', [Publication()]),
+            ('contactPoint', None),
+            ('publication', None),
             ('keywords', [Keyword()]),
-            ('creator', [Person()]),
+            ('creator', None),
             ('programmingLanguage', None),
             ('datePublished', None),
             ('parentScripts', None),

@@ -3,6 +3,7 @@
 # * file 'LICENSE.txt', which is part of this source code package.
 
 from ...classes.metadata.metadata_base import object_attributes
+from .shared_properties import Publication, Person, CodeRepository
 from hashlib import md5
 import uuid
 
@@ -52,7 +53,7 @@ def is_attr_empty(attribute):
     return is_empty
 
 
-class NameSoftwareVersionMixin:
+class CommonPropsMixin:
     @property
     def name(self):
         return self._name
@@ -74,3 +75,54 @@ class NameSoftwareVersionMixin:
             raise ValueError(f"'softwareVersion must be set.")
         self._softwareVersion = new_softwareVersion
         return
+
+    @property
+    def publication(self):
+        return self._publication
+
+    @publication.setter
+    def publication(self, publication_list):
+        if publication_list:
+            publications = [Publication(**pub) for pub in publication_list]
+        else:
+            publications = None
+        self._publication = publications
+
+    @property
+    def contactPoint(self):
+        return self._contactPoint
+
+    @contactPoint.setter
+    def contactPoint(self, person_list):
+        if person_list:
+            people = [Person(**person) for person in person_list]
+        else:
+            people = None
+        self._contactPoint = people
+
+    @property
+    def creator(self):
+        return self._creator
+
+    @creator.setter
+    def creator(self, person_list):
+        if person_list:
+            people = [Person(**person) for person in person_list]
+        else:
+            people = None
+        self._creator = people
+
+    @property
+    def codeRepository(self):
+        return self._codeRepository
+
+    @codeRepository.setter
+    def codeRepository(self, code_repo_dict):
+        if code_repo_dict:
+            try:
+                code_repos = CodeRepository(**code_repo_dict)
+            except TypeError:
+                raise
+        else:
+            code_repos =None
+        self._codeRepository = code_repos
