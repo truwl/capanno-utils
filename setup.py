@@ -5,7 +5,7 @@ from semantic_version import Version
 with open('README.md', 'r') as fh:
     long_description = fh.read()
 
-package_version = Version(major=0, minor=4, patch=0, prerelease=('alpha', '1'))
+package_version = Version(major=0, minor=4, patch=0, prerelease=('alpha', '2'))
 
 setup(
     name='xd_cwl_utils',
