@@ -51,7 +51,7 @@ def mk_empty_prop_object(property_name):
     :return:
     """
     prop_map = {'codeRepository': {'name': None}, 'publication': [{'identifier': None}],
-                'contactPoint': [{'name': None}], 'creator': [{'name': None}], 'WebSite': [{'name': None}]}
+                'contactPoint': [{'name': None}], 'creator': [{'name': None}], 'WebSite': [{'name': None}], 'keywords': [Keyword()]}
     if not property_name in prop_map:
         return None
 

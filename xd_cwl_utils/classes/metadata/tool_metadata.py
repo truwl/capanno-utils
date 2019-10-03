@@ -50,7 +50,7 @@ class ToolMetadataBase(MetadataBase):
                     else:
                         keywords.append(Keyword(keyword))
         else:
-            keywords = [Keyword()]  # Why did I do this instead of None? It's so I can
+            keywords = None
         self._keywords = keywords
 
 
