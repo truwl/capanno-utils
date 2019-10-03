@@ -50,7 +50,7 @@ class ToolMetadataBase(MetadataBase):
                     else:
                         keywords.append(Keyword(keyword))
         else:
-            keywords = [Keyword()]  # Why did I do this instead of None?
+            keywords = [Keyword()]  # Why did I do this instead of None? It's so I can
         self._keywords = keywords
 
 
@@ -67,7 +67,7 @@ class ToolMetadata(CommonPropsMixin, ToolMetadataBase):
             ('description', None),
             ('codeRepository', None),
             ('license', None),
-            ('WebSite', [WebSite()]),
+            ('WebSite', None),
             ('contactPoint', None),
             ('publication', None),
             ('keywords', None),
@@ -78,6 +78,7 @@ class ToolMetadata(CommonPropsMixin, ToolMetadataBase):
             ('downloadURL', None),
             ('extra', None),
         ])
+
 
     def _check_identifier(self, identifier):
         if not identifier[:3] == "TL_":
@@ -135,7 +136,7 @@ class ParentToolMetadata(CommonPropsMixin, ToolMetadataBase):
             ('description', None),
             ('codeRepository', None),
             ('license', None),
-            ('WebSite', [WebSite()]),
+            ('WebSite', None),
             ('contactPoint', None),
             ('publication', None),
             ('keywords', None),

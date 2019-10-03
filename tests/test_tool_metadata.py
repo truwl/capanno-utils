@@ -1,8 +1,10 @@
 import os
 import shutil
 from pathlib import Path
+from tempfile import NamedTemporaryFile
 from ruamel.yaml import safe_load
 from tests.test_base import TestBase
+from xd_cwl_utils.config import config
 from xd_cwl_utils.classes.metadata.tool_metadata import ToolMetadata, ParentToolMetadata, SubtoolMetadata
 from xd_cwl_utils.add.add_tools import add_tool, add_subtool, add_parent_tool
 
@@ -20,19 +22,18 @@ class TestMakeToolMetadata(TestBase):
 
     def test_make_file(self):
         tm = ToolMetadata(name=TestMakeToolMetadata.test_dict['name'], softwareVersion=0.1)
-        test_filename = Path(os.environ.get('TEST_TMP_DIR')) / 'tool_test.yaml'
-        tm.mk_file(test_filename)
-        with test_filename.open('r') as file:
-            test_file_dict = safe_load(file)
+        with NamedTemporaryFile(prefix='tool_test', suffix='.yaml', delete=True) as tf:
+            temp_file_name = tf.name
+            tm.mk_file(temp_file_name, replace_none=False)
+            with open(temp_file_name, 'r') as f:
+                test_file_dict = safe_load(f)
         self.assertEqual(test_file_dict['name'], TestMakeToolMetadata.test_dict['name'])
-        os.remove(test_filename)
 
     def test_make_from_biotools(self):
         biotools_id = 'star'
-        file_name = Path(os.environ.get('TEST_TMP_DIR')) / 'biotools_test.yaml'
         biotools_meta = ToolMetadata.create_from_biotools(biotools_id, softwareVersion=1)
-        biotools_meta.mk_file(file_name)
-        os.remove(file_name)
+        with NamedTemporaryFile(prefix='biotools', suffix='.yaml', delete=True) as tf:
+            biotools_meta.mk_file(tf.name, replace_none=True)
         return
 
 class TestMakeParentToolMetadata(TestBase):
@@ -44,13 +45,11 @@ class TestMakeParentToolMetadata(TestBase):
 
     def test_make_file(self):
         p_metadata = ParentToolMetadata(name=TestMakeParentToolMetadata.test_dict['name'], softwareVersion=1)
-
-        test_filename = Path(os.environ.get('TEST_TMP_DIR')) / 'parent.yaml'
-        p_metadata.mk_file(test_filename)
-        with test_filename.open('r') as file:
-            test_file_dict = safe_load(file)
+        with NamedTemporaryFile(prefix='', suffix='', delete=True) as tf:
+            p_metadata.mk_file(tf.name, replace_none=True)
+            with open(tf.name, 'r') as file:
+                test_file_dict = safe_load(file)
         self.assertEqual(test_file_dict['name'], TestMakeParentToolMetadata.test_dict['name'])
-        os.remove(test_filename)
 
 
 class TestMakeSubtoolMetadata(TestBase):

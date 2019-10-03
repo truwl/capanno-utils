@@ -2,10 +2,14 @@
 # * This file is subject to the terms and conditions defined in
 # * file 'LICENSE.txt', which is part of this source code package.
 
-from ...classes.metadata.metadata_base import object_attributes
-from .shared_properties import Publication, Person, CodeRepository
+# from ...classes.metadata.metadata_base import object_attributes
+from .shared_properties import Publication, Person, CodeRepository, WebSite, Keyword, ApplicationSuite, ParentScript, \
+    Tool, IOObjectItem, CallMap
 from hashlib import md5
 import uuid
+
+object_attributes = (
+CodeRepository, Person, Publication, WebSite, Keyword, ApplicationSuite, ParentScript, Tool, IOObjectItem, CallMap)
 
 
 def _mk_hashes(arg1, *args):
@@ -16,23 +20,42 @@ def _mk_hashes(arg1, *args):
         hashes.append(md5(arg.encode(encoding='utf-8')).hexdigest())
     return hashes
 
+
 def mk_tool_identifier(name, version, start=0):
     name_hash, version_hash = _mk_hashes(name, version)
-    identifier = f"TL_{name_hash[start:start+6]}.{version_hash[:2]}"
+    identifier = f"TL_{name_hash[start:start + 6]}.{version_hash[:2]}"
     return identifier
+
 
 def mk_tool_instance_identifier(tool_identifier):
     uuid_string = uuid.uuid4().hex[:4]
     return f"{tool_identifier}.{uuid_string}"
 
+
 def mk_subtool_identifier():
     raise NotImplementedError
+
 
 def mk_script_identifier():
     raise NotImplementedError
 
+
 def mk_workflow_identifier():
     raise NotImplementedError
+
+
+def mk_empty_prop_object(property_name):
+    """
+    Should only call this to override a None value for a property.
+    :param property_name:
+    :return:
+    """
+    prop_map = {'codeRepository': {'name': None}, 'publication': [{'identifier': None}],
+                'contactPoint': [{'name': None}], 'creator': [{'name': None}], 'WebSite': [{'name': None}]}
+    if not property_name in prop_map:
+        return None
+
+    return prop_map[property_name]
 
 
 def is_attr_empty(attribute):
@@ -119,10 +142,19 @@ class CommonPropsMixin:
     @codeRepository.setter
     def codeRepository(self, code_repo_dict):
         if code_repo_dict:
-            try:
-                code_repos = CodeRepository(**code_repo_dict)
-            except TypeError:
-                raise
+            code_repos = CodeRepository(**code_repo_dict)
         else:
-            code_repos =None
+            code_repos = None
         self._codeRepository = code_repos
+
+    @property
+    def WebSite(self):
+        return self._website
+
+    @WebSite.setter
+    def WebSite(self, website_list):
+        if website_list:
+            websites = [WebSite(**website_dict) for website_dict in website_list]
+        else:
+            websites = None
+        self._website = websites

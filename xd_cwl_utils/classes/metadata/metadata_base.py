@@ -9,9 +9,10 @@ from pathlib import Path
 import semantic_version
 from ruamel.yaml.comments import CommentedMap
 from ruamel.yaml import YAML
-from ...classes.metadata.shared_properties import CodeRepository, Person, Publication, WebSite, Keyword, ApplicationSuite, ParentScript, Tool, IOObjectItem, CallMap
+from ...classes.metadata.common_functions import mk_empty_prop_object, object_attributes
+# from ...classes.metadata.shared_properties import CodeRepository, Person, Publication, WebSite, Keyword, ApplicationSuite, ParentScript, Tool, IOObjectItem, CallMap
 
-object_attributes = (CodeRepository, Person, Publication, WebSite, Keyword, ApplicationSuite, ParentScript, Tool, IOObjectItem, CallMap)
+
 
 class MetadataBase(ABC):
     """Factor stuff out to here."""
@@ -77,7 +78,7 @@ class MetadataBase(ABC):
                     setattr(self, k, v)  # Set to default value provided in self._init_metadata. Last resort.
         return
 
-    def mk_file(self, file_path, keys=None):
+    def mk_file(self, file_path, keys=None, replace_none=True):
         file_path = Path(file_path)
         meta_map = CommentedMap()
         if not keys:
@@ -85,8 +86,11 @@ class MetadataBase(ABC):
         for key in keys:
             if key.startswith('_'):
                 continue
+            if replace_none:
+                if getattr(self, key) is None:
+                    setattr(self, key, mk_empty_prop_object(key))
             attr_value = getattr(self, key)
-            if isinstance(attr_value, object_attributes):  #Todo. Something better here, now that defaults are set to None instead of empty objects.
+            if isinstance(attr_value, object_attributes):
                 meta_map[key] = attr_value.dump()
             elif isinstance(attr_value, list):
                 if isinstance(attr_value[0], object_attributes):
