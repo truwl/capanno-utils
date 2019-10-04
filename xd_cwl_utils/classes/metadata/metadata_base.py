@@ -9,10 +9,11 @@ from pathlib import Path
 import semantic_version
 from ruamel.yaml.comments import CommentedMap
 from ruamel.yaml import YAML
-from ...classes.metadata.common_functions import mk_empty_prop_object, object_attributes
-# from ...classes.metadata.shared_properties import CodeRepository, Person, Publication, WebSite, Keyword, ApplicationSuite, ParentScript, Tool, IOObjectItem, CallMap
-
-
+from ...classes.metadata.common_functions import mk_empty_prop_object
+from ...classes.metadata.shared_properties import object_attributes
+    # CodeRepository, Person, Publication, WebSite, Keyword, ApplicationSuite, ParentScript, Tool, IOObjectItem, CallMap
+#
+# object_attributes = (CodeRepository, Person, Publication, WebSite, Keyword, ApplicationSuite, ParentScript, Tool, IOObjectItem, CallMap)
 
 class MetadataBase(ABC):
     """Factor stuff out to here."""

@@ -483,3 +483,8 @@ class IOArrayItem(AttributeBase):
     def _attrs():
         return frozenset(['id', 'objects'])
 
+
+
+
+object_attributes = (
+CodeRepository, Person, Publication, WebSite, Keyword, ApplicationSuite, Tool, ParentScript, IOObjectItem, CallMap)
