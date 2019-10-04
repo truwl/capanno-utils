@@ -25,8 +25,19 @@ class ScriptMetadataBase(MetadataBase):
                 else:
                     parent_scripts.append(ParentScript(**parent_script))
         else:
-            parent_scripts = [ParentScript()]
+            parent_scripts = None
         self._parentScripts = parent_scripts
+
+    @property
+    def programmingLanguage(self):
+        return self._programmingLanguage
+
+    @programmingLanguage.setter
+    def programmingLanguage(self,programming_language):
+        if not isinstance(programming_language, (str, type(None))):
+            raise ValueError(f"programmingLanguage must be set to a string. You provided {programming_language}")
+        self._programmingLanguage = programming_language
+
 
     @property
     def tools(self):
@@ -42,7 +53,7 @@ class ScriptMetadataBase(MetadataBase):
                 else:
                     tools.append(Tool(**tool))
         else:
-            tools = [Tool()]
+            tools = None
         self._tools = tools
 
     @property
@@ -62,7 +73,7 @@ class ScriptMetadataBase(MetadataBase):
                     else:
                         keywords.append(Keyword(keyword))
         else:
-            keywords = [Keyword()]
+            keywords = None
         self._keywords = keywords
 
 
@@ -234,7 +245,7 @@ class CommonScriptMetadata(ScriptMetadataBase):
             ('license', None),
             ('contactPoint', None),
             ('publication', None),
-            ('keywords', [Keyword()]),
+            ('keywords', None),
             ('creator', None),
             ('programmingLanguage', None),
             ('datePublished', None),

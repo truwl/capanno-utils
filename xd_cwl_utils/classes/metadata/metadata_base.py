@@ -86,9 +86,11 @@ class MetadataBase(ABC):
         for key in keys:
             if key.startswith('_'):
                 continue
-            if replace_none:
-                if getattr(self, key) is None:
+            if getattr(self, key) is None:
+                if replace_none:
                     setattr(self, key, mk_empty_prop_object(key))
+                else:
+                    continue  # Don't include keys with None values in the file.
             attr_value = getattr(self, key)
             if isinstance(attr_value, object_attributes):
                 meta_map[key] = attr_value.dump()

@@ -483,6 +483,3 @@ class IOArrayItem(AttributeBase):
     def _attrs():
         return frozenset(['id', 'objects'])
 
-
-
-

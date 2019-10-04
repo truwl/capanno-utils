@@ -2,14 +2,13 @@
 # * This file is subject to the terms and conditions defined in
 # * file 'LICENSE.txt', which is part of this source code package.
 
-# from ...classes.metadata.metadata_base import object_attributes
-from .shared_properties import Publication, Person, CodeRepository, WebSite, Keyword, ApplicationSuite, ParentScript, \
+from .shared_properties import Publication, Person, CodeRepository, WebSite, Keyword, ApplicationSuite, \
     Tool, IOObjectItem, CallMap
 from hashlib import md5
 import uuid
 
 object_attributes = (
-CodeRepository, Person, Publication, WebSite, Keyword, ApplicationSuite, ParentScript, Tool, IOObjectItem, CallMap)
+CodeRepository, Person, Publication, WebSite, Keyword, ApplicationSuite, Tool, IOObjectItem, CallMap)
 
 
 def _mk_hashes(arg1, *args):
