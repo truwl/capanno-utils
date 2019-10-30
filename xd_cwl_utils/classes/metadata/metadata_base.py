@@ -44,7 +44,6 @@ class MetadataBase(ABC):
         if is_semantic:
             v = semantic_version.Version(new_version)
         else:
-            logging.info(f"'{new_version}' is not a properly formatted semantic version. Trying partial semantic version.")
             try:
                 v = semantic_version.Version(new_version, partial=True)
             except ValueError:
