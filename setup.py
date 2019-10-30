@@ -2,10 +2,18 @@ from setuptools import setup, find_packages
 from semantic_version import Version
 
 
+"""
+To relase package update `package_version` and commit/push changes, then run
+$ python setup.py sdist bdist_wheel
+$ twine upload dist/*
+
+for twine upload to work, must have credentials in .pypirc file
+"""
+
 with open('README.md', 'r') as fh:
     long_description = fh.read()
 
-package_version = Version(major=0, minor=4, patch=1, prerelease=('alpha', '3'))
+package_version = Version(major=0, minor=4, patch=1, prerelease=('alpha', '4'))
 
 setup(
     name='xd_cwl_utils',
