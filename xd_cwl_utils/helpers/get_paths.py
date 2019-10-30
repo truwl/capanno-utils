@@ -98,7 +98,7 @@ def get_tool_args_from_path(cwl_tool_path):
 def get_tool_type_from_path(tool_path):
     tool_path = Path(tool_path)
     if tool_path.suffix == '.yaml':
-        if not tool_path.parent == 'common':
+        if not tool_path.parent.parts[-1] == 'common':
             raise ValueError(f"Provided a .yaml file {tool_path} for file that is not in a 'common' directory")
         tool_type = "parent"
     elif tool_path.suffix == '.cwl':
