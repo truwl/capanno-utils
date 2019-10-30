@@ -9,9 +9,11 @@ from pathlib import Path
 import semantic_version
 from ruamel.yaml.comments import CommentedMap
 from ruamel.yaml import YAML
-from ...classes.metadata.shared_properties import CodeRepository, Person, Publication, WebSite, Keyword, ApplicationSuite, ParentScript, Tool, IOObjectItem, CallMap
-
-object_attributes = (CodeRepository, Person, Publication, WebSite, Keyword, ApplicationSuite, ParentScript, Tool, IOObjectItem, CallMap)
+from ...classes.metadata.common_functions import mk_empty_prop_object
+from ...classes.metadata.shared_properties import object_attributes
+    # CodeRepository, Person, Publication, WebSite, Keyword, ApplicationSuite, ParentScript, Tool, IOObjectItem, CallMap
+#
+# object_attributes = (CodeRepository, Person, Publication, WebSite, Keyword, ApplicationSuite, ParentScript, Tool, IOObjectItem, CallMap)
 
 class MetadataBase(ABC):
     """Factor stuff out to here."""
@@ -33,7 +35,7 @@ class MetadataBase(ABC):
 
     @property
     def version(self):
-        return self._version
+        return str(self._version)
 
     @version.setter
     def version(self, new_version):
@@ -42,7 +44,6 @@ class MetadataBase(ABC):
         if is_semantic:
             v = semantic_version.Version(new_version)
         else:
-            logging.info(f"'{new_version}' is not a properly formatted semantic version")
             try:
                 v = semantic_version.Version(new_version, partial=True)
             except ValueError:
@@ -54,7 +55,6 @@ class MetadataBase(ABC):
 
     def _get_metafile_keys(self):
         return list(self._init_metadata())
-
 
     def __init__(self, **kwargs):
         init_metadata = self._init_metadata()
@@ -70,13 +70,15 @@ class MetadataBase(ABC):
                 try:
                     if getattr(self, k):  # value has already been set by derived class __init__. Second highest priority.
                         continue
-                    else:
+                    elif getattr(self, k) == None:  # None values are okay.
+                        continue
+                    else:  # Have an empty dict, list, or something.
                         raise NotImplementedError(f"Figure out what's happening here and fix it.")
                 except AttributeError:
                     setattr(self, k, v)  # Set to default value provided in self._init_metadata. Last resort.
         return
 
-    def mk_file(self, file_path, keys=None):
+    def mk_file(self, file_path, keys=None, replace_none=True):
         file_path = Path(file_path)
         meta_map = CommentedMap()
         if not keys:
@@ -84,6 +86,11 @@ class MetadataBase(ABC):
         for key in keys:
             if key.startswith('_'):
                 continue
+            if getattr(self, key) is None:
+                if replace_none:
+                    setattr(self, key, mk_empty_prop_object(key))
+                else:
+                    continue  # Don't include keys with None values in the file.
             attr_value = getattr(self, key)
             if isinstance(attr_value, object_attributes):
                 meta_map[key] = attr_value.dump()

@@ -5,9 +5,9 @@ from abc import abstractmethod
 import re
 from ruamel.yaml import safe_load
 from ...classes.metadata.metadata_base import MetadataBase
-from ...classes.metadata.shared_properties import CodeRepository, Person, Publication, WebSite, Keyword, ApplicationSuite
+from ...classes.metadata.shared_properties import CodeRepository, Person, WebSite, Keyword, ApplicationSuite
 from ...helpers.get_metadata_from_biotools import make_tool_metadata_kwargs_from_biotools
-from ...classes.metadata.common_functions import _mk_hashes, NameSoftwareVersionMixin
+from ...classes.metadata.common_functions import _mk_hashes, CommonPropsMixin
 
 
 class ToolMetadataBase(MetadataBase):
@@ -50,11 +50,11 @@ class ToolMetadataBase(MetadataBase):
                     else:
                         keywords.append(Keyword(keyword))
         else:
-            keywords = [Keyword()]
+            keywords = None
         self._keywords = keywords
 
 
-class ToolMetadata(NameSoftwareVersionMixin, ToolMetadataBase):
+class ToolMetadata(CommonPropsMixin, ToolMetadataBase):
     """Class to represent metadata for a 'stand alone' command line tool."""
 
     @staticmethod
@@ -65,19 +65,20 @@ class ToolMetadata(NameSoftwareVersionMixin, ToolMetadataBase):
             ('version', '0.1.0'),  # Set to something low if not provided.
             ('identifier', None),
             ('description', None),
-            ('codeRepository', CodeRepository()),
+            ('codeRepository', None),
             ('license', None),
-            ('WebSite', [WebSite()]),
-            ('contactPoint', [Person()]),
-            ('publication', [Publication()]),
+            ('WebSite', None),
+            ('contactPoint', None),
+            ('publication', None),
             ('keywords', None),
             ('alternateName', None),
-            ('creator', [Person()]),
+            ('creator', None),
             ('programmingLanguage', None),
             ('datePublished', None),
             ('downloadURL', None),
             ('extra', None),
         ])
+
 
     def _check_identifier(self, identifier):
         if not identifier[:3] == "TL_":
@@ -106,6 +107,7 @@ class ToolMetadata(NameSoftwareVersionMixin, ToolMetadataBase):
             file_dict = safe_load(file)
         return cls(**file_dict)
 
+
     @classmethod
     def create_from_biotools(cls, biotools_id, softwareVersion, version='0.1.1'):
         kwargs = make_tool_metadata_kwargs_from_biotools(biotools_id)
@@ -117,10 +119,14 @@ class ToolMetadata(NameSoftwareVersionMixin, ToolMetadataBase):
         raise NotImplementedError
 
 
-class ParentToolMetadata(ToolMetadataBase):
+class ParentToolMetadata(CommonPropsMixin, ToolMetadataBase):
 
     @staticmethod
     def _init_metadata():
+        """
+        Can set default values here.
+        :return:
+        """
         return OrderedDict([
             ('name', None),
             ('softwareVersion', None),
@@ -128,14 +134,14 @@ class ParentToolMetadata(ToolMetadataBase):
             ('identifier', None),
             ('featureList', None),
             ('description', None),
-            ('codeRepository', CodeRepository()),
+            ('codeRepository', None),
             ('license', None),
-            ('WebSite', [WebSite()]),
-            ('contactPoint', [Person()]),
-            ('publication', [Publication()]),
+            ('WebSite', None),
+            ('contactPoint', None),
+            ('publication', None),
             ('keywords', None),
             ('alternateName', None),
-            ('creator', [Person()]),
+            ('creator', None),
             ('programmingLanguage', None),
             ('datePublished', None),
             ('downloadURL', None),

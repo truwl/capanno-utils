@@ -47,6 +47,7 @@ class AttributeBase(ABC):
         return map_object
 
 
+
 class CodeRepository(AttributeBase):
     def __init__(self, name=None, URL=None):
         super().__init__()
@@ -485,3 +486,5 @@ class IOArrayItem(AttributeBase):
 
 
 
+object_attributes = (
+CodeRepository, Person, Publication, WebSite, Keyword, ApplicationSuite, Tool, ParentScript, IOObjectItem, CallMap)

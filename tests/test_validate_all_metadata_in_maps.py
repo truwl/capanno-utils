@@ -9,11 +9,14 @@ from xd_cwl_utils.validate_metadata import main
 class TestValidateContent(TestBase):
 
     def test_validate_tools(self):
-        tool_map = config[os.environ.get('CONFIG_KEY')]['content_maps_dir'] / 'tool-maps.yaml'
+        content_maps_dir = config[os.environ.get('CONFIG_KEY')]['content_maps_dir']
+        tool_map = content_maps_dir / 'tool-maps.yaml'
+        base_path = config[os.environ['CONFIG_KEY']]['base_path']
         with tool_map.open('r') as tm:
             tool_map_dict = safe_load(tm)
         for identifier, values in tool_map_dict.items():
-            path = Path(values['path'])
+            path = base_path / values['path']
+
             tool_type = values['type']
             if tool_type == 'parent':
                 if not 'common' in path.parts:  # values[type] would be better test.

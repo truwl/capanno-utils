@@ -2,7 +2,7 @@ from pathlib import Path
 import re
 from collections import OrderedDict
 from ruamel.yaml import safe_load
-from ...classes.metadata.common_functions import is_attr_empty, NameSoftwareVersionMixin, _mk_hashes
+from ...classes.metadata.common_functions import is_attr_empty, CommonPropsMixin, _mk_hashes
 from ...classes.metadata.shared_properties import WebSite, CodeRepository, Person, Publication, Keyword, ParentScript, \
     Tool
 from ...classes.metadata.metadata_base import MetadataBase
@@ -25,8 +25,19 @@ class ScriptMetadataBase(MetadataBase):
                 else:
                     parent_scripts.append(ParentScript(**parent_script))
         else:
-            parent_scripts = [ParentScript()]
+            parent_scripts = None
         self._parentScripts = parent_scripts
+
+    @property
+    def programmingLanguage(self):
+        return self._programmingLanguage
+
+    @programmingLanguage.setter
+    def programmingLanguage(self,programming_language):
+        if not isinstance(programming_language, (str, type(None))):
+            raise ValueError(f"programmingLanguage must be set to a string. You provided {programming_language}")
+        self._programmingLanguage = programming_language
+
 
     @property
     def tools(self):
@@ -42,7 +53,7 @@ class ScriptMetadataBase(MetadataBase):
                 else:
                     tools.append(Tool(**tool))
         else:
-            tools = [Tool()]
+            tools = None
         self._tools = tools
 
     @property
@@ -62,12 +73,12 @@ class ScriptMetadataBase(MetadataBase):
                     else:
                         keywords.append(Keyword(keyword))
         else:
-            keywords = [Keyword()]
+            keywords = None
         self._keywords = keywords
 
 
 
-class ScriptMetadata(NameSoftwareVersionMixin, ScriptMetadataBase):
+class ScriptMetadata(CommonPropsMixin, ScriptMetadataBase):
 
 
     @staticmethod
@@ -78,16 +89,16 @@ class ScriptMetadata(NameSoftwareVersionMixin, ScriptMetadataBase):
             ('identifier', None),
             ('version', '0.1'),
             ('description', None),
-            ('codeRepository', CodeRepository()),
-            ('WebSite', [WebSite()]),
+            ('codeRepository', None),
+            ('WebSite', None),
             ('license', None),
-            ('contactPoint', [Person()]),
-            ('publication', [Publication()]),
+            ('contactPoint', None),
+            ('publication', None),
             ('keywords', [Keyword()]),
             ('parentScripts', None),
             ('tools', None),
             ('alternateName', None),
-            ('creator', [Person()]),
+            ('creator', None),
             ('programmingLanguage', None),
             ('datePublished', None),
             ('parentMetadata', None),
@@ -229,13 +240,13 @@ class CommonScriptMetadata(ScriptMetadataBase):
         return OrderedDict([
             ('softwareVersion', None),
             ('description', None),
-            ('codeRepository', CodeRepository()),
-            ('WebSite', [WebSite()]),
+            ('codeRepository', None),
+            ('WebSite', None),
             ('license', None),
-            ('contactPoint', [Person()]),
-            ('publication', [Publication()]),
-            ('keywords', [Keyword()]),
-            ('creator', [Person()]),
+            ('contactPoint', None),
+            ('publication', None),
+            ('keywords', None),
+            ('creator', None),
             ('programmingLanguage', None),
             ('datePublished', None),
             ('parentScripts', None),

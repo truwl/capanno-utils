@@ -1,64 +1,64 @@
 TL_d077f2.47:
-  path: tests/test_files/test_content/cwl-tools/cat/8.25/cat/cat.cwl
+  path: cwl-tools/cat/8.25/cat/cat.cwl
   name: cat
-  softwareVersion: 8.25
+  softwareVersion: '8.25'
   version: 1.0.0
   type: tool
 TL_8ab263.82:
-  path: tests/test_files/test_content/cwl-tools/STAR/2.5/common/STAR-metadata.yaml
+  path: cwl-tools/STAR/2.5/common/STAR-metadata.yaml
   version: 1.0.0
   name: STAR
-  softwareVersion: 2.5
+  softwareVersion: '2.5'
   type: parent
 TL_8ab263_d6.82:
-  path: tests/test_files/test_content/cwl-tools/STAR/2.5/STAR_inputAlignmentsFromBAM/STAR-inputAlignmentsFromBAM.cwl
+  path: cwl-tools/STAR/2.5/STAR_inputAlignmentsFromBAM/STAR-inputAlignmentsFromBAM.cwl
   name: inputAlignmentsFromBAM
   version: 1.0.0
   type: subtool
 TL_8ab263_95.82:
-  path: tests/test_files/test_content/cwl-tools/STAR/2.5/STAR_genomeGenerate/STAR-genomeGenerate.cwl
+  path: cwl-tools/STAR/2.5/STAR_genomeGenerate/STAR-genomeGenerate.cwl
   name: genomeGenerate
   version: 1.0.0
   type: subtool
 TL_8ab263_a4.82:
-  path: tests/test_files/test_content/cwl-tools/STAR/2.5/STAR_alignReads/STAR-alignReads.cwl
+  path: cwl-tools/STAR/2.5/STAR_alignReads/STAR-alignReads.cwl
   name: alignReads
   version: 1.0.0
   type: subtool
 TL_8ab263_15.82:
-  path: tests/test_files/test_content/cwl-tools/STAR/2.5/STAR_liftOver/STAR-liftOver.cwl
+  path: cwl-tools/STAR/2.5/STAR_liftOver/STAR-liftOver.cwl
   name: liftOver
   version: 0.1.0
   type: subtool
 TL_ec2a8d.0b:
-  path: tests/test_files/test_content/cwl-tools/samtools/1.3/common/samtools-metadata.yaml
+  path: cwl-tools/samtools/1.3/common/samtools-metadata.yaml
   version: 1.0.0
   name: samtools
-  softwareVersion: 1.3
+  softwareVersion: '1.3'
   type: parent
 TL_ec2a8d_6a.0b:
-  path: tests/test_files/test_content/cwl-tools/samtools/1.3/samtools_index/samtools-index.cwl
+  path: cwl-tools/samtools/1.3/samtools_index/samtools-index.cwl
   name: index
   version: 1.0.0
   type: subtool
 TL_ec2a8d_46.0b:
-  path: tests/test_files/test_content/cwl-tools/samtools/1.3/samtools_view/samtools-view.cwl
+  path: cwl-tools/samtools/1.3/samtools_view/samtools-view.cwl
   name: view
   version: 1.0.0
   type: subtool
 TL_ec2a8d_a6.0b:
-  path: tests/test_files/test_content/cwl-tools/samtools/1.3/samtools_flagstat/samtools-flagstat.cwl
+  path: cwl-tools/samtools/1.3/samtools_flagstat/samtools-flagstat.cwl
   name: flagstat
   version: 1.0.0
   type: subtool
 TL_ec2a8d_ca.0b:
-  path: tests/test_files/test_content/cwl-tools/samtools/1.3/samtools_sort/samtools-sort.cwl
+  path: cwl-tools/samtools/1.3/samtools_sort/samtools-sort.cwl
   name: sort
   version: 1.0.0
   type: subtool
 TL_cadc8c.47:
-  path: tests/test_files/test_content/cwl-tools/sort/8.25/sort/sort.cwl
+  path: cwl-tools/sort/8.25/sort/sort.cwl
   name: sort
-  softwareVersion: 8.25
+  softwareVersion: '8.25'
   version: 1.0.0
   type: tool
