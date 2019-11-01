@@ -77,7 +77,7 @@ def make_script_maps(outfile_path, base_dir=None):
     for group_dir in cwl_scripts_dir.iterdir():
         for project_dir in group_dir.iterdir():
             for version_dir in project_dir.iterdir():
-                script_maps.update(make_script_map(group_dir.name, project_dir.name, version_dir.name))
+                script_maps.update(make_script_map(group_dir.name, project_dir.name, version_dir.name, base_dir=base_dir))
     yaml = YAML(pure=True)
     yaml.default_flow_style = False
     yaml.indent(mapping=2, sequence=4, offset=2)
