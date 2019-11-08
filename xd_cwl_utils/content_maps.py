@@ -6,7 +6,8 @@ from xd_cwl_utils.classes.metadata.script_metadata import ScriptMetadata
 from xd_cwl_utils.classes.metadata.tool_metadata import ToolMetadata, ParentToolMetadata, SubtoolMetadata
 from xd_cwl_utils.classes.metadata.workflow_metadata import WorkflowMetadata
 from xd_cwl_utils.helpers.get_paths import get_cwl_tool, get_cwl_tool_metadata, get_tool_version_dir, \
-    get_script_version_dir, get_metadata_path, get_relative_path, get_workflow_version_dir, get_root_tools_dir, get_root_scripts_dir
+    get_script_version_dir, get_metadata_path, get_relative_path, get_workflow_version_dir, get_root_tools_dir, \
+    get_root_scripts_dir, get_workflows_root_dir, get_cwl_workflow
 
 def make_tools_map(outfile_path, base_dir=None):
     """
@@ -76,7 +77,7 @@ def make_script_maps(outfile_path, base_dir=None):
     for group_dir in cwl_scripts_dir.iterdir():
         for project_dir in group_dir.iterdir():
             for version_dir in project_dir.iterdir():
-                script_maps.update(make_script_map(group_dir.name, project_dir.name, version_dir.name))
+                script_maps.update(make_script_map(group_dir.name, project_dir.name, version_dir.name, base_dir=base_dir))
     yaml = YAML(pure=True)
     yaml.default_flow_style = False
     yaml.indent(mapping=2, sequence=4, offset=2)
@@ -99,14 +100,17 @@ def make_script_map(group_name, project_name, version, base_dir=None):
 
 
 
-def make_workflow_maps(outfile_name='workflow-maps'):
+def make_workflow_maps(outfile_name='workflow-maps', base_dir=None):
+    cwl_workflows_dir = get_workflows_root_dir(base_dir=base_dir)
+    outfile_path = Path(outfile_name)
     master_workflow_map = {}
-    for group_dir in config[os.environ['CONFIG_KEY']]['cwl_workflows_dir'].iterdir():
+    for group_dir in cwl_workflows_dir.iterdir():
         for project_dir in group_dir.iterdir():
             for version_dir in project_dir.iterdir():
-                workflow_dict = make_workflow_map(group_dir.name, project_dir.name, version_dir.name)
-                master_workflow_map.update(workflow_dict)
-    outfile_path = config[os.environ['CONFIG_KEY']]['content_maps_dir'] / f"{outfile_name}.yaml"
+                for item in version_dir.iterdir():
+                    if item.suffix == '.cwl':
+                        workflow_dict = make_workflow_map(group_dir.name, project_dir.name, version_dir.name, item.stem, base_dir=base_dir)
+                        master_workflow_map.update(workflow_dict)
     yaml = YAML(pure=True)
     yaml.default_flow_style = False
     yaml.indent(mapping=2, sequence=4, offset=2)
@@ -115,10 +119,9 @@ def make_workflow_maps(outfile_name='workflow-maps'):
     return
 
 
-def make_workflow_map(group_name, project_name, version):
+def make_workflow_map(group_name, project_name, version, workflow_name, base_dir=None):
     workflow_map = {}
-    workflow_ver_dir = get_workflow_version_dir(group_name, project_name, version)
-    workflow_path = workflow_ver_dir / f"{project_name}.cwl"
+    workflow_path = get_cwl_workflow(group_name, project_name, version, workflow_name, base_dir=base_dir)
     workflow_metadata_path = get_metadata_path(workflow_path)
     workflow_metadata = WorkflowMetadata.load_from_file(workflow_metadata_path)
     workflow_map[workflow_metadata.identifier] = {'path': str(workflow_path), 'name': workflow_metadata.name, 'softwareVersion': workflow_metadata.softwareVersion, 'version': workflow_metadata.version}
