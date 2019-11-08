@@ -138,9 +138,26 @@ def get_script_metadata(group_name, project_name, version, script_name, base_dir
     return script_metadata_path
 
 
-def get_script_inputs():
-    raise NotImplementedError
+def get_script_instance_dir(group_name, project_name, version, script_name, base_dir=None):
+    script_version_dir = get_script_version_dir(group_name, project_name, version, base_dir=base_dir)
+    instances_dir = script_version_dir / script_name / 'instances'
+    return instances_dir
 
+def get_script_args_from_path(cwl_script_path):
+    cwl_script_path = Path(cwl_script_path)
+    script_name = cwl_script_path.stem
+    path_parts = cwl_script_path.parts
+    assert script_name == path_parts[-2]
+    script_version = path_parts[-3]
+    project_name = path_parts[-4]
+    group_name = path_parts[-5]
+    return group_name, project_name, script_version, script_name
+
+
+def get_script_instance_path(group_name, project_name, version, script_name, instance_hash, base_dir=None):
+    script_instance_dir = get_script_instance_dir(group_name, project_name, version, script_name, base_dir=base_dir)
+    instance_path = script_instance_dir / f"{instance_hash}.yaml"
+    return instance_path
 
 # cwl-workflows
 
@@ -166,8 +183,32 @@ def get_workflow_metadata(group_name, project_name, version, workflow_name, base
     workflow_metadata_path = workflow_ver_dir / f"{workflow_name}-metadata.yaml"
     return workflow_metadata_path
 
-def get_workflow_inputs():
-    raise NotImplementedError
+def get_workflow_inputs_dir(group_name, project_name, version, base_dir=None):
+    cwl_workflow_dir = get_workflow_version_dir(group_name, project_name, version, base_dir=base_dir)
+    instances_dir = cwl_workflow_dir / 'instances'
+    return instances_dir
+
+def get_workflow_instance_dir_from_cwl_path(cwl_path):
+    cwl_path = Path(cwl_path)
+    instances_dir = cwl_path.parent / 'instances'
+    return instances_dir
+
+def get_workflow_instance_path(group_name, project_name, version, instance_hash, base_dir=None):
+    workflow_instances_dir = get_workflow_inputs_dir(group_name, project_name, version, base_dir=base_dir)
+    instance_path = workflow_instances_dir / f"{instance_hash}.yaml"
+    return instance_path
+
+
+def get_workflow_args_from_path(cwl_workflows_path):
+    cwl_workflows_path = Path(cwl_workflows_path)
+    path_parts = cwl_workflows_path.parts
+    file_name = path_parts[-1]
+    workflow_name = cwl_workflows_path.stem
+    workflow_version = path_parts[-2]
+    project_name = path_parts[-3]
+    group_name = path_parts[-4]
+    return group_name, project_name, workflow_version, workflow_name
+
 
 
 
