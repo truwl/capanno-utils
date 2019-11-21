@@ -101,11 +101,11 @@ class ToolMetadata(CommonPropsMixin, ToolMetadataBase):
     # Class factory methods
 
     @classmethod
-    def load_from_file(cls, file_path):
+    def load_from_file(cls, file_path, ignore_empties=False):
         file_path = Path(file_path)
         with file_path.open('r') as file:
             file_dict = safe_load(file)
-        return cls(**file_dict)
+        return cls(**file_dict, ignore_empties=ignore_empties)
 
 
     @classmethod
@@ -175,11 +175,11 @@ class ParentToolMetadata(CommonPropsMixin, ToolMetadataBase):
         return subtool_metadata
 
     @classmethod
-    def load_from_file(cls, file_path):
+    def load_from_file(cls, file_path, ignore_empties=False):
         file_path = Path(file_path)
         with file_path.open('r') as file:
             file_dict = safe_load(file)
-        return cls(**file_dict)
+        return cls(**file_dict, ignore_empties=ignore_empties)
 
     @classmethod
     def create_from_biotools(cls, biotools_id, softwareVersion, subtools, version='0.1.1'):
@@ -204,25 +204,33 @@ class SubtoolMetadata(ToolMetadataBase):
             ('alternateName', None),
             ('parentMetadata', None),  # relative path to parentMetadata
             ('_parentMetadata', None),  # ParentMetadata instance. Can be loaded from parentMetadata or set directly.
-            ('_primary_file_attrs', None),
+            ('_primary_file_attrs', None), # Keep track of attributes that are set directly from kwargs and not inherited from parent.
         ])
 
-    def __init__(self, file_path=None, **kwargs):
-        # file_path only used if class is initiated using 'load_from_file'. file_path is path that SubtoolMetadata is loaded from.
+    def __init__(self, _metadata_file_path=None, **kwargs):
+        """
+        Initialize SubtoolMetadata.
+        :param _metadata_file_path(Path):  Path of yaml file that SubtoolMetadata is loaded from. Should not be used directly. Only used if class is initiated using 'load_from_file' method.
+        :param kwargs(dict): Key:value pairs that describe subtool metadata.
+        """
+        ignore_empties = kwargs.pop('ignore_empties', None)
         self._parentMetadata = kwargs.get('_parentMetadata')
-        if not self._parentMetadata:
+        if self._parentMetadata:
+            assert isinstance(self._parentMetadata, ParentToolMetadata)
+        else:
             self.parentMetadata = kwargs['parentMetadata']  # must have a path if it isn't set directly.
-            self._load_parent_metadata(file_path)  # sets self._parentMetadata
+            self._load_parent_metadata(_metadata_file_path, ignore_empties=ignore_empties)  # sets self._parentMetadata
         self._primary_file_attrs = []
-        for k, value in kwargs.items():
+        for k, value in kwargs.items():  # populate _primary_file_attrs
             if value:
                 self._primary_file_attrs.append(k)  # keep track of kwargs supplied.
         self._load_attrs_from_parent()
-        super().__init__(**kwargs)
+        super().__init__(**kwargs, ignore_empties=ignore_empties)
 
 
     @property
     def name(self):
+        """Name of the subtool."""
         return self._name
 
     @name.setter
@@ -233,19 +241,25 @@ class SubtoolMetadata(ToolMetadataBase):
 
 
     @classmethod
-    def load_from_file(cls, file_path):
+    def load_from_file(cls, file_path, ignore_empties=False):
+        """Load subtool metadata into SubtoolMetadata from a yaml file."""
         file_path = Path(file_path)
         with file_path.open('r') as file:
             file_dict = safe_load(file)
-        return cls(**file_dict, file_path=file_path)
+        return cls(**file_dict, _metadata_file_path=file_path, ignore_empties=ignore_empties)
 
-    def _load_parent_metadata(self, subtool_metadata_file_path):
-        # subtool_metadata_file_path of subtool metadata. ParentMetadata path should be relative to this.
+    def _load_parent_metadata(self, subtool_metadata_file_path, ignore_empties=False):
+        """
+        Populate SubtoolMetadata._parentMetadata
+        :param subtool_metadata_file_path(Path):
+        :param ignore_empties(Bool):
+        :return:
+        """
         dir_name = subtool_metadata_file_path.parent
         full_path = dir_name / self.parentMetadata
         with full_path.resolve().open('r') as f:
             parent_metadata_dict = safe_load(f)
-        self._parentMetadata = ParentToolMetadata(**parent_metadata_dict)
+        self._parentMetadata = ParentToolMetadata(**parent_metadata_dict, ignore_empties=ignore_empties)
 
     def _load_attrs_from_parent(self):
         # initialize everything from parent. Will be overwritten anything supplied in kwargs.

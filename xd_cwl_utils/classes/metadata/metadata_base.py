@@ -9,7 +9,7 @@ from pathlib import Path
 import semantic_version
 from ruamel.yaml.comments import CommentedMap
 from ruamel.yaml import YAML
-from ...classes.metadata.common_functions import mk_empty_prop_object
+from ...classes.metadata.common_functions import mk_empty_prop_object, is_attr_empty
 from ...classes.metadata.shared_properties import object_attributes
     # CodeRepository, Person, Publication, WebSite, Keyword, ApplicationSuite, ParentScript, Tool, IOObjectItem, CallMap
 #
@@ -58,7 +58,8 @@ class MetadataBase(ABC):
 
     def __init__(self, **kwargs):
         init_metadata = self._init_metadata()
-
+        ignore_empties = kwargs.get('ignore_empties')  # if not there will be None which is falsey so default is not to ignore.
+        kwargs.pop('ignore_empties', None)
         for k, v in kwargs.items():
             if not k in init_metadata:
                 raise AttributeError(f"{k} is not a valid key for {type(self)}")
@@ -76,6 +77,12 @@ class MetadataBase(ABC):
                         raise NotImplementedError(f"Figure out what's happening here and fix it.")
                 except AttributeError:
                     setattr(self, k, v)  # Set to default value provided in self._init_metadata. Last resort.
+            if ignore_empties:
+                attribute = getattr(self, k)
+                if is_attr_empty(attribute):
+                    # print(f"Setting {k} to None for {self.name}")
+                    setattr(self, k, None)
+
         return
 
     def mk_file(self, file_path, keys=None, replace_none=True):
