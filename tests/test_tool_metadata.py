@@ -5,36 +5,36 @@ from tempfile import NamedTemporaryFile
 from ruamel.yaml import safe_load
 from tests.test_base import TestBase
 from xd_cwl_utils.config import config
-from xd_cwl_utils.classes.metadata.tool_metadata import ToolMetadata, ParentToolMetadata, SubtoolMetadata
-from xd_cwl_utils.add.add_tools import add_tool, add_subtool, add_parent_tool
+from xd_cwl_utils.classes.metadata.tool_metadata import ParentToolMetadata, SubtoolMetadata
+from xd_cwl_utils.add.add_tools import add_tool, add_subtool
 
 
-class TestMakeToolMetadata(TestBase):
-    test_dict = {'name':'some_name', 'bad': 'Should not work.', 'softwareVersion': 1}
-
-    def test_make_tool_metadata(self):
-        tm = ToolMetadata(name=TestMakeToolMetadata.test_dict['name'], softwareVersion=TestMakeToolMetadata.test_dict['softwareVersion'])
-        self.assertTrue(tm.name == TestMakeToolMetadata.test_dict['name'])
-
-    def test_bad_kwarg(self):
-        with self.assertRaises(AttributeError):
-            tm = ToolMetadata(bad=TestMakeToolMetadata.test_dict['bad'])
-
-    def test_make_file(self):
-        tm = ToolMetadata(name=TestMakeToolMetadata.test_dict['name'], softwareVersion=0.1)
-        with NamedTemporaryFile(prefix='tool_test', suffix='.yaml', delete=True) as tf:
-            temp_file_name = tf.name
-            tm.mk_file(temp_file_name, replace_none=False)
-            with open(temp_file_name, 'r') as f:
-                test_file_dict = safe_load(f)
-        self.assertEqual(test_file_dict['name'], TestMakeToolMetadata.test_dict['name'])
-
-    def test_make_from_biotools(self):
-        biotools_id = 'star'
-        biotools_meta = ToolMetadata.create_from_biotools(biotools_id, softwareVersion=1)
-        with NamedTemporaryFile(prefix='biotools', suffix='.yaml', delete=True) as tf:
-            biotools_meta.mk_file(tf.name, replace_none=True)
-        return
+# class TestMakeToolMetadata(TestBase):
+#     test_dict = {'name':'some_name', 'bad': 'Should not work.', 'softwareVersion': 1}
+#
+#     def test_make_tool_metadata(self):
+#         tm = ToolMetadata(name=TestMakeToolMetadata.test_dict['name'], softwareVersion=TestMakeToolMetadata.test_dict['softwareVersion'])
+#         self.assertTrue(tm.name == TestMakeToolMetadata.test_dict['name'])
+#
+#     def test_bad_kwarg(self):
+#         with self.assertRaises(AttributeError):
+#             tm = ToolMetadata(bad=TestMakeToolMetadata.test_dict['bad'])
+#
+#     def test_make_file(self):
+#         tm = ToolMetadata(name=TestMakeToolMetadata.test_dict['name'], softwareVersion=0.1)
+#         with NamedTemporaryFile(prefix='tool_test', suffix='.yaml', delete=True) as tf:
+#             temp_file_name = tf.name
+#             tm.mk_file(temp_file_name, replace_none=False)
+#             with open(temp_file_name, 'r') as f:
+#                 test_file_dict = safe_load(f)
+#         self.assertEqual(test_file_dict['name'], TestMakeToolMetadata.test_dict['name'])
+#
+#     def test_make_from_biotools(self):
+#         biotools_id = 'star'
+#         biotools_meta = ToolMetadata.create_from_biotools(biotools_id, softwareVersion=1)
+#         with NamedTemporaryFile(prefix='biotools', suffix='.yaml', delete=True) as tf:
+#             biotools_meta.mk_file(tf.name, replace_none=True)
+#         return
 
 class TestMakeParentToolMetadata(TestBase):
     test_dict = {'name': 'parent_name', 'bad': 'A bad key or value.'}
@@ -81,11 +81,11 @@ class TestAddTools(TestBase):
         return
 
     def test_add_parent_tool(self):
-        new_tool_path = add_parent_tool(self._foo_tool_name, self._foo_softwareVersion, self._foo_subtool_name)
+        new_tool_path = add_tool(self._foo_tool_name, self._foo_softwareVersion, self._foo_subtool_name)
         return
 
     def test_add_subtool(self):
-        parent_tool_path = add_parent_tool(self._foo_tool_name, self._foo_softwareVersion, self._foo_subtool_name)
+        parent_tool_path = add_tool(self._foo_tool_name, self._foo_softwareVersion, self._foo_subtool_name)
         subtool_path = add_subtool(parent_tool_path, self._foo_subtool_name)
         return
 

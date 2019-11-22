@@ -3,7 +3,7 @@ from pathlib import Path
 from ruamel.yaml import safe_load, YAML
 from xd_cwl_utils.config import config
 from xd_cwl_utils.classes.metadata.script_metadata import ScriptMetadata
-from xd_cwl_utils.classes.metadata.tool_metadata import ToolMetadata, ParentToolMetadata, SubtoolMetadata
+from xd_cwl_utils.classes.metadata.tool_metadata import ParentToolMetadata, SubtoolMetadata
 from xd_cwl_utils.classes.metadata.workflow_metadata import WorkflowMetadata
 from xd_cwl_utils.helpers.get_paths import get_cwl_tool, get_cwl_tool_metadata, get_tool_version_dir, \
     get_script_version_dir, get_metadata_path, get_relative_path, get_workflow_version_dir, get_root_tools_dir, \
@@ -62,10 +62,11 @@ def make_tool_map(tool_name, tool_version, base_dir=None):
             subtool_metadata = SubtoolMetadata.load_from_file(subtool_metadata_path)
             tool_map[subtool_metadata.identifier] = {'path': str(subtool_rel_path), 'name': subtool_metadata.name, 'version': subtool_metadata.version, 'type': 'subtool'}
     else: # Not a complex tool. Should just have one directory for main tool.
-        metadata_path = get_cwl_tool_metadata(tool_name, tool_version, base_dir=base_dir)
-        metadata = ToolMetadata.load_from_file(metadata_path)
-        tool_rel_path = get_relative_path((get_cwl_tool(tool_name, tool_version, base_dir=base_dir)), base_path=base_dir)
-        tool_map[metadata.identifier] = {'path': str(tool_rel_path), 'name': metadata.name, 'softwareVersion': metadata.softwareVersion, 'version': metadata.version, 'type': 'tool'}
+        raise ValueError(f"{tool_name} {tool_version} must have a common directory.")
+        # metadata_path = get_cwl_tool_metadata(tool_name, tool_version, base_dir=base_dir)
+        # metadata = ToolMetadata.load_from_file(metadata_path)
+        # tool_rel_path = get_relative_path((get_cwl_tool(tool_name, tool_version, base_dir=base_dir)), base_path=base_dir)
+        # tool_map[metadata.identifier] = {'path': str(tool_rel_path), 'name': metadata.name, 'softwareVersion': metadata.softwareVersion, 'version': metadata.version, 'type': 'tool'}
 
     return tool_map
 

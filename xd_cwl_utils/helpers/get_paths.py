@@ -7,6 +7,8 @@ from xd_cwl_utils.config import config
 
 # Misc
 
+main_tool_subtool_name = '__main__'  # store here so can change easily. This is the 'name' of the main tool (categorized as a subtool).
+
 def get_inputs_schema_template():
 
     schema_template_path = Path.cwd() / 'tests/test_files/schema_salad/inputs_schema_template.yml'
@@ -38,31 +40,37 @@ def get_tool_version_dir(tool_name, tool_version, base_dir=None):
     version_dir = get_main_tool_dir(tool_name, base_dir=base_dir) / tool_version
     return version_dir
 
-def get_tool_dir(tool_name, tool_version, subtool_name=None, base_dir=None):
+def get_tool_dir(tool_name, tool_version, subtool_name, base_dir=None):
     tool_version_dir = get_tool_version_dir(tool_name, tool_version, base_dir=base_dir)
-    if subtool_name:
-        tool_dir = tool_version_dir / f"{tool_name}_{subtool_name}"
-    else:
+
+    if subtool_name == main_tool_subtool_name:
         tool_dir = tool_version_dir / tool_name
+    else:
+        tool_dir = tool_version_dir / f"{tool_name}_{subtool_name}"
     return tool_dir
 
 def get_cwl_tool(tool_name, tool_version, subtool_name=None, base_dir=None):
-    tool_dir = get_tool_dir(tool_name, tool_version, subtool_name=subtool_name, base_dir=base_dir)
-
-    if subtool_name:
-        cwl_tool_path = tool_dir / f"{tool_name}-{subtool_name}.cwl"
-    else:
+    """Return cwl file for tool. If subtool_name not specfied, return main tool."""
+    if not subtool_name or subtool_name == main_tool_subtool_name:
+        tool_dir = get_tool_dir(tool_name, tool_version, subtool_name=main_tool_subtool_name, base_dir=base_dir)
         cwl_tool_path = tool_dir / f"{tool_name}.cwl"
+    else:
+        tool_dir = get_tool_dir(tool_name, tool_version, subtool_name, base_dir=base_dir)
+        cwl_tool_path = tool_dir / f"{tool_name}-{subtool_name}.cwl"
     return cwl_tool_path
 
 
 def get_cwl_tool_metadata(tool_name, tool_version, subtool_name=None, parent=False, base_dir=None):
     version_dir = get_tool_version_dir(tool_name, tool_version, base_dir=base_dir)
-
     if parent:
-        cwl_tool_metadata_path = version_dir / 'common' / f"{tool_name}-metadata.yaml"
+        assert not subtool_name
+        cwl_tool_metadata_path = get_tool_common_dir(tool_name, tool_version, base_dir=base_dir) / f"common-metadata.yaml"
     else:
-        cwl_tool_metadata_path = get_metadata_path(get_cwl_tool(tool_name, tool_version, subtool_name=subtool_name, base_dir=base_dir))
+        tool_dir = get_tool_dir(tool_name, tool_version, subtool_name, base_dir)
+        if subtool_name in (None, main_tool_subtool_name):
+            cwl_tool_metadata_path = tool_dir / f"{tool_name}-metadata.yaml"
+        else:
+            cwl_tool_metadata_path = tool_dir / f"{tool_name}-{subtool_name}-metadata.yaml"
     return cwl_tool_metadata_path
 
 
@@ -76,6 +84,10 @@ def get_tool_instances_dir_from_cwl_path(cwl_path):
     instances_dir = cwl_path.parent / 'instances'
     return instances_dir
 
+def get_tool_common_dir(tool_name, tool_version, base_dir=None):
+    version_dir = get_tool_version_dir(tool_name, tool_version, base_dir=base_dir)
+    common_dir = version_dir / 'common'
+    return common_dir
 
 def get_tool_instance_path(tool_name, tool_version, input_hash, subtool_name=None, base_dir=None):
 

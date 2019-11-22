@@ -4,6 +4,7 @@ from collections import OrderedDict
 from abc import abstractmethod
 import re
 from ruamel.yaml import safe_load
+from ...helpers.get_paths import get_cwl_tool_metadata
 from ...classes.metadata.metadata_base import MetadataBase
 from ...classes.metadata.shared_properties import CodeRepository, Person, WebSite, Keyword, ApplicationSuite
 from ...helpers.get_metadata_from_biotools import make_tool_metadata_kwargs_from_biotools
@@ -53,70 +54,6 @@ class ToolMetadataBase(MetadataBase):
             keywords = None
         self._keywords = keywords
 
-
-class ToolMetadata(CommonPropsMixin, ToolMetadataBase):
-    """Class to represent metadata for a 'stand alone' command line tool."""
-
-    @staticmethod
-    def _init_metadata():
-        return OrderedDict([
-            ('name', None),
-            ('softwareVersion', None),
-            ('version', '0.1.0'),  # Set to something low if not provided.
-            ('identifier', None),
-            ('description', None),
-            ('codeRepository', None),
-            ('license', None),
-            ('WebSite', None),
-            ('contactPoint', None),
-            ('publication', None),
-            ('keywords', None),
-            ('alternateName', None),
-            ('creator', None),
-            ('programmingLanguage', None),
-            ('datePublished', None),
-            ('downloadURL', None),
-            ('extra', None),
-        ])
-
-
-    def _check_identifier(self, identifier):
-        if not identifier[:3] == "TL_":
-            raise ValueError(f"Tool identifiers must start with 'TL_' you provided {identifier}")
-        else:
-            hex_pattern = r'[0-9a-f]{6}\.[0-9a-f]{2}$'
-            match_obj = re.match(hex_pattern, identifier[3:])
-            if not match_obj:
-                raise ValueError(f"Tool identifier not formatted correctly: {identifier}")
-
-        return identifier
-
-    def _mk_identifier(self, start=0):
-        if not (self.name and self.softwareVersion):
-            raise ValueError(f"Name and softwareVersion must be provided to make an identifier.")
-        name_hash, version_hash = _mk_hashes(self.name, self.softwareVersion)
-        identifier = f"TL_{name_hash[start:start + 6]}.{version_hash[:2]}"
-        return identifier
-
-    # Class factory methods
-
-    @classmethod
-    def load_from_file(cls, file_path, ignore_empties=False):
-        file_path = Path(file_path)
-        with file_path.open('r') as file:
-            file_dict = safe_load(file)
-        return cls(**file_dict, ignore_empties=ignore_empties)
-
-
-    @classmethod
-    def create_from_biotools(cls, biotools_id, softwareVersion, version='0.1.1'):
-        kwargs = make_tool_metadata_kwargs_from_biotools(biotools_id)
-        kwargs['softwareVersion'] = softwareVersion
-        kwargs['version'] = version
-        return cls(**kwargs)
-
-    def mk_instance(self):
-        raise NotImplementedError
 
 
 class ParentToolMetadata(CommonPropsMixin, ToolMetadataBase):
@@ -184,7 +121,9 @@ class ParentToolMetadata(CommonPropsMixin, ToolMetadataBase):
     @classmethod
     def create_from_biotools(cls, biotools_id, softwareVersion, subtools, version='0.1.1'):
         kwargs = make_tool_metadata_kwargs_from_biotools(biotools_id)
-        kwargs['featureList'] = list(subtools)
+        if not subtools:  # Assume it is a 'standalone' type tool
+            subtools = ["__main__"]
+        kwargs['featureList'] = list(subtools)  # A lot more to do here.
         kwargs['softwareVersion'] = softwareVersion
         kwargs['version'] = version
         return cls(**kwargs)
@@ -308,10 +247,14 @@ class SubtoolMetadata(ToolMetadataBase):
     def mk_instance(self):
         raise NotImplementedError
 
-    def mk_file(self, file_path, keys=None):
+    def mk_file(self, file_path=None, keys=None, replace_none=True):
         parent_path = Path(self.parentMetadata)
-        subtool_path = file_path
-        rel_path = parent_path.relative_to(subtool_path.parents[1])
+        base_path = parent_path.parents[3]
+        if not file_path:
+            file_path = get_cwl_tool_metadata(self.applicationSuite.name, self.applicationSuite.softwareVersion, subtool_name=self.name, parent=False, base_dir=base_path)
+        else:
+            file_path = file_path.resolve()
+        rel_path = parent_path.relative_to(file_path.parents[1])
         rel_path_str = '../' + str(rel_path)
         self.parentMetadata = rel_path_str
-        super().mk_file(file_path)
+        super().mk_file(file_path, keys, replace_none)

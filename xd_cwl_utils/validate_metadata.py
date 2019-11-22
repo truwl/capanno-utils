@@ -3,7 +3,7 @@
 import argparse
 import sys
 import logging
-from xd_cwl_utils.classes.metadata.tool_metadata import ToolMetadata, ParentToolMetadata, SubtoolMetadata
+from xd_cwl_utils.classes.metadata.tool_metadata import ParentToolMetadata, SubtoolMetadata
 from xd_cwl_utils.classes.metadata.script_metadata import ScriptMetadata, CommonScriptMetadata
 from xd_cwl_utils.classes.metadata.workflow_metadata import WorkflowMetadata
 
@@ -30,8 +30,8 @@ def main(argsl=None):
     parser = argparse.ArgumentParser(description="Validate metadata files.")
     subparsers = parser.add_subparsers(description="Specify type of metadata to validate.", dest='command')
 
-    validate_tool = subparsers.add_parser('tool', help="Validate tool metadata.")
-    validate_tool.add_argument('path', help="Path to tool metadata file.")
+    # validate_tool = subparsers.add_parser('tool', help="Validate tool metadata.")
+    # validate_tool.add_argument('path', help="Path to tool metadata file.")
 
     validate_parent_tool = subparsers.add_parser('parent_tool', help="Validate parent tool metadata.")
     validate_parent_tool.add_argument('path', help="Path to parent tool metadata file.")
@@ -52,10 +52,10 @@ def main(argsl=None):
     command = args.command
     path =args.path
 
-    if command == 'tool':
-        validate_tool_metadata = metadata_validator_factory(ToolMetadata)
-        validate_tool_metadata(path)
-    elif command == 'parent_tool':
+    # if command == 'tool':
+    #     validate_tool_metadata = metadata_validator_factory(ToolMetadata)
+    #     validate_tool_metadata(path)
+    if command == 'parent_tool':
         validate_parent_tool_metadata = metadata_validator_factory(ParentToolMetadata)
         validate_parent_tool_metadata(path)
     elif command == 'subtool':
