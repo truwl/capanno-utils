@@ -4,6 +4,7 @@
 
 
 from abc import ABC, abstractmethod
+from tempfile import NamedTemporaryFile
 import logging
 from pathlib import Path
 import semantic_version
@@ -86,6 +87,13 @@ class MetadataBase(ABC):
         return
 
     def mk_file(self, file_path, keys=None, replace_none=True):
+        """
+
+        :param file_path:
+        :param keys: if provided, only the keys specified will be included in the file.
+        :param replace_none: Will replace None values with empty objects (keys without values) so values can be easily added in the file.
+        :return:
+        """
         file_path = Path(file_path)
         meta_map = CommentedMap()
         if not keys:
@@ -111,6 +119,7 @@ class MetadataBase(ABC):
         yaml = YAML()
         yaml.default_flow_style = False
         yaml.indent(mapping=2, sequence=4, offset=2)
+
         with file_path.open('w') as yaml_file:
-            yaml.dump(meta_map, yaml_file)
+                yaml.dump(meta_map, yaml_file)
         return

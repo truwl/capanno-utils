@@ -60,7 +60,13 @@ def get_cwl_tool(tool_name, tool_version, subtool_name=None, base_dir=None):
     return cwl_tool_path
 
 
-def get_cwl_tool_metadata(tool_name, tool_version, subtool_name=None, parent=False, base_dir=None):
+def get_tool_common_dir(tool_name, tool_version, base_dir=None):
+    version_dir = get_tool_version_dir(tool_name, tool_version, base_dir=base_dir)
+    common_dir = version_dir / 'common'
+    return common_dir
+
+
+def get_tool_metadata(tool_name, tool_version, subtool_name=None, parent=False, base_dir=None):
     version_dir = get_tool_version_dir(tool_name, tool_version, base_dir=base_dir)
     if parent:
         assert not subtool_name
@@ -73,6 +79,11 @@ def get_cwl_tool_metadata(tool_name, tool_version, subtool_name=None, parent=Fal
             cwl_tool_metadata_path = tool_dir / f"{tool_name}-{subtool_name}-metadata.yaml"
     return cwl_tool_metadata_path
 
+def get_parent_tool_relative_path_string():
+    """Used to populate Subtool.parentMetadata"""
+    rel_path_to_parent = "../../common/common-metadata.yaml"
+    return rel_path_to_parent
+
 
 def get_tool_inputs_dir(tool_name, tool_version, subtool_name=None, base_dir=None):
     cwl_tool_dir = get_tool_dir(tool_name, tool_version, subtool_name=subtool_name, base_dir=base_dir)
@@ -84,10 +95,6 @@ def get_tool_instances_dir_from_cwl_path(cwl_path):
     instances_dir = cwl_path.parent / 'instances'
     return instances_dir
 
-def get_tool_common_dir(tool_name, tool_version, base_dir=None):
-    version_dir = get_tool_version_dir(tool_name, tool_version, base_dir=base_dir)
-    common_dir = version_dir / 'common'
-    return common_dir
 
 def get_tool_instance_path(tool_name, tool_version, input_hash, subtool_name=None, base_dir=None):
 

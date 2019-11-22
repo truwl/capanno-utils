@@ -5,7 +5,7 @@ from xd_cwl_utils.classes.metadata.tool_metadata import ParentToolMetadata
 from xd_cwl_utils.helpers.get_paths import get_tool_common_dir
 
 
-def add_tool(tool_name, tool_version, subtool_names=None, biotools_id=None, has_primary=False, init_cwl=True):
+def add_tool(tool_name, tool_version, subtool_names=None, biotools_id=None, has_primary=False, root_repo_path=Path.cwd(), init_cwl=True):
     """
     Make the correct directory structure for adding a new command line tool. Optionally, create initialized CWL
     and metadata files. Run from cwl-tools directory.
@@ -19,7 +19,7 @@ def add_tool(tool_name, tool_version, subtool_names=None, biotools_id=None, has_
     if subtool_names:
         if isinstance(subtool_names, str):
             subtool_names = [subtool_names]
-    common_dir = get_tool_common_dir(tool_name, tool_version, base_dir=Path.cwd())
+    common_dir = get_tool_common_dir(tool_name, tool_version, base_dir=root_repo_path)
     common_dir.mkdir(parents=True, exist_ok=False)
     if has_primary:  # Need to append __main__ onto subtools.
         if subtool_names:
@@ -32,9 +32,10 @@ def add_tool(tool_name, tool_version, subtool_names=None, biotools_id=None, has_
     else:
         parent_metadata = ParentToolMetadata(name=tool_name, softwareVersion=tool_version, featureList=subtool_names)
     parent_file_path = common_dir / f"common-metadata.yaml"
-    for subtool in parent_metadata.featureList:
-        subtool_obj = parent_metadata.make_subtool_metadata(subtool_name=subtool, parent_metadata_path=parent_file_path)
-        subtool_obj.mk_file()
+    if parent_metadata.featureList:
+        for subtool in parent_metadata.featureList:
+            subtool_obj = parent_metadata.make_subtool_metadata(subtool_name=subtool, parent_metadata_path=parent_file_path)
+            subtool_obj.mk_file()
     parent_metadata.mk_file(parent_file_path)
     return parent_file_path
 

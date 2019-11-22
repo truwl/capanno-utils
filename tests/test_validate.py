@@ -1,7 +1,7 @@
 
 from tests.test_base import TestBase
 from pathlib import Path
-from xd_cwl_utils.helpers.get_paths import get_cwl_tool_metadata
+from xd_cwl_utils.helpers.get_paths import get_tool_metadata
 from xd_cwl_utils.validate_metadata import metadata_validator_factory
 from xd_cwl_utils.classes.metadata.tool_metadata import ParentToolMetadata, SubtoolMetadata
 
@@ -10,7 +10,7 @@ class TestValidateMetadata(TestBase):
 
     def test_validate_tool_metadata(self):
         # validate_tool_metadata = metadata_validator_factory(ToolMetadata)
-        # metadata_path = get_cwl_tool_metadata('sort', '8.25')
+        # metadata_path = get_tool_metadata('sort', '8.25')
         # validate_tool_metadata(metadata_path)
         # Todo update.
         return
@@ -25,7 +25,7 @@ class TestValidateMetadata(TestBase):
 
     def test_validate_parent_tool_metadata(self):
         validate_parent_metadata = metadata_validator_factory(ParentToolMetadata)
-        metadata_path = get_cwl_tool_metadata('STAR', '2.5', parent=True)
+        metadata_path = get_tool_metadata('STAR', '2.5', parent=True)
         validate_parent_metadata(metadata_path)
 
     def test_validate_parent_tool_metadata_fail(self):
@@ -37,7 +37,7 @@ class TestValidateMetadata(TestBase):
 
     def test_validate_subtool_metadata(self):
         validate_subtool_metadata = metadata_validator_factory(SubtoolMetadata)
-        metadata_path = get_cwl_tool_metadata('STAR', '2.5', subtool_name='alignReads')
+        metadata_path = get_tool_metadata('STAR', '2.5', subtool_name='alignReads')
         validate_subtool_metadata(metadata_path)
         return
 

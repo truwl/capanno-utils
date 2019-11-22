@@ -4,7 +4,7 @@ from collections import OrderedDict
 from abc import abstractmethod
 import re
 from ruamel.yaml import safe_load
-from ...helpers.get_paths import get_cwl_tool_metadata
+from ...helpers.get_paths import get_tool_metadata, get_parent_tool_relative_path_string
 from ...classes.metadata.metadata_base import MetadataBase
 from ...classes.metadata.shared_properties import CodeRepository, Person, WebSite, Keyword, ApplicationSuite
 from ...helpers.get_metadata_from_biotools import make_tool_metadata_kwargs_from_biotools
@@ -249,12 +249,12 @@ class SubtoolMetadata(ToolMetadataBase):
 
     def mk_file(self, file_path=None, keys=None, replace_none=True):
         parent_path = Path(self.parentMetadata)
-        base_path = parent_path.parents[3]
+        base_path = parent_path.parents[4]
         if not file_path:
-            file_path = get_cwl_tool_metadata(self.applicationSuite.name, self.applicationSuite.softwareVersion, subtool_name=self.name, parent=False, base_dir=base_path)
+            file_path = get_tool_metadata(self.applicationSuite.name, self.applicationSuite.softwareVersion, subtool_name=self.name, parent=False, base_dir=base_path)
         else:
             file_path = file_path.resolve()
-        rel_path = parent_path.relative_to(file_path.parents[1])
-        rel_path_str = '../' + str(rel_path)
-        self.parentMetadata = rel_path_str
+        if not file_path.parent.exists():
+            file_path.parent.mkdir()
+        self.parentMetadata = get_parent_tool_relative_path_string()
         super().mk_file(file_path, keys, replace_none)
