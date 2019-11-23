@@ -4,7 +4,7 @@ import os
 import argparse
 from unittest import defaultTestLoader, TestSuite
 from tests.test_add_tool import TestAddTool
-from tests.test_tool_metadata import TestMakeParentToolMetadata, TestMakeSubtoolMetadata, TestAddTools
+from tests.test_tool_metadata import TestMakeParentToolMetadata, TestMakeSubtoolMetadata
 from tests.test_script_metadata import TestScriptMetadata
 from tests.test_content_maps import TestToolMaps
 from tests.test_workflow_metadata import TestWorkflowMetadata
@@ -44,7 +44,6 @@ def suite_script_metadata():
 def suite_tool_metadata():
     suite = defaultTestLoader.loadTestsFromTestCase(TestMakeParentToolMetadata)
     suite.addTest(defaultTestLoader.loadTestsFromTestCase(TestMakeSubtoolMetadata))
-    suite.addTest(defaultTestLoader.loadTestsFromTestCase(TestAddTools))
     return suite
 
 def suite_validate():

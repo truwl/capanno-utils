@@ -2,7 +2,7 @@
 
 from pathlib import Path
 from xd_cwl_utils.classes.metadata.tool_metadata import ParentToolMetadata
-from xd_cwl_utils.helpers.get_paths import get_tool_common_dir
+from xd_cwl_utils.helpers.get_paths import get_tool_common_dir, main_tool_subtool_name, get_tool_metadata
 
 
 def add_tool(tool_name, tool_version, subtool_names=None, biotools_id=None, has_primary=False, root_repo_path=Path.cwd(), init_cwl=True):
@@ -23,9 +23,9 @@ def add_tool(tool_name, tool_version, subtool_names=None, biotools_id=None, has_
     common_dir.mkdir(parents=True, exist_ok=False)
     if has_primary:  # Need to append __main__ onto subtools.
         if subtool_names:
-            subtool_names.append('__main__')
+            subtool_names.append(main_tool_subtool_name)
         else:
-            subtool_names = ['__main__']
+            subtool_names = [main_tool_subtool_name]
     if biotools_id:
         # tool_name will be ignored.
         parent_metadata = ParentToolMetadata.create_from_biotools(biotools_id, tool_version, subtool_names)
@@ -40,12 +40,21 @@ def add_tool(tool_name, tool_version, subtool_names=None, biotools_id=None, has_
     return parent_file_path
 
 
-def add_subtool(parent_rel_path, subtool_name, init_cwl=True):
-    parent_path = Path(parent_rel_path) # Should be in /common
+def add_subtool(tool_name, tool_version, subtool_name, root_repo_path=Path.cwd(), update_featureList=False, init_cwl=True):
+    """Add subtool to already existing ToolLibrary (ParentTool file already exists)"""
+    parent_path = get_tool_metadata(tool_name, tool_version, parent=True, base_dir=root_repo_path)
     parent_meta = ParentToolMetadata.load_from_file(parent_path)
-    new_subtool_dir = parent_path.parents[1] / f"{parent_meta.name}_{subtool_name}"
-    new_subtool_dir.mkdir()
+    if update_featureList:
+        if parent_meta.featureList is None:
+            parent_meta.featureList = [subtool_name]
+        else:
+            if not subtool_name in parent_meta.featureList:
+                parent_meta.featureList.append(subtool_name)
+
+    # new_subtool_dir = parent_path.parents[1] / f"{parent_meta.name}_{subtool_name}"
+    # new_subtool_dir.mkdir()
+    parent_meta.mk_file(parent_path)  # Might need to make update_file methods.
     subtool_meta = parent_meta.make_subtool_metadata(subtool_name, parent_path)
-    new_file_path = new_subtool_dir / f"{subtool_name}-metadata.yaml"
-    subtool_meta.mk_file(new_file_path)
-    return new_file_path
+    # new_file_path = new_subtool_dir / f"{subtool_name}-metadata.yaml"
+    subtool_meta.mk_file()
+    return

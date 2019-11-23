@@ -58,34 +58,3 @@ class TestMakeSubtoolMetadata(TestBase):
         p_metadata = ParentToolMetadata(name=TestMakeParentToolMetadata.test_dict['name'], softwareVersion=1, featureList=['subtool_name'])
         st_metadata = SubtoolMetadata(name=TestMakeSubtoolMetadata.test_dict['name'], _parentMetadata=p_metadata)
         self.assertTrue(st_metadata.name == TestMakeSubtoolMetadata.test_dict['name'])
-
-
-
-
-class TestAddTools(TestBase):
-
-    _foo_tool_name = "ReallyRidiculousToolName"  # Make variable name different so don't overwrite or inadvertently access.
-    _foo_softwareVersion = "ThisIsAWeirdSoftwareVersion"
-    _foo_subtool_name = 'YeahNo'
-
-    def setUp(self) -> None:
-        pass
-
-    def tearDown(self) -> None:
-        test_dir = Path().cwd() / 'cwl-tools' / self._foo_tool_name
-        shutil.rmtree(test_dir)  # dangerous. Make sure cls.tool_name isn't messed with.
-
-
-    def test_add_tool(self):
-        new_tool_path = add_tool(self._foo_tool_name, self._foo_softwareVersion)
-        return
-
-    def test_add_parent_tool(self):
-        new_tool_path = add_tool(self._foo_tool_name, self._foo_softwareVersion, self._foo_subtool_name)
-        return
-
-    def test_add_subtool(self):
-        parent_tool_path = add_tool(self._foo_tool_name, self._foo_softwareVersion, self._foo_subtool_name)
-        subtool_path = add_subtool(parent_tool_path, self._foo_subtool_name)
-        return
-

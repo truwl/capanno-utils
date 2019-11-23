@@ -2,7 +2,7 @@
 
 from tempfile import TemporaryDirectory
 from tests.test_base import TestBase
-from xd_cwl_utils.add.add_tools import add_tool
+from xd_cwl_utils.add.add_tools import add_tool, add_subtool
 
 class TestAddTool(TestBase):
 
@@ -24,6 +24,7 @@ class TestAddTool(TestBase):
             # print(new_path)
         return
 
+
     def test_add_with_subtools(self):
         with TemporaryDirectory() as tmp_dir:
             tool_name = 'test___3'
@@ -31,6 +32,16 @@ class TestAddTool(TestBase):
             new_path = add_tool(tool_name, tool_version, subtool_names=['first', 'second'], has_primary=True, root_repo_path=tmp_dir)
             # print(new_path)
         return
+
+    def test_add_parent_then_subtool(self):
+        with TemporaryDirectory() as tmp_dir:
+            tool_name = 'test_tool'
+            tool_version = '0.1'
+            add_tool(tool_name, tool_version, root_repo_path=tmp_dir)
+            add_subtool(tool_name, tool_version, 'subtool1', root_repo_path=tmp_dir, update_featureList=True)
+            assert True
+        return
+
 
     def test_add_multiple(self):
         with TemporaryDirectory() as tmp_dir:

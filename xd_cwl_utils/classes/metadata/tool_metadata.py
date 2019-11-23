@@ -211,7 +211,7 @@ class SubtoolMetadata(ToolMetadataBase):
 
     def _mk_identifier(self):
         identifier_str, version_str = self._parentMetadata.identifier.split('.', 1)
-        subtool_hash = _mk_hashes(self.name)
+        subtool_hash = _mk_hashes(self.name)[0][:2]
         identifier = f"{identifier_str}_{subtool_hash}.{version_str}"
         return identifier
 

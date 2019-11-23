@@ -43,7 +43,7 @@ def get_tool_version_dir(tool_name, tool_version, base_dir=None):
 def get_tool_dir(tool_name, tool_version, subtool_name, base_dir=None):
     tool_version_dir = get_tool_version_dir(tool_name, tool_version, base_dir=base_dir)
 
-    if subtool_name == main_tool_subtool_name:
+    if subtool_name in (None, main_tool_subtool_name):
         tool_dir = tool_version_dir / tool_name
     else:
         tool_dir = tool_version_dir / f"{tool_name}_{subtool_name}"
