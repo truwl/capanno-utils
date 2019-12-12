@@ -1,4 +1,5 @@
 import os
+import re
 from pathlib import Path
 from xd_cwl_utils.config import config
 
@@ -8,6 +9,8 @@ from xd_cwl_utils.config import config
 # Misc
 
 main_tool_subtool_name = '__main__'  # store here so can change easily. This is the 'name' of the main tool (categorized as a subtool).
+
+instance_file_pattern = re.compile(r'[0-9a-f]{4}\.ya?ml')
 
 def get_inputs_schema_template():
 
@@ -90,6 +93,8 @@ def get_tool_inputs_dir(tool_name, tool_version, subtool_name=None, base_dir=Non
     instances_dir = cwl_tool_dir / 'instances'
     return instances_dir
 
+
+
 def get_tool_instances_dir_from_cwl_path(cwl_path):
     cwl_path = Path(cwl_path)
     instances_dir = cwl_path.parent / 'instances'
@@ -121,11 +126,7 @@ def get_tool_type_from_path(tool_path):
             raise ValueError(f"Provided a .yaml file {tool_path} for file that is not in a 'common' directory")
         tool_type = "parent"
     elif tool_path.suffix == '.cwl':
-        common_dir = tool_path.parents[1] / 'common'
-        if common_dir.exists():
-            tool_type = 'subtool'
-        else:
-            tool_type = 'tool'
+        tool_type = 'tool'
     else:
         raise ValueError(f"Do not recognize {tool_path} as a path to a tool.")
 
@@ -142,8 +143,18 @@ def get_root_scripts_dir(base_dir=None):
     scripts_dir = base_dir / 'cwl-scripts'
     return scripts_dir
 
+def get_script_group_dir(group_name, base_dir=None):
+    scripts_root_dir = get_root_scripts_dir(base_dir=base_dir)
+    scripts_group_dir = scripts_root_dir / group_name
+    return scripts_group_dir
+
+def get_script_project_dir(group_name, project_name, base_dir=None):
+    scripts_group_dir = get_script_group_dir(group_name, base_dir=base_dir)
+    script_project_dir = scripts_group_dir / project_name
+    return script_project_dir
+
 def get_script_version_dir(group_name, project_name, version, base_dir=None):
-    script_ver_dir = get_root_scripts_dir(base_dir=base_dir) / group_name / project_name / version
+    script_ver_dir = get_script_project_dir(group_name, project_name, base_dir=base_dir) / version
     return script_ver_dir
 
 def get_cwl_script(group_name, project_name, version, script_name, base_dir=None):
@@ -187,6 +198,14 @@ def get_workflows_root_dir(base_dir=None):
         base_dir = Path(base_dir)
     workflows_dir = base_dir / 'cwl-workflows'
     return workflows_dir
+
+def get_workflow_group_dir(group_name, base_dir=None):
+    workflow_group_dir = get_workflows_root_dir(base_dir=base_dir) / group_name
+    return workflow_group_dir
+
+def get_workflow_project_dir(group_name, project_name, base_dir=None):
+    workflow_project_dir = get_workflow_group_dir(group_name, base_dir=base_dir) / project_name
+    return workflow_project_dir
 
 def get_workflow_version_dir(group_name, project_name, version, base_dir=None):
     workflow_ver_dir = get_workflows_root_dir(base_dir=base_dir) / group_name / project_name / version

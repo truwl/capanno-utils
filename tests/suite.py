@@ -17,6 +17,7 @@ from tests.test_validate_tool_inputs import TestValidateInputs
 
 def suite_full():
     suite = TestSuite()
+    suite.addTest((suite_add_tool()))
     suite.addTest(suite_content_maps())
     suite.addTest(suite_script_metadata())
     suite.addTest(suite_tool_metadata())

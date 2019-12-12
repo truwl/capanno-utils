@@ -1,40 +1,14 @@
 import os
 import shutil
 from pathlib import Path
-from tempfile import NamedTemporaryFile
+from tempfile import NamedTemporaryFile, TemporaryDirectory
 from ruamel.yaml import safe_load
 from tests.test_base import TestBase
 from xd_cwl_utils.config import config
+from xd_cwl_utils.helpers.get_paths import get_tool_metadata
 from xd_cwl_utils.classes.metadata.tool_metadata import ParentToolMetadata, SubtoolMetadata
 from xd_cwl_utils.add.add_tools import add_tool, add_subtool
 
-
-# class TestMakeToolMetadata(TestBase):
-#     test_dict = {'name':'some_name', 'bad': 'Should not work.', 'softwareVersion': 1}
-#
-#     def test_make_tool_metadata(self):
-#         tm = ToolMetadata(name=TestMakeToolMetadata.test_dict['name'], softwareVersion=TestMakeToolMetadata.test_dict['softwareVersion'])
-#         self.assertTrue(tm.name == TestMakeToolMetadata.test_dict['name'])
-#
-#     def test_bad_kwarg(self):
-#         with self.assertRaises(AttributeError):
-#             tm = ToolMetadata(bad=TestMakeToolMetadata.test_dict['bad'])
-#
-#     def test_make_file(self):
-#         tm = ToolMetadata(name=TestMakeToolMetadata.test_dict['name'], softwareVersion=0.1)
-#         with NamedTemporaryFile(prefix='tool_test', suffix='.yaml', delete=True) as tf:
-#             temp_file_name = tf.name
-#             tm.mk_file(temp_file_name, replace_none=False)
-#             with open(temp_file_name, 'r') as f:
-#                 test_file_dict = safe_load(f)
-#         self.assertEqual(test_file_dict['name'], TestMakeToolMetadata.test_dict['name'])
-#
-#     def test_make_from_biotools(self):
-#         biotools_id = 'star'
-#         biotools_meta = ToolMetadata.create_from_biotools(biotools_id, softwareVersion=1)
-#         with NamedTemporaryFile(prefix='biotools', suffix='.yaml', delete=True) as tf:
-#             biotools_meta.mk_file(tf.name, replace_none=True)
-#         return
 
 class TestMakeParentToolMetadata(TestBase):
     test_dict = {'name': 'parent_name', 'bad': 'A bad key or value.'}
@@ -45,9 +19,12 @@ class TestMakeParentToolMetadata(TestBase):
 
     def test_make_file(self):
         p_metadata = ParentToolMetadata(name=TestMakeParentToolMetadata.test_dict['name'], softwareVersion=1)
-        with NamedTemporaryFile(prefix='', suffix='', delete=True) as tf:
-            p_metadata.mk_file(tf.name, replace_none=True)
-            with open(tf.name, 'r') as file:
+        with TemporaryDirectory(prefix='xD_test1', suffix='') as tmpdir:
+            parent_metadata_path = get_tool_metadata(TestMakeParentToolMetadata.test_dict['name'], '1', parent=True, base_dir=tmpdir)
+            if not parent_metadata_path.exists():
+                parent_metadata_path.parent.mkdir(parents=True)
+            p_metadata.mk_file(base_dir=tmpdir, replace_none=True)
+            with parent_metadata_path.open('r') as file:
                 test_file_dict = safe_load(file)
         self.assertEqual(test_file_dict['name'], TestMakeParentToolMetadata.test_dict['name'])
 
@@ -58,3 +35,9 @@ class TestMakeSubtoolMetadata(TestBase):
         p_metadata = ParentToolMetadata(name=TestMakeParentToolMetadata.test_dict['name'], softwareVersion=1, featureList=['subtool_name'])
         st_metadata = SubtoolMetadata(name=TestMakeSubtoolMetadata.test_dict['name'], _parentMetadata=p_metadata)
         self.assertTrue(st_metadata.name == TestMakeSubtoolMetadata.test_dict['name'])
+
+    def test_make_file(self):
+        with TemporaryDirectory(prefix="xD_test") as tmpdir:
+            add_tool('test1', '1.0', 'subtool1', root_repo_path=tmpdir)
+            assert True
+        return

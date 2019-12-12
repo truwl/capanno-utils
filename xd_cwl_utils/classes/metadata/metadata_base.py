@@ -110,7 +110,9 @@ class MetadataBase(ABC):
             if isinstance(attr_value, object_attributes):
                 meta_map[key] = attr_value.dump()
             elif isinstance(attr_value, list):
-                if isinstance(attr_value[0], object_attributes):
+                if not attr_value:  # empty list
+                    meta_map[key] = attr_value
+                elif isinstance(attr_value[0], object_attributes):
                     meta_map[key] = [item.dump() for item in attr_value]
                 else:
                     meta_map[key] = attr_value

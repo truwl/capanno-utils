@@ -2,7 +2,7 @@
 # * This file is subject to the terms and conditions defined in
 # * file 'LICENSE.txt', which is part of this source code package.
 
-from .shared_properties import Publication, Person, CodeRepository, WebSite, Keyword, object_attributes
+from .shared_properties import Publication, Person, CodeRepository, WebSite, Keyword, ApplicationSuite, object_attributes
 from hashlib import md5
 import uuid
 
@@ -48,7 +48,7 @@ def mk_empty_prop_object(property_name):
     :return:
     """
     prop_map = {'codeRepository': {'name': None}, 'publication': [{'identifier': None}],
-                'contactPoint': [{'name': None}], 'creator': [{'name': None}], 'WebSite': [{'name': None}], 'keywords': [Keyword()]}
+                'contactPoint': [{'name': None}], 'creator': [{'name': None}], 'WebSite': [{'name': None}], 'keywords': [Keyword()], 'applicationSuite': {'name': None, 'softwareVersion': None, 'identifier': None}}
     if not property_name in prop_map:
         return None
 
@@ -143,6 +143,18 @@ class CommonPropsMixin:
         else:
             code_repos = None
         self._codeRepository = code_repos
+
+    @property
+    def applicationSuite(self):
+        return self._applicationSuite
+
+    @applicationSuite.setter
+    def applicationSuite(self, application_suite_dict):
+        if application_suite_dict:
+            application_suite = ApplicationSuite(**application_suite_dict)
+        else:
+            application_suite = None
+        self._applicationSuite = application_suite
 
     @property
     def WebSite(self):

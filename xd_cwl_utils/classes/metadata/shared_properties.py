@@ -253,7 +253,7 @@ class ApplicationSuite(AttributeBase):
     def __init__(self, name=None, softwareVersion=None, identifier=None):
         super().__init__()
         self._name = name
-        self._softwareVersion = softwareVersion
+        self._softwareVersion = str(softwareVersion)
         self._identifier = identifier
 
     @property

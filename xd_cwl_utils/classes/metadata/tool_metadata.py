@@ -103,12 +103,12 @@ class ParentToolMetadata(CommonPropsMixin, ToolMetadataBase):
         identifier = f"TL_{name_hash[start:start + 6]}.{version_hash[:2]}"
         return identifier
 
-    def make_subtool_metadata(self, subtool_name, parent_metadata_path):
+    def make_subtool_metadata(self, subtool_name):
         if not self.featureList:
             raise ValueError(f"Cannot create subtool. featureList of {self.name} is not populated.")
         if subtool_name not in self.featureList:
             raise ValueError(f"{subtool_name} must be in the parent featureList")
-        subtool_metadata = SubtoolMetadata(name=subtool_name, _parentMetadata=self, parentMetadata=parent_metadata_path)
+        subtool_metadata = SubtoolMetadata(name=subtool_name, _parentMetadata=self)
         return subtool_metadata
 
     @classmethod
@@ -128,20 +128,24 @@ class ParentToolMetadata(CommonPropsMixin, ToolMetadataBase):
         kwargs['version'] = version
         return cls(**kwargs)
 
+    def mk_file(self, base_dir, keys=None, replace_none=True):
+        file_path = get_tool_metadata(self.name, self.softwareVersion, subtool_name=None, parent=True, base_dir=base_dir)
+        super().mk_file(file_path, keys, replace_none)
 
-class SubtoolMetadata(ToolMetadataBase):
+
+class SubtoolMetadata(CommonPropsMixin, ToolMetadataBase):
 
     @staticmethod
     def _init_metadata():
         return OrderedDict([
-            ('applicationSuite', ApplicationSuite()),
+            ('applicationSuite', None),
             ('name', None),
             ('version', '0.1'),
             ('identifier', None),
             ('description', None),
             ('keywords', None),
             ('alternateName', None),
-            ('parentMetadata', None),  # relative path to parentMetadata
+            ('parentMetadata', '../common/common-metadata.yaml'),  # relative path to parentMetadata
             ('_parentMetadata', None),  # ParentMetadata instance. Can be loaded from parentMetadata or set directly.
             ('_primary_file_attrs', None), # Keep track of attributes that are set directly from kwargs and not inherited from parent.
         ])
@@ -164,6 +168,7 @@ class SubtoolMetadata(ToolMetadataBase):
             if value:
                 self._primary_file_attrs.append(k)  # keep track of kwargs supplied.
         self._load_attrs_from_parent()
+        super_ = super()
         super().__init__(**kwargs, ignore_empties=ignore_empties)
 
 
@@ -203,8 +208,8 @@ class SubtoolMetadata(ToolMetadataBase):
     def _load_attrs_from_parent(self):
         # initialize everything from parent. Will be overwritten anything supplied in kwargs.
         parent_meta = self._parentMetadata
-        self.applicationSuite = ApplicationSuite(name=parent_meta.name, softwareVersion=parent_meta.softwareVersion,
-                                                 identifier=parent_meta.identifier)
+        self.applicationSuite = {'name': parent_meta.name, 'softwareVersion': parent_meta.softwareVersion,
+                                                 'identifier': parent_meta.identifier}
         # self.identifier = self._mk_identifier()
         self.keywords = parent_meta.keywords
         return
@@ -247,14 +252,14 @@ class SubtoolMetadata(ToolMetadataBase):
     def mk_instance(self):
         raise NotImplementedError
 
-    def mk_file(self, file_path=None, keys=None, replace_none=True):
-        parent_path = Path(self.parentMetadata)
-        base_path = parent_path.parents[4]
-        if not file_path:
-            file_path = get_tool_metadata(self.applicationSuite.name, self.applicationSuite.softwareVersion, subtool_name=self.name, parent=False, base_dir=base_path)
-        else:
-            file_path = file_path.resolve()
+    def mk_file(self, base_dir, keys=None, replace_none=True):
+        try:
+            file_path = get_tool_metadata(self.applicationSuite.name, self.applicationSuite.softwareVersion, subtool_name=self.name, parent=False, base_dir=base_dir)
+        except AttributeError:
+            print(type(self.applicationSuite))
+            print(self.applicationSuite)
+            print(self.name)
+            raise
         if not file_path.parent.exists():
             file_path.parent.mkdir()
-        self.parentMetadata = get_parent_tool_relative_path_string()
         super().mk_file(file_path, keys, replace_none)
