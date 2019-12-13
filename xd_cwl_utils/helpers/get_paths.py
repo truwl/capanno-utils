@@ -108,6 +108,11 @@ def get_tool_instance_path(tool_name, tool_version, input_hash, subtool_name=Non
 
     return inputs_path
 
+def get_tool_instance_metadata_path(tool_name, tool_version, input_hash, subtool_name=None, base_dir=None):
+    cwl_tool_inst_dir = get_tool_inputs_dir(tool_name, tool_version, subtool_name=subtool_name, base_dir=base_dir)
+    instance_metadata_path = cwl_tool_inst_dir / f"{input_hash}-metadata.yaml"
+    return instance_metadata_path
+
 def get_tool_args_from_path(cwl_tool_path):
     cwl_tool_path = Path(cwl_tool_path)
     tool_type = get_tool_type_from_path(cwl_tool_path)
