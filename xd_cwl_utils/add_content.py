@@ -4,9 +4,9 @@
 
 import sys
 import argparse
-from src.add.add_tools import add_parent_tool, add_tool, add_subtool
-from src.add.add_scripts import add_script, add_common_script_metadata
-from src.add.add_workflows import add_workflow
+from xd_cwl_utils.add.add_tools import add_tool, add_subtool
+from xd_cwl_utils.add.add_scripts import add_script, add_common_script_metadata
+from xd_cwl_utils.add.add_workflows import add_workflow
 
 parser = argparse.ArgumentParser(description='Initialize metadata and directories for a tool, script, or workflow.')
 subparsers = parser.add_subparsers(description='Specify the command to run.', dest='command')
@@ -16,13 +16,6 @@ addtool = subparsers.add_parser('tool', help='add a new standalone tool.')
 addtool.add_argument('tool_name', type=str, help="The name of the tool to add.")
 addtool.add_argument('tool_version', type=str, help="The version of the tool to add.")
 addtool.add_argument('--biotoolsID', type=str, help='biotools id from https://bio.tools')
-
-# add_parent_tool parser
-add_parent = subparsers.add_parser('parent_tool', help='add parent tool/common metadata')
-add_parent.add_argument('tool_name', type=str, help='The name of the tool to add.')
-add_parent.add_argument('tool_version', type=str, help="The version of the tool to add.")
-add_parent.add_argument('subtools', help='list of subtools of the parent tool.', nargs='+')
-add_parent.add_argument('--biotoolsID', type=str, help='biotools id from bio.tools')
 
 # add_subtool parser
 addsubtool = subparsers.add_parser('subtool', help='add a subtool. A parent must exist.')
@@ -54,8 +47,6 @@ addworkflow.add_argument('workflow_version', help='The version of the workflow.'
 def main(args):
     if args.command == 'tool':
         add_tool(args.tool_name, args.tool_version, args.biotoolsID)
-    elif args.command == 'parent_tool':
-        add_parent_tool(args.tool_name, args.tool_version, args.subtools, args.biotoolsID)
     elif args.command == 'subtool':
         add_subtool(args.parent_path, args.subtool_name)
     elif args.command == 'common_script':
