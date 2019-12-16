@@ -3,9 +3,9 @@ from pathlib import Path
 from ruamel.yaml import safe_load, YAML
 from xd_cwl_utils.config import config
 from xd_cwl_utils.classes.metadata.script_metadata import ScriptMetadata
-from xd_cwl_utils.classes.metadata.tool_metadata import ToolMetadata, ParentToolMetadata, SubtoolMetadata
+from xd_cwl_utils.classes.metadata.tool_metadata import ParentToolMetadata, SubtoolMetadata
 from xd_cwl_utils.classes.metadata.workflow_metadata import WorkflowMetadata
-from xd_cwl_utils.helpers.get_paths import get_cwl_tool, get_cwl_tool_metadata, get_tool_version_dir, \
+from xd_cwl_utils.helpers.get_paths import get_cwl_tool, get_tool_metadata, get_tool_version_dir, \
     get_script_version_dir, get_metadata_path, get_relative_path, get_workflow_version_dir, get_root_tools_dir, \
     get_root_scripts_dir, get_workflows_root_dir, get_cwl_workflow
 
@@ -39,7 +39,7 @@ def make_tool_map(tool_name, tool_version, base_dir=None):
     subdir_names = [subdir.name for subdir in tool_version_dir.iterdir()]
     has_common_dir = True if 'common' in subdir_names else False  # This is the sign of a complex tool. Could also choose len(subdir_names > 1)
     if has_common_dir:
-        parent_metadata_path = get_cwl_tool_metadata(tool_name, tool_version, parent=True, base_dir=base_dir)
+        parent_metadata_path = get_tool_metadata(tool_name, tool_version, parent=True, base_dir=base_dir)
         parent_metadata = ParentToolMetadata.load_from_file(parent_metadata_path)
         parent_rel_path = get_relative_path(parent_metadata_path, base_path=base_dir)
         tool_map[parent_metadata.identifier] = {'path': str(parent_rel_path), 'version': parent_metadata.version, 'name': parent_metadata.name, 'softwareVersion': parent_metadata.softwareVersion, 'type': 'parent'}
@@ -58,14 +58,15 @@ def make_tool_map(tool_name, tool_version, base_dir=None):
             assert (tool_name_from_dir == tool_name), f"{tool_name} should be equal to {tool_name_from_dir}."
             subtool_cwl_path = get_cwl_tool(tool_name, tool_version, subtool_name=subtool_name, base_dir=base_dir)
             subtool_rel_path = get_relative_path(subtool_cwl_path, base_path=base_dir)
-            subtool_metadata_path = get_cwl_tool_metadata(tool_name, tool_version, subtool_name=subtool_name, parent=False, base_dir=base_dir)
+            subtool_metadata_path = get_tool_metadata(tool_name, tool_version, subtool_name=subtool_name, parent=False, base_dir=base_dir)
             subtool_metadata = SubtoolMetadata.load_from_file(subtool_metadata_path)
             tool_map[subtool_metadata.identifier] = {'path': str(subtool_rel_path), 'name': subtool_metadata.name, 'version': subtool_metadata.version, 'type': 'subtool'}
     else: # Not a complex tool. Should just have one directory for main tool.
-        metadata_path = get_cwl_tool_metadata(tool_name, tool_version, base_dir=base_dir)
-        metadata = ToolMetadata.load_from_file(metadata_path)
-        tool_rel_path = get_relative_path((get_cwl_tool(tool_name, tool_version, base_dir=base_dir)), base_path=base_dir)
-        tool_map[metadata.identifier] = {'path': str(tool_rel_path), 'name': metadata.name, 'softwareVersion': metadata.softwareVersion, 'version': metadata.version, 'type': 'tool'}
+        raise ValueError(f"{tool_name} {tool_version} must have a common directory.")
+        # metadata_path = get_tool_metadata(tool_name, tool_version, base_dir=base_dir)
+        # metadata = ToolMetadata.load_from_file(metadata_path)
+        # tool_rel_path = get_relative_path((get_cwl_tool(tool_name, tool_version, base_dir=base_dir)), base_path=base_dir)
+        # tool_map[metadata.identifier] = {'path': str(tool_rel_path), 'name': metadata.name, 'softwareVersion': metadata.softwareVersion, 'version': metadata.version, 'type': 'tool'}
 
     return tool_map
 

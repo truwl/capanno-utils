@@ -13,8 +13,8 @@ for twine upload to work, must have credentials in .pypirc file
 with open('README.md', 'r') as fh:
     long_description = fh.read()
 
-# package_version = Version(major=0, minor=5, patch=0, prerelease=('alpha', '3'))
-package_version = Version('0.5.0')  # Use this when installing locally with pip install -e
+package_version = Version(major=0, minor=6, patch=1, prerelease=('alpha', '1'))
+# package_version = Version('0.5.0')  # Use this when installing locally with pip install -e
 
 setup(
     name='xd_cwl_utils',
@@ -36,7 +36,7 @@ setup(
         'cwltool',
     ],
     entry_points={
-        'console_scripts': ["xd-cwl-validate=xd_cwl_utils.validate_metadata:main"]
+        'console_scripts': ["xd-cwl-validate=xd_cwl_utils.validate_metadata:main", "xd-cwl-add=xd_cwl_utils.add_content:main"]
                   },
     classifiers=[
         "Development Status :: 3 - Alpha",
