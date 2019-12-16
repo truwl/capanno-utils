@@ -3,7 +3,8 @@ import logging
 import os
 import argparse
 from unittest import defaultTestLoader, TestSuite
-from tests.test_tool_metadata import TestMakeToolMetadata, TestMakeParentToolMetadata, TestMakeSubtoolMetadata, TestAddTools
+from tests.test_add_tool import TestAddTool
+from tests.test_tool_metadata import TestMakeParentToolMetadata, TestMakeSubtoolMetadata
 from tests.test_script_metadata import TestScriptMetadata
 from tests.test_content_maps import TestToolMaps
 from tests.test_workflow_metadata import TestWorkflowMetadata
@@ -16,6 +17,7 @@ from tests.test_validate_tool_inputs import TestValidateInputs
 
 def suite_full():
     suite = TestSuite()
+    suite.addTest((suite_add_tool()))
     suite.addTest(suite_content_maps())
     suite.addTest(suite_script_metadata())
     suite.addTest(suite_tool_metadata())
@@ -27,6 +29,10 @@ def suite_full():
     return suite
 
 
+def suite_add_tool():
+    suite = defaultTestLoader.loadTestsFromTestCase(TestAddTool)
+    return suite
+
 def suite_content_maps():
     suite = defaultTestLoader.loadTestsFromTestCase(TestToolMaps)
     return suite
@@ -37,10 +43,8 @@ def suite_script_metadata():
     return suite
 
 def suite_tool_metadata():
-    suite = defaultTestLoader.loadTestsFromTestCase(TestMakeToolMetadata)
+    suite = defaultTestLoader.loadTestsFromTestCase(TestMakeParentToolMetadata)
     suite.addTest(defaultTestLoader.loadTestsFromTestCase(TestMakeSubtoolMetadata))
-    suite.addTest(defaultTestLoader.loadTestsFromTestCase(TestMakeParentToolMetadata))
-    suite.addTest(defaultTestLoader.loadTestsFromTestCase(TestAddTools))
     return suite
 
 def suite_validate():
@@ -66,7 +70,8 @@ def suite_workflow_metadata():
     return suite
 
 def suite_dict():
-    suite_dict = {'content_maps': suite_content_maps(),
+    suite_dict = {'add_tool': suite_add_tool(),
+                  'content_maps': suite_content_maps(),
                   'full': suite_full(),
                   'script_metadata': suite_script_metadata(),
                   'tool_metadata': suite_tool_metadata(),

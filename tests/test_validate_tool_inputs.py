@@ -13,9 +13,9 @@ class TestValidateInputs(TestBase):
         tool_name = 'cat'
         tool_version = '8.25'
         input_hash = '8a6c'
-        cwl_docuument_path = get_cwl_tool(tool_name, tool_version)
+        cwl_document_path = get_cwl_tool(tool_name, tool_version)
         instance_path = get_tool_instance_path(tool_name, tool_version, input_hash)
-        validate_inputs_for_instance(instance_path, cwl_tool_path=cwl_docuument_path)
+        validate_inputs_for_instance(instance_path, cwl_tool_path=cwl_document_path)
         return
 
 

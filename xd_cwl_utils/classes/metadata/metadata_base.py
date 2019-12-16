@@ -4,12 +4,13 @@
 
 
 from abc import ABC, abstractmethod
+from tempfile import NamedTemporaryFile
 import logging
 from pathlib import Path
 import semantic_version
 from ruamel.yaml.comments import CommentedMap
 from ruamel.yaml import YAML
-from ...classes.metadata.common_functions import mk_empty_prop_object
+from ...classes.metadata.common_functions import mk_empty_prop_object, is_attr_empty
 from ...classes.metadata.shared_properties import object_attributes
     # CodeRepository, Person, Publication, WebSite, Keyword, ApplicationSuite, ParentScript, Tool, IOObjectItem, CallMap
 #
@@ -58,7 +59,8 @@ class MetadataBase(ABC):
 
     def __init__(self, **kwargs):
         init_metadata = self._init_metadata()
-
+        ignore_empties = kwargs.get('ignore_empties')  # if not there will be None which is falsey so default is not to ignore.
+        kwargs.pop('ignore_empties', None)
         for k, v in kwargs.items():
             if not k in init_metadata:
                 raise AttributeError(f"{k} is not a valid key for {type(self)}")
@@ -76,9 +78,22 @@ class MetadataBase(ABC):
                         raise NotImplementedError(f"Figure out what's happening here and fix it.")
                 except AttributeError:
                     setattr(self, k, v)  # Set to default value provided in self._init_metadata. Last resort.
+            if ignore_empties:
+                attribute = getattr(self, k)
+                if is_attr_empty(attribute):
+                    # print(f"Setting {k} to None for {self.name}")
+                    setattr(self, k, None)
+
         return
 
     def mk_file(self, file_path, keys=None, replace_none=True):
+        """
+
+        :param file_path:
+        :param keys: if provided, only the keys specified will be included in the file.
+        :param replace_none: Will replace None values with empty objects (keys without values) so values can be easily added in the file.
+        :return:
+        """
         file_path = Path(file_path)
         meta_map = CommentedMap()
         if not keys:
@@ -95,7 +110,9 @@ class MetadataBase(ABC):
             if isinstance(attr_value, object_attributes):
                 meta_map[key] = attr_value.dump()
             elif isinstance(attr_value, list):
-                if isinstance(attr_value[0], object_attributes):
+                if not attr_value:  # empty list
+                    meta_map[key] = attr_value
+                elif isinstance(attr_value[0], object_attributes):
                     meta_map[key] = [item.dump() for item in attr_value]
                 else:
                     meta_map[key] = attr_value
@@ -104,6 +121,7 @@ class MetadataBase(ABC):
         yaml = YAML()
         yaml.default_flow_style = False
         yaml.indent(mapping=2, sequence=4, offset=2)
+
         with file_path.open('w') as yaml_file:
-            yaml.dump(meta_map, yaml_file)
+                yaml.dump(meta_map, yaml_file)
         return

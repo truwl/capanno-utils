@@ -102,7 +102,7 @@ class ScriptMetadata(CommonPropsMixin, ScriptMetadataBase):
             ('programmingLanguage', None),
             ('datePublished', None),
             ('parentMetadata', None),
-            ('_parentMetadata', None),  # Place to store list of parent ScriptMetadata objects.
+            ('_parentMetadata', None),  # Place to store list of parent ScriptMetadata objects. Different than parentScripts!!
             ('_primary_file_attrs', None),
             # List to store attributes that are not inherited from a parent metadata file or object.
         ])
@@ -111,10 +111,12 @@ class ScriptMetadata(CommonPropsMixin, ScriptMetadataBase):
         """
         What it's gotta do: see if there's anything in parentMetadata. If so, load it into _parentMetadata. Check for values in kwargs.
         If value is there, leave it alone and put key in _primary_file_attrs. If it is not there, check for highest priority value in _parent_metadada and set to that value.
-        The main question. How to do this with the base class init which only expects kwargs as arguments. What if value already set...
+        The main question. How to do this with the base class init which only expects kwargs as arguments. What if value already set... Think this is taken care of.
         :param file_path:
         :param kwargs:
         """
+
+        ignore_empties = kwargs.pop('ignore_empties', None)
         # Get parent metadata first.
         if kwargs.get('parentMetadata'):
             self.parentMetadata = kwargs['parentMetadata']
@@ -127,7 +129,7 @@ class ScriptMetadata(CommonPropsMixin, ScriptMetadataBase):
                 if value:
                     self._primary_file_attrs.append(k)
             self._update_attributes(master_common_metadata)
-        super().__init__(**kwargs)
+        super().__init__(ignore_empties=ignore_empties, **kwargs)
 
     def _check_identifier(self, identifier):
         if not identifier[:3] == "ST_":
@@ -164,11 +166,11 @@ class ScriptMetadata(CommonPropsMixin, ScriptMetadataBase):
         return
 
     @classmethod
-    def load_from_file(cls, file_path):
+    def load_from_file(cls, file_path, ignore_empties=False):
         file_path = Path(file_path)
         with file_path.open('r') as file:
             file_dict = safe_load(file)
-        return cls(file_path=file_path, **file_dict)
+        return cls(file_path=file_path, ignore_empties=ignore_empties, **file_dict)
 
 
     def _update_attributes(self, update_instance):

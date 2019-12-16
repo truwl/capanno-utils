@@ -8,7 +8,7 @@ import re
 from abc import abstractmethod
 from ruamel.yaml import safe_load
 from ...classes.metadata.shared_properties import CodeRepository, WebSite, Person, Publication, Keyword, CallMap
-from ...classes.metadata.common_functions import _mk_hashes
+from ...classes.metadata.common_functions import _mk_hashes, CommonPropsMixin
 from ...classes.metadata.metadata_base import MetadataBase
 
 class WorkflowMetadataBase(MetadataBase):
@@ -54,7 +54,7 @@ class WorkflowMetadataBase(MetadataBase):
 
 
 
-class WorkflowMetadata(WorkflowMetadataBase):
+class WorkflowMetadata(CommonPropsMixin, WorkflowMetadataBase):
 
     @staticmethod
     def _init_metadata():
@@ -64,15 +64,15 @@ class WorkflowMetadata(WorkflowMetadataBase):
         ('description', None),
         ('identifier', None),
         ('version', '0.1'),
-        ('callMap', [CallMap()]),
-        ('codeRepository', CodeRepository()),
-        ('WebSite', [WebSite()]),
+        ('callMap', None),
+        ('codeRepository', None),
+        ('WebSite', None),
         ('license', None),
-        ('contactPoint', [Person()]),
-        ('publication', [Publication()]),
-        ('keywords', [Keyword()]),
+        ('contactPoint', None),
+        ('publication', None),
+        ('keywords', None),
         ('alternateName', None),
-        ('creator', [Person()]),
+        ('creator', None),
         ('programmingLanguage', None),
         ('datePublished', None),
     ])
@@ -95,7 +95,7 @@ class WorkflowMetadata(WorkflowMetadataBase):
         return identifier
 
     @classmethod
-    def load_from_file(cls, file_path):
+    def load_from_file(cls, file_path, ignore_empties=False):
         file_path = Path(file_path)
         with file_path.open('r') as file:
             file_dict = safe_load(file)
