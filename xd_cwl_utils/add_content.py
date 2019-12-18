@@ -15,11 +15,15 @@ subparsers = parser.add_subparsers(description='Specify the command to run.', de
 addtool = subparsers.add_parser('tool', help='add a new standalone tool.')
 addtool.add_argument('tool_name', type=str, help="The name of the tool to add.")
 addtool.add_argument('tool_version', type=str, help="The version of the tool to add.")
+addtool.add_argument('subtool_names', nargs='*', type=str, help="The version of the tool to add.")
 addtool.add_argument('--biotoolsID', type=str, help='biotools id from https://bio.tools')
+addtool.add_argument('--has_primary', help='biotools id from https://bio.tools')
+
 
 # add_subtool parser
 addsubtool = subparsers.add_parser('subtool', help='add a subtool. A parent must exist.')
-addsubtool.add_argument('parent_path', help='The absolute or relative path of the metadata file that describes the parent of the subtool.')
+addsubtool.add_argument('tool_name', help='The primary name of the tool.')
+addsubtool.add_argument('tool_version', help='The version of the tool.')
 addsubtool.add_argument('subtool_name', help="The name of the subtool. The subtool name must be present in the parent's featureList field.")
 
 # add_common_script_parser
@@ -46,9 +50,9 @@ addworkflow.add_argument('workflow_version', help='The version of the workflow.'
 
 def main(args):
     if args.command == 'tool':
-        add_tool(args.tool_name, args.tool_version, args.biotoolsID)
+        add_tool(args.tool_name, args.tool_version, subtool_names=args.subtool_names ,biotools_id=args.biotoolsID, has_primary=args.has_primary)
     elif args.command == 'subtool':
-        add_subtool(args.parent_path, args.subtool_name)
+        add_subtool(args.tool_name, args.tool_version, args.subtool_name)
     elif args.command == 'common_script':
         add_common_script_metadata(args.group_name, args.project_name, args.script_version, args.filename)
     elif args.command == 'script':

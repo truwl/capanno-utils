@@ -28,7 +28,7 @@ def add_tool(tool_name, tool_version, subtool_names=None, biotools_id=None, has_
             subtool_names = [main_tool_subtool_name]
     if biotools_id:
         # tool_name will be ignored.
-        parent_metadata = ParentToolMetadata.create_from_biotools(biotools_id, tool_version, subtool_names)
+        parent_metadata = ParentToolMetadata.create_from_biotools(biotools_id, tool_version, subtool_names, tool_name=tool_name)
     else:
         parent_metadata = ParentToolMetadata(name=tool_name, softwareVersion=tool_version, featureList=subtool_names)
     if parent_metadata.featureList:

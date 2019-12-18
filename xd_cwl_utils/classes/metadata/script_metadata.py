@@ -101,6 +101,7 @@ class ScriptMetadata(CommonPropsMixin, ScriptMetadataBase):
             ('creator', None),
             ('programmingLanguage', None),
             ('datePublished', None),
+            ('callable', True),  # specify whether the script is meant to be called. If False, just contains object for importing to other scripts.
             ('parentMetadata', None),
             ('_parentMetadata', None),  # Place to store list of parent ScriptMetadata objects. Different than parentScripts!!
             ('_primary_file_attrs', None),
@@ -232,8 +233,19 @@ class ScriptMetadata(CommonPropsMixin, ScriptMetadataBase):
         self._identifier = identifier
 
 
+    @property
+    def callable(self):
+        return self._callable
 
-class CommonScriptMetadata(ScriptMetadataBase):
+    @callable.setter
+    def callable(self, callable):
+        if not isinstance(callable, bool):
+            raise TypeError(f"callable must be a boolean, you provided {callable}")
+        self._callable = callable
+
+
+
+class CommonScriptMetadata(CommonPropsMixin, ScriptMetadataBase):
 
 
     @staticmethod

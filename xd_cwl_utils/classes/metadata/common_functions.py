@@ -115,7 +115,10 @@ class CommonPropsMixin:
     @contactPoint.setter
     def contactPoint(self, person_list):
         if person_list:
-            people = [Person(**person) for person in person_list]
+            if isinstance(person_list[0], dict):
+                people = [Person(**person) for person in person_list]
+            elif isinstance(person_list[0], Person):
+                people = person_list
         else:
             people = None
         self._contactPoint = people
@@ -137,12 +140,17 @@ class CommonPropsMixin:
         return self._codeRepository
 
     @codeRepository.setter
-    def codeRepository(self, code_repo_dict):
-        if code_repo_dict:
-            code_repos = CodeRepository(**code_repo_dict)
+    def codeRepository(self, code_repo_info):
+        if code_repo_info:
+            if isinstance(code_repo_info, CodeRepository):
+                code_repo = code_repo_info
+            elif isinstance(code_repo_info, dict):
+                code_repo = CodeRepository(**code_repo_info)
+            else:
+                raise TypeError(f"Cannot create codeRepository with {code_repo_info}")
         else:
-            code_repos = None
-        self._codeRepository = code_repos
+            code_repo = None
+        self._codeRepository = code_repo
 
     @property
     def applicationSuite(self):
@@ -163,7 +171,12 @@ class CommonPropsMixin:
     @WebSite.setter
     def WebSite(self, website_list):
         if website_list:
-            websites = [WebSite(**website_dict) for website_dict in website_list]
+            if isinstance(website_list[0], WebSite):
+                websites = website_list
+            elif isinstance(website_list[0], dict):
+                websites = [WebSite(**website_dict) for website_dict in website_list]
+            else:
+                raise TypeError(f"Cannot create WebSite with {website_list}")
         else:
             websites = None
         self._website = websites

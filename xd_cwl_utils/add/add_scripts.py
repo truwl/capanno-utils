@@ -38,6 +38,8 @@ def add_script(group_name, project_name, script_version, script_name, **kwargs):
     script_metadata.mk_file(script_dir / filename)
     instances_dir = script_dir / 'instances'
     instances_dir.mkdir()
+    git_keep_file = instances_dir / '.gitkeep'
+    git_keep_file.touch()
     return
 
 

@@ -67,11 +67,11 @@ def pop_websites_and_repo(homepage, link, documentation):
     return {'WebSite': websites if websites else None, 'codeRepository': code_repo}
 
 
-def make_tool_metadata_kwargs_from_biotools(biotools_id):
+def make_tool_metadata_kwargs_from_biotools(biotools_id, tool_name=None):
     meta_dict = get_metadata_from_biotools(biotools_id)
     meta_data = meta_dict['list'][0]
     tool_kwargs = {}
-    tool_kwargs['name'] = meta_data['name']
+    tool_kwargs['name'] = tool_name if tool_name else meta_data['name']
     tool_kwargs['description'] = meta_data['description']
     tool_kwargs['license'] = meta_data['license']
     tool_kwargs['publication'] = _handle_publication(meta_data.get('publication'))
