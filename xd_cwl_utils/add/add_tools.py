@@ -2,7 +2,7 @@
 
 from pathlib import Path
 from xd_cwl_utils.classes.metadata.tool_metadata import ParentToolMetadata
-from xd_cwl_utils.helpers.get_paths import get_tool_common_dir, main_tool_subtool_name, get_tool_metadata
+from xd_cwl_utils.helpers.get_paths import get_tool_common_dir, main_tool_subtool_name, get_tool_metadata, get_tool_dir
 
 
 def add_tool(tool_name, tool_version, subtool_names=None, biotools_id=None, has_primary=False, root_repo_path=Path.cwd(), init_cwl=True):
@@ -35,6 +35,11 @@ def add_tool(tool_name, tool_version, subtool_names=None, biotools_id=None, has_
         for subtool in parent_metadata.featureList:
             subtool_obj = parent_metadata.make_subtool_metadata(subtool_name=subtool)
             subtool_obj.mk_file(base_dir=root_repo_path)
+            subtool_dir = get_tool_dir(tool_name, tool_version, subtool, base_dir=root_repo_path)
+            instances_dir = subtool_dir / 'instances'
+            instances_dir.mkdir()
+            git_keep_file = instances_dir / '.gitkeep'
+            git_keep_file.touch()
     parent_metadata.mk_file(root_repo_path)
     return
 
@@ -62,4 +67,9 @@ def add_subtool(tool_name, tool_version, subtool_name, root_repo_path=Path.cwd()
 
     subtool_meta = parent_meta.make_subtool_metadata(subtool_name)
     subtool_meta.mk_file(base_dir=root_repo_path)
+    subtool_dir = get_tool_dir(tool_name, tool_version, subtool_name, base_dir=root_repo_path)
+    instances_dir = subtool_dir / 'instances'
+    instances_dir.mkdir()
+    git_keep_file = instances_dir / '.gitkeep'
+    git_keep_file.touch()
     return

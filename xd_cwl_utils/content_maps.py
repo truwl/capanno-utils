@@ -37,37 +37,32 @@ def make_tool_map(tool_name, tool_version, base_dir=None):
     tool_map = {}
     tool_version_dir = get_tool_version_dir(tool_name, tool_version, base_dir=base_dir)
     subdir_names = [subdir.name for subdir in tool_version_dir.iterdir()]
-    has_common_dir = True if 'common' in subdir_names else False  # This is the sign of a complex tool. Could also choose len(subdir_names > 1)
-    if has_common_dir:
-        parent_metadata_path = get_tool_metadata(tool_name, tool_version, parent=True, base_dir=base_dir)
-        parent_metadata = ParentToolMetadata.load_from_file(parent_metadata_path)
-        parent_rel_path = get_relative_path(parent_metadata_path, base_path=base_dir)
-        tool_map[parent_metadata.identifier] = {'path': str(parent_rel_path), 'version': parent_metadata.version, 'name': parent_metadata.name, 'softwareVersion': parent_metadata.softwareVersion, 'type': 'parent'}
-        subdir_names.remove('common')
-        for subdir_name in subdir_names:
-            subtool_name_parts = subdir_name.split('_')
-            subtool_name_parts_len = len(subtool_name_parts)
-            if subtool_name_parts_len == 2:  # The common case.
-                tool_name_from_dir, subtool_name = subdir_name.split('_')
-            elif subtool_name_parts_len == 1: # have a subtool that is the 'main' part of the tool; i.e. not a submodule. e.g. md5sum and md5sum_check
-                tool_name_from_dir = subtool_name_parts[0]
-                subtool_name = None
-            else:
-                raise NotImplementedError(
-                    f"There are zero or more than one underscore in directory {subdir_name}. Can't handle this yet.")
-            assert (tool_name_from_dir == tool_name), f"{tool_name} should be equal to {tool_name_from_dir}."
-            subtool_cwl_path = get_cwl_tool(tool_name, tool_version, subtool_name=subtool_name, base_dir=base_dir)
-            subtool_rel_path = get_relative_path(subtool_cwl_path, base_path=base_dir)
-            subtool_metadata_path = get_tool_metadata(tool_name, tool_version, subtool_name=subtool_name, parent=False, base_dir=base_dir)
-            subtool_metadata = SubtoolMetadata.load_from_file(subtool_metadata_path)
-            tool_map[subtool_metadata.identifier] = {'path': str(subtool_rel_path), 'name': subtool_metadata.name, 'version': subtool_metadata.version, 'type': 'subtool'}
-    else: # Not a complex tool. Should just have one directory for main tool.
-        raise ValueError(f"{tool_name} {tool_version} must have a common directory.")
-        # metadata_path = get_tool_metadata(tool_name, tool_version, base_dir=base_dir)
-        # metadata = ToolMetadata.load_from_file(metadata_path)
-        # tool_rel_path = get_relative_path((get_cwl_tool(tool_name, tool_version, base_dir=base_dir)), base_path=base_dir)
-        # tool_map[metadata.identifier] = {'path': str(tool_rel_path), 'name': metadata.name, 'softwareVersion': metadata.softwareVersion, 'version': metadata.version, 'type': 'tool'}
 
+    parent_metadata_path = get_tool_metadata(tool_name, tool_version, parent=True, base_dir=base_dir)
+    parent_metadata = ParentToolMetadata.load_from_file(parent_metadata_path)
+    parent_rel_path = get_relative_path(parent_metadata_path, base_path=base_dir)
+    tool_map[parent_metadata.identifier] = {'path': str(parent_rel_path), 'version': parent_metadata.version, 'name': parent_metadata.name, 'softwareVersion': parent_metadata.softwareVersion, 'type': 'parent'}
+    subdir_names.remove('common')
+    tool_name_len = len(tool_name)
+    for subdir_name in subdir_names:
+        assert subdir_name[:tool_name_len] == tool_name
+        subtool_name_parts = subdir_name[tool_name_len:].split('_')
+        subtool_name_parts_len = len(subtool_name_parts)
+        if subtool_name_parts_len > 2:
+            subtool_name = '_'.join(subtool_name_parts[1:])
+        elif subtool_name_parts_len == 2:  # The common case.
+            subtool_name = subdir_name.split('_')[1]
+        elif subtool_name_parts_len == 1: # have a subtool that is the 'main' part of the tool; i.e. not a submodule. e.g. md5sum and md5sum_check
+            subtool_name = None
+        else:
+            raise NotImplementedError(
+                f"There are zero underscores in a subtool directory {subdir_name}. Can't handle this yet.")
+        # Lots that could happen here. tool name could have an underscore, etc.
+        subtool_cwl_path = get_cwl_tool(tool_name, tool_version, subtool_name=subtool_name, base_dir=base_dir)
+        subtool_rel_path = get_relative_path(subtool_cwl_path, base_path=base_dir)
+        subtool_metadata_path = get_tool_metadata(tool_name, tool_version, subtool_name=subtool_name, parent=False, base_dir=base_dir)
+        subtool_metadata = SubtoolMetadata.load_from_file(subtool_metadata_path)
+        tool_map[subtool_metadata.identifier] = {'path': str(subtool_rel_path), 'name': subtool_metadata.name, 'version': subtool_metadata.version, 'type': 'subtool'}
     return tool_map
 
 

@@ -17,7 +17,7 @@ addtool.add_argument('tool_name', type=str, help="The name of the tool to add.")
 addtool.add_argument('tool_version', type=str, help="The version of the tool to add.")
 addtool.add_argument('subtool_names', nargs='*', type=str, help="The version of the tool to add.")
 addtool.add_argument('--biotoolsID', type=str, help='biotools id from https://bio.tools')
-addtool.add_argument('--has_primary', help='biotools id from https://bio.tools')
+addtool.add_argument('--has_primary', action='store_true', help='Tool is called directly without a subtool.')
 
 
 # add_subtool parser
@@ -25,6 +25,7 @@ addsubtool = subparsers.add_parser('subtool', help='add a subtool. A parent must
 addsubtool.add_argument('tool_name', help='The primary name of the tool.')
 addsubtool.add_argument('tool_version', help='The version of the tool.')
 addsubtool.add_argument('subtool_name', help="The name of the subtool. The subtool name must be present in the parent's featureList field.")
+addsubtool.add_argument('-u', '--update_featureList', action='store_true', help='Update the featureList of the Application Suite metadata to contain new subtool.')
 
 # add_common_script_parser
 addscriptcommon = subparsers.add_parser('common_script', help='add script metadata that other scripts can inherit from')
@@ -52,7 +53,7 @@ def main(args):
     if args.command == 'tool':
         add_tool(args.tool_name, args.tool_version, subtool_names=args.subtool_names ,biotools_id=args.biotoolsID, has_primary=args.has_primary)
     elif args.command == 'subtool':
-        add_subtool(args.tool_name, args.tool_version, args.subtool_name)
+        add_subtool(args.tool_name, args.tool_version, args.subtool_name, update_featureList=args.update_featureList)
     elif args.command == 'common_script':
         add_common_script_metadata(args.group_name, args.project_name, args.script_version, args.filename)
     elif args.command == 'script':
