@@ -253,7 +253,7 @@ class ApplicationSuite(AttributeBase):
     def __init__(self, name=None, softwareVersion=None, identifier=None):
         super().__init__()
         self._name = name
-        self._softwareVersion = str(softwareVersion)
+        self._softwareVersion = SoftwareVersion(**softwareVersion)
         self._identifier = identifier
 
     @property
@@ -284,6 +284,34 @@ class ApplicationSuite(AttributeBase):
     @staticmethod
     def _attrs():
         return frozenset(['name', 'softwareVersion', 'identifier'])
+
+
+class SoftwareVersion(AttributeBase):
+    def __init__(self, versionName=None, includedVersions=None):
+        super().__init__()
+        self._versionName = versionName
+        self._includedVersions = includedVersions
+
+    @property
+    def versionName(self):
+        return self._versionName
+
+    @versionName.setter
+    def versionName(self, new_versionName):
+        self._versionName = new_versionName
+
+    @property
+    def includedVersions(self):
+        return self._includedVersions
+
+    @includedVersions.setter
+    def includedVersions(self, includedVersions_list):
+        self._includedVersions = [specific_version for specific_version in includedVersions_list]
+
+
+    @staticmethod
+    def _attrs():
+        return frozenset(['versionName', 'includedVersions'])
 
 
 class ParentScript(AttributeBase):

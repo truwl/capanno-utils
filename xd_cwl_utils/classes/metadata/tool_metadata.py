@@ -65,11 +65,9 @@ class ParentToolMetadata(CommonPropsMixin, ToolMetadataBase):
         :return:
         """
         return OrderedDict([
-            ('name', None),
-            ('softwareVersion', None),
-            ('version', '0.1.0'),
-            ('identifier', None),
+            ('applicationSuite', None),
             ('featureList', None),
+            ('metadataStatus', 'Incomplete'),
             ('description', None),
             ('codeRepository', None),
             ('license', None),
@@ -85,7 +83,8 @@ class ParentToolMetadata(CommonPropsMixin, ToolMetadataBase):
             ('extra', None)
         ])
 
-    def _check_identifier(self, identifier):
+    def _check_identifier(self):
+        identifier = self.applicationSuite.identifier
         if not identifier[:3] == "TL_":
             raise ValueError(f"Tool identifiers must start with 'TL_' you provided {identifier}")
         else:
@@ -97,9 +96,9 @@ class ParentToolMetadata(CommonPropsMixin, ToolMetadataBase):
         return identifier
 
     def _mk_identifier(self, start=0):
-        if not (self.name and self.softwareVersion):
+        if not (self.applicationSuite.name and self.applicationSuite.softwareVersion.versionName):
             raise ValueError(f"Name and softwareVersion must be provided to make an identifier.")
-        name_hash, version_hash = _mk_hashes(self.name, self.softwareVersion)
+        name_hash, version_hash = _mk_hashes(self.applicationSuite.name, self.applicationSuite.softwareVersion.versionName)
         identifier = f"TL_{name_hash[start:start + 6]}.{version_hash[:2]}"
         return identifier
 
