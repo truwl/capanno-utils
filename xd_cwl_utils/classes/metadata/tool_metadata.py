@@ -137,8 +137,9 @@ class SubtoolMetadata(CommonPropsMixin, ToolMetadataBase):
     @staticmethod
     def _init_metadata():
         return OrderedDict([
-            ('applicationSuite', None),
             ('name', None),
+            ('metadataStatus', 'Incomplete'),
+            ('cwlStatus', 'Incomplete'),
             ('version', '0.1'),
             ('identifier', None),
             ('description', None),
@@ -166,8 +167,7 @@ class SubtoolMetadata(CommonPropsMixin, ToolMetadataBase):
         for k, value in kwargs.items():  # populate _primary_file_attrs
             if value:
                 self._primary_file_attrs.append(k)  # keep track of kwargs supplied.
-        self._load_attrs_from_parent()
-        super_ = super()
+        # self._load_attrs_from_parent()
         super().__init__(**kwargs, ignore_empties=ignore_empties)
 
 
@@ -207,8 +207,8 @@ class SubtoolMetadata(CommonPropsMixin, ToolMetadataBase):
     def _load_attrs_from_parent(self):
         # initialize everything from parent. Will be overwritten anything supplied in kwargs.
         parent_meta = self._parentMetadata
-        self.applicationSuite = {'name': parent_meta.name, 'softwareVersion': parent_meta.softwareVersion,
-                                                 'identifier': parent_meta.identifier}
+        self.applicationSuite = {'name': parent_meta.applicationSuite.name, 'softwareVersion': parent_meta.applicationSuite.softwareVersion.versionName,
+                                                 'identifier': parent_meta.application}
         # self.identifier = self._mk_identifier()
         # self.keywords = parent_meta.keywords
         return
@@ -220,7 +220,7 @@ class SubtoolMetadata(CommonPropsMixin, ToolMetadataBase):
         return identifier
 
     def _check_identifier(self, identifier):
-        parent_identifier = self._parentMetadata.identifier
+        parent_identifier = self._parentMetadata.applicationSuite.identifier
         if not identifier.startswith(parent_identifier[:9]):
             raise ValueError(f"Subtool identifier {identifier} does not properly correspond to parent identifier {parent_identifier}")
         if not identifier.endswith(parent_identifier[-3:]):  # should be '.xx'

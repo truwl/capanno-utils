@@ -1,16 +1,22 @@
-# REQUIRED
-name: sort
+applicationSuite:
+  identifier: TL_cadc8c.47
+  name: sort
+  softwareVersion:
+    versionName: 8.x
+    includedVersions:
+      - 8.25
+      - 8.26
+      - 8.27
+      - 8.28
 
-softwareVersion: 8.25
+metadataStatus: Released
 
-version: 1.0.0
 
-identifier: TL_cadc8c.47
 featureList:
   - __main__
 # Recommended
 
-description: |
+description: >-
   Write sorted concatenation of all FILE(s) to standard output.
   With no FILE, or when FILE is -, read standard input.
 
@@ -18,7 +24,7 @@ codeRepository:
   name:
   URL:
 
-license: GPL-3.0-only
+license: GPL-3.0-or-later
 
 WebSite:
   - name: Documentation
