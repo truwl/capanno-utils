@@ -54,7 +54,7 @@ class MetadataBase(ABC):
 
     @property
     def metadataStatus(self):
-        return self._metdataStatus
+        return self._metadataStatus
 
     @metadataStatus.setter
     def metadataStatus(self, metadata_status):

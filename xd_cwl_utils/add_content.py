@@ -14,7 +14,7 @@ subparsers = parser.add_subparsers(description='Specify the command to run.', de
 # add_tool parser
 addtool = subparsers.add_parser('tool', help='add a new standalone tool.')
 addtool.add_argument('tool_name', type=str, help="The name of the tool to add.")
-addtool.add_argument('tool_version', type=str, help="The version of the tool to add.")
+addtool.add_argument('version_name', type=str, help="The version of the tool to add.")
 addtool.add_argument('subtool_names', nargs='*', type=str, help="The version of the tool to add.")
 addtool.add_argument('--biotoolsID', type=str, help='biotools id from https://bio.tools')
 addtool.add_argument('--has_primary', action='store_true', help='Tool is called directly without a subtool.')
@@ -23,7 +23,7 @@ addtool.add_argument('--has_primary', action='store_true', help='Tool is called 
 # add_subtool parser
 addsubtool = subparsers.add_parser('subtool', help='add a subtool. A parent must exist.')
 addsubtool.add_argument('tool_name', help='The primary name of the tool.')
-addsubtool.add_argument('tool_version', help='The version of the tool.')
+addsubtool.add_argument('version_name', help='The version of the tool.')
 addsubtool.add_argument('subtool_name', help="The name of the subtool. The subtool name must be present in the parent's featureList field.")
 addsubtool.add_argument('-u', '--update_featureList', action='store_true', help='Update the featureList of the Application Suite metadata to contain new subtool.')
 

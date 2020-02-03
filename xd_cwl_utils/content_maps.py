@@ -41,7 +41,7 @@ def make_tool_map(tool_name, tool_version, base_dir=None):
     parent_metadata_path = get_tool_metadata(tool_name, tool_version, parent=True, base_dir=base_dir)
     parent_metadata = ParentToolMetadata.load_from_file(parent_metadata_path)
     parent_rel_path = get_relative_path(parent_metadata_path, base_path=base_dir)
-    tool_map[parent_metadata.identifier] = {'path': str(parent_rel_path), 'version': parent_metadata.version, 'name': parent_metadata.name, 'softwareVersion': parent_metadata.softwareVersion, 'type': 'parent'}
+    tool_map[parent_metadata.identifier] = {'path': str(parent_rel_path), 'metadataStatus': parent_metadata.metadataStatus, 'name': parent_metadata.name, 'softwareVersion': parent_metadata.softwareVersion.versionName, 'type': 'parent'}
     subdir_names.remove('common')
     tool_name_len = len(tool_name)
     for subdir_name in subdir_names:
@@ -62,7 +62,7 @@ def make_tool_map(tool_name, tool_version, base_dir=None):
         subtool_rel_path = get_relative_path(subtool_cwl_path, base_path=base_dir)
         subtool_metadata_path = get_tool_metadata(tool_name, tool_version, subtool_name=subtool_name, parent=False, base_dir=base_dir)
         subtool_metadata = SubtoolMetadata.load_from_file(subtool_metadata_path)
-        tool_map[subtool_metadata.identifier] = {'path': str(subtool_rel_path), 'name': subtool_metadata.name, 'version': subtool_metadata.version, 'type': 'subtool'}
+        tool_map[subtool_metadata.identifier] = {'path': str(subtool_rel_path), 'name': subtool_metadata.name, 'metadataStatus': subtool_metadata.metadataStatus, 'cwlStatus': subtool_metadata.cwlStatus, 'type': 'subtool'}
     return tool_map
 
 

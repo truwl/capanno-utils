@@ -11,7 +11,7 @@ class TestValidateInputs(TestBase):
     # @unittest.skip("Comment out and run smaller tests to isolate problems.")
     def test_validate_tool_inputs_1(self):
         tool_name = 'cat'
-        tool_version = '8.25'
+        tool_version = '8.x'
         input_hash = '8a6c'
         cwl_document_path = get_cwl_tool(tool_name, tool_version)
         instance_path = get_tool_instance_path(tool_name, tool_version, input_hash)
@@ -22,7 +22,7 @@ class TestValidateInputs(TestBase):
     # @unittest.skip("Comment out and run smaller tests to isolate problems.")
     def test_validate_tool_inputs_2(self):
         tool_name = 'samtools'
-        tool_version = '1.3'
+        tool_version = '1.9'
         subtool = 'flagstat'
         instance_hash = '395d'
         cwl_document_path = get_cwl_tool(tool_name, tool_version, subtool_name=subtool)

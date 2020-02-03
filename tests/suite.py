@@ -77,6 +77,7 @@ def suite_dict():
                   'tool_metadata': suite_tool_metadata(),
                   'validate': suite_validate(),
                   'validate_all_metadata_in_maps': suite_validate_all_metadata_in_maps(),
+                  'validate_directories': suite_validate_directories(),
                   'validate_tool_inputs': suite_validate_tool_inputs(),
                   'workflow_metadata': suite_workflow_metadata(),
                   }

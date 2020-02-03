@@ -2,7 +2,7 @@
 # * This file is subject to the terms and conditions defined in
 # * file 'LICENSE.txt', which is part of this source code package.
 
-from .shared_properties import Publication, Person, CodeRepository, WebSite, Keyword, ApplicationSuite, object_attributes
+from .shared_properties import Publication, Person, CodeRepository, WebSite, Keyword, SoftwareVersion, object_attributes
 from hashlib import md5
 import uuid
 
@@ -86,14 +86,20 @@ class CommonPropsMixin:
 
     @property
     def softwareVersion(self):
-        return str(self._softwareVersion)
+        return (self._softwareVersion)
 
     @softwareVersion.setter
-    def softwareVersion(self, new_softwareVersion):
+    def softwareVersion(self, software_version_info):
 
-        if not new_softwareVersion:  # softwareVersion not defined. Check in parentMetadata
+        if not software_version_info:  # softwareVersion not defined. Check in parentMetadata
             raise ValueError(f"'softwareVersion must be set.")
-        self._softwareVersion = new_softwareVersion
+        if isinstance(software_version_info, SoftwareVersion):
+            software_version = software_version_info
+        elif isinstance(software_version_info, dict):
+            software_version = SoftwareVersion(**software_version_info)
+        else:
+            raise TypeError(f"Cannot create softwareVersion with {software_version_info}")
+        self._softwareVersion = software_version
         return
 
     @property
@@ -152,17 +158,6 @@ class CommonPropsMixin:
             code_repo = None
         self._codeRepository = code_repo
 
-    @property
-    def applicationSuite(self):
-        return self._applicationSuite
-
-    @applicationSuite.setter
-    def applicationSuite(self, application_suite_dict):
-        if application_suite_dict:
-            application_suite = ApplicationSuite(**application_suite_dict)
-        else:
-            application_suite = None
-        self._applicationSuite = application_suite
 
     @property
     def WebSite(self):
@@ -180,3 +175,4 @@ class CommonPropsMixin:
         else:
             websites = None
         self._website = websites
+

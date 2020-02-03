@@ -22,7 +22,7 @@ def validate_tools_dir(base_dir=None):
     for identifier, values in tool_map_dict.items():
         tool_path = base_dir / values['path']
         tool_type = values['type']
-        file_version = Version(values['version'])
+        metadata_status = values['metadataStatus']
 
 
         if tool_type == 'parent':
@@ -32,14 +32,14 @@ def validate_tools_dir(base_dir=None):
             validate_meta([meta_type, str(tool_path)])
             # assert no instances directory here?
         else:  # either a subtool or 'main' tool
-
+            cwl_status = values['cwlStatus']
             # validate metadata
             metadata_path = get_metadata_path(tool_path)
             meta_type = tool_type
             validate_meta([meta_type, str(metadata_path)])
 
-            # validate cwl only if metadata specifies if it is version >= 1.0
-            if file_version >= Version('1.0.0'):
+            # validate cwl only if metadata specifies if it is version Released
+            if cwl_status in ('Released',):
                 validate_cwl_tool_2(tool_path)
 
                 # validate instances
