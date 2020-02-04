@@ -97,6 +97,8 @@ class CommonPropsMixin:
             software_version = software_version_info
         elif isinstance(software_version_info, dict):
             software_version = SoftwareVersion(**software_version_info)
+            # software_version = SoftwareVersion() # Don't initialize directly with **software_version_info. Skips setters.
+            # software_version.versionName, software_version.includedVersions = software_version_info['versionName'], software_version_info['includedVersions']
         else:
             raise TypeError(f"Cannot create softwareVersion with {software_version_info}")
         self._softwareVersion = software_version

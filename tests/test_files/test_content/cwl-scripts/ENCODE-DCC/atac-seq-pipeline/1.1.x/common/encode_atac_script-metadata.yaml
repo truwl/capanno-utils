@@ -1,4 +1,4 @@
-
+softwareVersion:
 description: "Python scripts for running ENCODE atac-seq pipeline."
 programmingLanguage: "Python3"
 
@@ -7,12 +7,12 @@ WebSite:
     URL: https://www.encodeproject.org/atac-seq/
 
 codeRepository:
-  name: GiHhub
+  name: GitHhub
   URL: https://github.com/ENCODE-DCC/atac-seq-pipeline
 
 license: MIT
 
-softwareVersion: v1.1.5
+
 datePublished: 01/07/2019
 
 contactPoint:

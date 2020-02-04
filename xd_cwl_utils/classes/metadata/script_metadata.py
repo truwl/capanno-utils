@@ -280,6 +280,18 @@ class CommonScriptMetadata(CommonPropsMixin, ScriptMetadataBase):
                 continue
         return
 
+    # override softwareVersion so it is not required for CommonScriptMetadata
+    @property
+    def softwareVersion(self):
+        return super().softwareVersion
+
+    @softwareVersion.setter
+    def softwareVersion(self, software_version_info):
+        if not software_version_info:
+            self._softwareVersion = None  # Allows softwar
+        else:
+            super(CommonScriptMetadata, type(self)).softwareVersion.fset(self, software_version_info)
+
     @classmethod
     def load_from_file(cls, file_path):
         file_path = Path(file_path)

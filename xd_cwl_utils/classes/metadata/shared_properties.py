@@ -252,8 +252,8 @@ class Keyword(AttributeBase):
 class SoftwareVersion(AttributeBase):
     def __init__(self, versionName=None, includedVersions=None):
         super().__init__()
-        self._versionName = versionName
-        self._includedVersions = includedVersions
+        self.versionName = versionName
+        self.includedVersions = includedVersions
 
     @property
     def versionName(self):
@@ -271,7 +271,10 @@ class SoftwareVersion(AttributeBase):
 
     @includedVersions.setter
     def includedVersions(self, includedVersions_list):
-        self._includedVersions = [str(specific_version) for specific_version in includedVersions_list]
+        if includedVersions_list:
+            self._includedVersions = [str(specific_version) for specific_version in includedVersions_list]
+        else:
+            self._includedVersions = []
 
 
     @staticmethod
