@@ -10,12 +10,12 @@ cwlStatus: Released
 
 tools:
   - name: gzip
-    softwareVersion:
+    version:
     identifier:
 
 parentScripts:
   - name: encode_common.py
-    softwareVersion: v1.1.5
+    version: v1.1.5
     identifier:
 
 

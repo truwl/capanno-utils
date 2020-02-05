@@ -91,7 +91,7 @@ def make_script_map(group_name, project_name, version, base_dir=None):
         script_cwl_path = script_dir / f"{script_dir.name}.cwl"
         metadata_path = get_metadata_path(script_cwl_path)
         script_metadata = ScriptMetadata.load_from_file(metadata_path)
-        script_map[script_metadata.identifier] = {'path': str(script_cwl_path), 'name': script_metadata.name, 'softwareVersion': script_metadata.softwareVersion, 'version': script_metadata.version}
+        script_map[script_metadata.identifier] = {'path': str(script_cwl_path), 'name': script_metadata.name, 'softwareVersion': script_metadata.softwareVersion.versionName, 'metadataStatus': script_metadata.metadataStatus, 'cwlStatus': script_metadata.cwlStatus}
     return script_map
 
 
@@ -120,7 +120,7 @@ def make_workflow_map(group_name, project_name, version, workflow_name, base_dir
     workflow_path = get_cwl_workflow(group_name, project_name, version, workflow_name, base_dir=base_dir)
     workflow_metadata_path = get_metadata_path(workflow_path)
     workflow_metadata = WorkflowMetadata.load_from_file(workflow_metadata_path)
-    workflow_map[workflow_metadata.identifier] = {'path': str(workflow_path), 'name': workflow_metadata.name, 'softwareVersion': workflow_metadata.softwareVersion, 'version': workflow_metadata.version}
+    workflow_map[workflow_metadata.identifier] = {'path': str(workflow_path), 'name': workflow_metadata.name, 'softwareVersion': workflow_metadata.softwareVersion.versionName, 'metadataStatus': workflow_metadata.metadataStatus}
     return workflow_map
 
 

@@ -65,9 +65,9 @@ class ParentToolMetadata(CommonPropsMixin, ToolMetadataBase):
         :return:
         """
         return OrderedDict([
-            ('identifier', None),
             ('name', None),
             ('softwareVersion', None),
+            ('identifier', None),
             ('featureList', None),
             ('metadataStatus', 'Incomplete'),
             ('description', None),
@@ -128,7 +128,7 @@ class ParentToolMetadata(CommonPropsMixin, ToolMetadataBase):
         return cls(**kwargs)
 
     def mk_file(self, base_dir, keys=None, replace_none=True):
-        file_path = get_tool_metadata(self.name, self.softwareVersion, subtool_name=None, parent=True, base_dir=base_dir)
+        file_path = get_tool_metadata(self.name, self.softwareVersion.versionName, subtool_name=None, parent=True, base_dir=base_dir)
         super().mk_file(file_path, keys, replace_none)
 
 

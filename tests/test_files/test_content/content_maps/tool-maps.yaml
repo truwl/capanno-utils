@@ -14,7 +14,7 @@ TL_8ab263.82:
   path: cwl-tools/STAR/2.5/common/common-metadata.yaml
   metadataStatus: Released
   name: STAR
-  softwareVersion: 2.5
+  softwareVersion: '2.5'
   type: parent
 TL_8ab263_d6.82:
   path: cwl-tools/STAR/2.5/STAR_inputAlignmentsFromBAM/STAR-inputAlignmentsFromBAM.cwl

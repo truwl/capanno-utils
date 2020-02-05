@@ -61,8 +61,8 @@ def validate_scripts_dir(base_dir=None):
         validate_meta(['script', str(metadata_path)])
 
         # validate cwl
-        document_version = Version(values['version'])
-        if document_version >= Version('1.0.0'):
+        cwl_status = values['cwlStatus']
+        if cwl_status in ('Draft', 'Released'):
             validate_cwl_tool_2(values['path'])
             validate_all_inputs_for_tool(script_path)
     return

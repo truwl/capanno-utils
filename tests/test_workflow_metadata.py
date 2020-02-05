@@ -5,7 +5,7 @@
 import os
 from pathlib import Path
 from ruamel.yaml import safe_load
-from tests.test_base import TestBase
+from tests.test_base import TestBase, test_constants
 from xd_cwl_utils.config import config
 from xd_cwl_utils.helpers.get_paths import get_workflow_metadata
 from xd_cwl_utils.classes.metadata.workflow_metadata import WorkflowMetadata
@@ -15,7 +15,7 @@ class TestWorkflowMetadata(TestBase):
 
     def test_make_workflow_metadata(self):
         test_name = 'Test wf name'
-        wf = WorkflowMetadata(name=test_name, softwareVersion=1)
+        wf = WorkflowMetadata(name=test_name, softwareVersion=test_constants['test_software_version'])
         self.assertEqual(test_name, wf.name)
 
     def test_load_from_file(self):

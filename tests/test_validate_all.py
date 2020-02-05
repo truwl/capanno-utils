@@ -11,10 +11,10 @@ class TestValidateDirectories(TestBase):
         validate_tools_dir(base_dir=config[os.environ['CONFIG_KEY']]['base_path'])
         return
 
-    # def test_validate_scripts_dir(self):
-    #     #     validate_scripts_dir(base_dir=config[os.environ['CONFIG_KEY']]['base_path'])
-    #     #     return
-    #     #
-    #     # def test_validate_repo(self):
-    #     #     validate_repo(base_dir=config[os.environ['CONFIG_KEY']]['base_path'])
-    #     #     return
+    def test_validate_scripts_dir(self):
+            validate_scripts_dir(base_dir=config[os.environ['CONFIG_KEY']]['base_path'])
+            return
+
+    # def test_validate_repo(self):
+    #     validate_repo(base_dir=config[os.environ['CONFIG_KEY']]['base_path'])
+    #     return
