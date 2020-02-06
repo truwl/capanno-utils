@@ -15,7 +15,7 @@ class TestWorkflowMetadata(TestBase):
 
     def test_make_workflow_metadata(self):
         test_name = 'Test wf name'
-        wf = WorkflowMetadata(name=test_name, softwareVersion=test_constants['test_software_version'])
+        wf = WorkflowMetadata(name=test_name, softwareVersion=test_constants['test_software_version'], metadataStatus='Released', cwlStatus='Incomplete')
         self.assertEqual(test_name, wf.name)
 
     def test_load_from_file(self):

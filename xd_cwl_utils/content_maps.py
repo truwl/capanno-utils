@@ -89,9 +89,10 @@ def make_script_map(group_name, project_name, version, base_dir=None):
         if script_dir.name == 'common':
             continue
         script_cwl_path = script_dir / f"{script_dir.name}.cwl"
+        script_rel_path = get_relative_path(script_cwl_path, base_path=base_dir)
         metadata_path = get_metadata_path(script_cwl_path)
         script_metadata = ScriptMetadata.load_from_file(metadata_path)
-        script_map[script_metadata.identifier] = {'path': str(script_cwl_path), 'name': script_metadata.name, 'softwareVersion': script_metadata.softwareVersion.versionName, 'metadataStatus': script_metadata.metadataStatus, 'cwlStatus': script_metadata.cwlStatus}
+        script_map[script_metadata.identifier] = {'path': str(script_rel_path), 'name': script_metadata.name, 'softwareVersion': script_metadata.softwareVersion.versionName, 'metadataStatus': script_metadata.metadataStatus, 'cwlStatus': script_metadata.cwlStatus}
     return script_map
 
 
@@ -118,9 +119,10 @@ def make_workflow_maps(outfile_name='workflow-maps', base_dir=None):
 def make_workflow_map(group_name, project_name, version, workflow_name, base_dir=None):
     workflow_map = {}
     workflow_path = get_cwl_workflow(group_name, project_name, version, workflow_name, base_dir=base_dir)
+    workflow_rel_path = get_relative_path(workflow_path, base_path=base_dir)
     workflow_metadata_path = get_metadata_path(workflow_path)
     workflow_metadata = WorkflowMetadata.load_from_file(workflow_metadata_path)
-    workflow_map[workflow_metadata.identifier] = {'path': str(workflow_path), 'name': workflow_metadata.name, 'softwareVersion': workflow_metadata.softwareVersion.versionName, 'metadataStatus': workflow_metadata.metadataStatus}
+    workflow_map[workflow_metadata.identifier] = {'path': str(workflow_rel_path), 'name': workflow_metadata.name, 'softwareVersion': workflow_metadata.softwareVersion.versionName, 'metadataStatus': workflow_metadata.metadataStatus, 'cwlStatus': workflow_metadata.cwlStatus}
     return workflow_map
 
 

@@ -63,8 +63,8 @@ class WorkflowMetadata(CommonPropsMixin, WorkflowMetadataBase):
         ('softwareVersion', None),
         ('description', None),
         ('identifier', None),
-        ('metadataStatus', 'Incomplete'),
-        ('cwlStatus', 'Incomplete'),
+        ('metadataStatus', None),
+        ('cwlStatus', None),
         ('callMap', None),
         ('codeRepository', None),
         ('WebSite', None),
@@ -94,6 +94,8 @@ class WorkflowMetadata(CommonPropsMixin, WorkflowMetadataBase):
         name_hash, version_hash = _mk_hashes(self.name, self.softwareVersion)
         identifier = f"WF_{name_hash[start:start + 6]}.{version_hash[:2]}"
         return identifier
+
+
 
     @classmethod
     def load_from_file(cls, file_path, ignore_empties=False):

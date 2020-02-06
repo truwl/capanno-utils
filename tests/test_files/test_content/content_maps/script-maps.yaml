@@ -1,77 +1,77 @@
 ST_29b258.f7:
-  path: /home/ksebby/PycharmProjects/xd-cwl-utils/tests/test_files/test_content/cwl-scripts/ENCODE-DCC/atac-seq-pipeline/1.1.x/encode_naive_overlap/encode_naive_overlap.cwl
+  path: cwl-scripts/ENCODE-DCC/atac-seq-pipeline/1.1.x/encode_naive_overlap/encode_naive_overlap.cwl
   name: encode_naive_overlap.py
   softwareVersion: 1.1.x
   metadataStatus: Released
   cwlStatus: Released
 ST_ae51d1.f7:
-  path: /home/ksebby/PycharmProjects/xd-cwl-utils/tests/test_files/test_content/cwl-scripts/ENCODE-DCC/atac-seq-pipeline/1.1.x/encode_reproducibility_qc/encode_reproducibility_qc.cwl
+  path: cwl-scripts/ENCODE-DCC/atac-seq-pipeline/1.1.x/encode_reproducibility_qc/encode_reproducibility_qc.cwl
   name: encode_reproducibility_qc.py
   softwareVersion: 1.1.x
   metadataStatus: Released
   cwlStatus: Released
 ST_cff563.f7:
-  path: /home/ksebby/PycharmProjects/xd-cwl-utils/tests/test_files/test_content/cwl-scripts/ENCODE-DCC/atac-seq-pipeline/1.1.x/encode_bowtie2/encode_bowtie2.cwl
+  path: cwl-scripts/ENCODE-DCC/atac-seq-pipeline/1.1.x/encode_bowtie2/encode_bowtie2.cwl
   name: encode_bowtie2.py
   softwareVersion: 1.1.x
   metadataStatus: Released
   cwlStatus: Released
 ST_5f34e1.f7:
-  path: /home/ksebby/PycharmProjects/xd-cwl-utils/tests/test_files/test_content/cwl-scripts/ENCODE-DCC/atac-seq-pipeline/1.1.x/encode_filter/encode_filter.cwl
+  path: cwl-scripts/ENCODE-DCC/atac-seq-pipeline/1.1.x/encode_filter/encode_filter.cwl
   name: encode_filter.py
   softwareVersion: 1.1.x
   metadataStatus: Released
   cwlStatus: Released
 ST_14c72b.f7:
-  path: /home/ksebby/PycharmProjects/xd-cwl-utils/tests/test_files/test_content/cwl-scripts/ENCODE-DCC/atac-seq-pipeline/1.1.x/encode_spr/encode_spr.cwl
+  path: cwl-scripts/ENCODE-DCC/atac-seq-pipeline/1.1.x/encode_spr/encode_spr.cwl
   name: encode_spr.py
   softwareVersion: 1.1.x
   metadataStatus: Released
   cwlStatus: Released
 ST_78d274.f7:
-  path: /home/ksebby/PycharmProjects/xd-cwl-utils/tests/test_files/test_content/cwl-scripts/ENCODE-DCC/atac-seq-pipeline/1.1.x/encode_pool_ta/encode_pool_ta.cwl
+  path: cwl-scripts/ENCODE-DCC/atac-seq-pipeline/1.1.x/encode_pool_ta/encode_pool_ta.cwl
   name: encode_pool_ta.py
   softwareVersion: 1.1.x
   metadataStatus: Released
   cwlStatus: Released
 ST_43baaf.f7:
-  path: /home/ksebby/PycharmProjects/xd-cwl-utils/tests/test_files/test_content/cwl-scripts/ENCODE-DCC/atac-seq-pipeline/1.1.x/encode_ataqc/encode_ataqc.cwl
+  path: cwl-scripts/ENCODE-DCC/atac-seq-pipeline/1.1.x/encode_ataqc/encode_ataqc.cwl
   name: encode_ataqc.py
   softwareVersion: 1.1.x
   metadataStatus: Released
   cwlStatus: Released
 ST_23a390.f7:
-  path: /home/ksebby/PycharmProjects/xd-cwl-utils/tests/test_files/test_content/cwl-scripts/ENCODE-DCC/atac-seq-pipeline/1.1.x/encode_xcor/encode_xcor.cwl
+  path: cwl-scripts/ENCODE-DCC/atac-seq-pipeline/1.1.x/encode_xcor/encode_xcor.cwl
   name: encode_xcor.py
   softwareVersion: 1.1.x
   metadataStatus: Released
   cwlStatus: Released
 ST_49b9f4.f7:
-  path: /home/ksebby/PycharmProjects/xd-cwl-utils/tests/test_files/test_content/cwl-scripts/ENCODE-DCC/atac-seq-pipeline/1.1.x/encode_bam2ta/encode_bam2ta.cwl
+  path: cwl-scripts/ENCODE-DCC/atac-seq-pipeline/1.1.x/encode_bam2ta/encode_bam2ta.cwl
   name: encode_bam2ta.py
   softwareVersion: 1.1.x
   metadataStatus: Released
   cwlStatus: Released
 ST_263ee1.f7:
-  path: /home/ksebby/PycharmProjects/xd-cwl-utils/tests/test_files/test_content/cwl-scripts/ENCODE-DCC/atac-seq-pipeline/1.1.x/encode_trim_adapter/encode_trim_adapter.cwl
+  path: cwl-scripts/ENCODE-DCC/atac-seq-pipeline/1.1.x/encode_trim_adapter/encode_trim_adapter.cwl
   name: encode_trim_adapter.py
   softwareVersion: 1.1.x
   metadataStatus: Released
   cwlStatus: Released
 ST_8646fc.f7:
-  path: /home/ksebby/PycharmProjects/xd-cwl-utils/tests/test_files/test_content/cwl-scripts/ENCODE-DCC/atac-seq-pipeline/1.1.x/encode_idr/encode_idr.cwl
+  path: cwl-scripts/ENCODE-DCC/atac-seq-pipeline/1.1.x/encode_idr/encode_idr.cwl
   name: encode_idr.py
   softwareVersion: 1.1.x
   metadataStatus: Released
   cwlStatus: Released
 ST_da7194.f7:
-  path: /home/ksebby/PycharmProjects/xd-cwl-utils/tests/test_files/test_content/cwl-scripts/ENCODE-DCC/atac-seq-pipeline/1.1.x/encode_macs2_atac/encode_macs2_atac.cwl
+  path: cwl-scripts/ENCODE-DCC/atac-seq-pipeline/1.1.x/encode_macs2_atac/encode_macs2_atac.cwl
   name: encode_macs2_atac.py
   softwareVersion: 1.1.x
   metadataStatus: Released
   cwlStatus: Released
 ST_3b3a64.f7:
-  path: /home/ksebby/PycharmProjects/xd-cwl-utils/tests/test_files/test_content/cwl-scripts/ENCODE-DCC/atac-seq-pipeline/1.1.x/encode_qc_report/encode_qc_report.cwl
+  path: cwl-scripts/ENCODE-DCC/atac-seq-pipeline/1.1.x/encode_qc_report/encode_qc_report.cwl
   name: encode_qc_report.py
   softwareVersion: 1.1.x
   metadataStatus: Released

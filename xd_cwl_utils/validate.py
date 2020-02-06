@@ -3,7 +3,7 @@ import logging
 from pathlib import Path
 from ruamel.yaml import safe_load
 from semantic_version import Version
-from .content_maps import make_tools_map, make_script_maps
+from .content_maps import make_tools_map, make_script_maps, make_workflow_maps
 from .validate_metadata import main as validate_meta
 from .helpers.get_paths import get_metadata_path
 from .helpers.validate_cwl import validate_cwl_tool, validate_cwl_tool_2
@@ -56,16 +56,25 @@ def validate_scripts_dir(base_dir=None):
         script_map_dict = safe_load(script_map)
     for identifier, values in script_map_dict.items():
         # validate metadata
-        script_path = values['path']
-        metadata_path = get_metadata_path(script_path)
+        script_path = base_dir / values['path']
+        metadata_path = base_dir / get_metadata_path(script_path)
         validate_meta(['script', str(metadata_path)])
 
         # validate cwl
         cwl_status = values['cwlStatus']
         if cwl_status in ('Draft', 'Released'):
-            validate_cwl_tool_2(values['path'])
+            validate_cwl_tool_2(script_path)
             validate_all_inputs_for_tool(script_path)
     return
+
+
+def validate_workflows_dir(base_dir=None):
+    workflow_map_temp_file = tempfile.NamedTemporaryFile(prefix='workflows_map', suffix='.yaml', delete=True)
+    make_workflow_maps(workflow_map_temp_file.name, base_dir=base_dir)
+    with workflow_map_temp_file as workflow_map:
+        workflow_map_dict = safe_load(workflow_map)
+    for identifier, values in workflow_map_dict.items():
+        workflow_path = values['path']
 
 
 def validate_repo(base_dir=None):

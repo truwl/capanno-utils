@@ -178,3 +178,17 @@ class CommonPropsMixin:
             websites = None
         self._website = websites
 
+    @property
+    def cwlStatus(self):
+        return self._cwlStatus
+
+    @cwlStatus.setter
+    def cwlStatus(self, cwl_status):
+        allowed_statuses = ('Incomplete', 'Draft', 'Released')
+        if not cwl_status:
+            raise ValueError("cwlStatus must be set.")
+        elif cwl_status not in allowed_statuses:
+            raise ValueError(f"cwlStatus must be on of  {allowed_statuses}, not {cwl_status}")
+        else:
+            self._cwlStatus = cwl_status
+
