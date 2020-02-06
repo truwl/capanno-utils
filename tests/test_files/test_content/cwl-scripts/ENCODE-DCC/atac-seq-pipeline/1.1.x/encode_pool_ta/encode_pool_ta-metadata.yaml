@@ -15,7 +15,7 @@ tools:
 
 parentScripts:
   - name: encode_common.py
-    version: v1.1.5
+    version: 1.1.5
     identifier:
 
 

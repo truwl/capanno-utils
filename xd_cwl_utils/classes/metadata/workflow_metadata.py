@@ -64,6 +64,7 @@ class WorkflowMetadata(CommonPropsMixin, WorkflowMetadataBase):
         ('description', None),
         ('identifier', None),
         ('metadataStatus', 'Incomplete'),
+        ('cwlStatus', 'Incomplete'),
         ('callMap', None),
         ('codeRepository', None),
         ('WebSite', None),
