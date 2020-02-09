@@ -6,8 +6,9 @@ from semantic_version import Version
 from .content_maps import make_tools_map, make_script_maps, make_workflow_maps
 from .validate_metadata import main as validate_meta
 from .helpers.get_paths import get_metadata_path
-from .helpers.validate_cwl import validate_cwl_tool, validate_cwl_tool_2
+from .helpers.validate_cwl import validate_cwl_tool
 from .validate_inputs import validate_all_inputs_for_tool
+from .classes.cwl.command_line_tool import ValidationException
 
 
 def validate_tools_dir(base_dir=None):
@@ -40,7 +41,7 @@ def validate_tools_dir(base_dir=None):
 
             # validate cwl only if metadata specifies if it is version Released
             if cwl_status in ('Released',):
-                validate_cwl_tool_2(tool_path)
+                validate_cwl_tool(tool_path)
 
                 # validate instances
                 validate_all_inputs_for_tool(tool_path)
@@ -57,13 +58,13 @@ def validate_scripts_dir(base_dir=None):
     for identifier, values in script_map_dict.items():
         # validate metadata
         script_path = base_dir / values['path']
-        metadata_path = base_dir / get_metadata_path(script_path)
+        metadata_path = get_metadata_path(script_path)
         validate_meta(['script', str(metadata_path)])
 
         # validate cwl
         cwl_status = values['cwlStatus']
         if cwl_status in ('Draft', 'Released'):
-            validate_cwl_tool_2(script_path)
+            validate_cwl_tool(script_path)
             validate_all_inputs_for_tool(script_path)
     return
 
@@ -74,10 +75,17 @@ def validate_workflows_dir(base_dir=None):
     with workflow_map_temp_file as workflow_map:
         workflow_map_dict = safe_load(workflow_map)
     for identifier, values in workflow_map_dict.items():
-        workflow_path = values['path']
+        workflow_path = base_dir / values['path']
+        workflow_metadata = get_metadata_path(workflow_path)
+        validate_meta(['workflow', str(workflow_metadata)])
 
+        cwl_status = values['cwlStatus']
+        if cwl_status in ('Draft', 'Released'):
+            print(f"Make sure you validate {workflow_path}")  # Todo. Think I have good way to validate somewhere in biodrafter. Need to port here (needs to be put in a temporary directory with the tools and workflows that it calls.)
+    return
 
 def validate_repo(base_dir=None):
     validate_tools_dir(base_dir=base_dir)
     validate_scripts_dir(base_dir=base_dir)
+    validate_workflows_dir(base_dir=base_dir)
     return

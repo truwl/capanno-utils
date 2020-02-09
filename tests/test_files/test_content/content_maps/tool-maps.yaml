@@ -2,7 +2,7 @@ TL_d077f2.47:
   path: cwl-tools/cat/8.x/common/common-metadata.yaml
   metadataStatus: Released
   name: cat
-  softwareVersion: 8.x
+  versionName: 8.x
   type: parent
 TL_d077f2_54.47:
   path: cwl-tools/cat/8.x/cat/cat.cwl
@@ -14,7 +14,7 @@ TL_8ab263.82:
   path: cwl-tools/STAR/2.5/common/common-metadata.yaml
   metadataStatus: Released
   name: STAR
-  softwareVersion: '2.5'
+  versionName: '2.5'
   type: parent
 TL_8ab263_d6.82:
   path: cwl-tools/STAR/2.5/STAR_inputAlignmentsFromBAM/STAR-inputAlignmentsFromBAM.cwl
@@ -44,7 +44,7 @@ TL_ec2a8d.0b:
   path: cwl-tools/samtools/1.9/common/common-metadata.yaml
   metadataStatus: Released
   name: samtools
-  softwareVersion: 1.x
+  versionName: 1.x
   type: parent
 TL_ec2a8d_a2.0b:
   path: cwl-tools/samtools/1.9/samtools_fixmate/samtools-fixmate.cwl
@@ -224,7 +224,7 @@ TL_cadc8c.47:
   path: cwl-tools/sort/8.x/common/common-metadata.yaml
   metadataStatus: Released
   name: sort
-  softwareVersion: 8.x
+  versionName: 8.x
   type: parent
 TL_cadc8c_54.47:
   path: cwl-tools/sort/8.x/sort/sort.cwl

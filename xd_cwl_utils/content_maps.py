@@ -41,7 +41,7 @@ def make_tool_map(tool_name, tool_version, base_dir=None):
     parent_metadata_path = get_tool_metadata(tool_name, tool_version, parent=True, base_dir=base_dir)
     parent_metadata = ParentToolMetadata.load_from_file(parent_metadata_path)
     parent_rel_path = get_relative_path(parent_metadata_path, base_path=base_dir)
-    tool_map[parent_metadata.identifier] = {'path': str(parent_rel_path), 'metadataStatus': parent_metadata.metadataStatus, 'name': parent_metadata.name, 'softwareVersion': parent_metadata.softwareVersion.versionName, 'type': 'parent'}
+    tool_map[parent_metadata.identifier] = {'path': str(parent_rel_path), 'metadataStatus': parent_metadata.metadataStatus, 'name': parent_metadata.name, 'versionName': parent_metadata.softwareVersion.versionName, 'type': 'parent'}
     subdir_names.remove('common')
     tool_name_len = len(tool_name)
     for subdir_name in subdir_names:
@@ -92,7 +92,7 @@ def make_script_map(group_name, project_name, version, base_dir=None):
         script_rel_path = get_relative_path(script_cwl_path, base_path=base_dir)
         metadata_path = get_metadata_path(script_cwl_path)
         script_metadata = ScriptMetadata.load_from_file(metadata_path)
-        script_map[script_metadata.identifier] = {'path': str(script_rel_path), 'name': script_metadata.name, 'softwareVersion': script_metadata.softwareVersion.versionName, 'metadataStatus': script_metadata.metadataStatus, 'cwlStatus': script_metadata.cwlStatus}
+        script_map[script_metadata.identifier] = {'path': str(script_rel_path), 'name': script_metadata.name, 'versionName': script_metadata.softwareVersion.versionName, 'metadataStatus': script_metadata.metadataStatus, 'cwlStatus': script_metadata.cwlStatus}
     return script_map
 
 
@@ -122,7 +122,7 @@ def make_workflow_map(group_name, project_name, version, workflow_name, base_dir
     workflow_rel_path = get_relative_path(workflow_path, base_path=base_dir)
     workflow_metadata_path = get_metadata_path(workflow_path)
     workflow_metadata = WorkflowMetadata.load_from_file(workflow_metadata_path)
-    workflow_map[workflow_metadata.identifier] = {'path': str(workflow_rel_path), 'name': workflow_metadata.name, 'softwareVersion': workflow_metadata.softwareVersion.versionName, 'metadataStatus': workflow_metadata.metadataStatus, 'cwlStatus': workflow_metadata.cwlStatus}
+    workflow_map[workflow_metadata.identifier] = {'path': str(workflow_rel_path), 'name': workflow_metadata.name, 'versionName': workflow_metadata.softwareVersion.versionName, 'metadataStatus': workflow_metadata.metadataStatus, 'cwlStatus': workflow_metadata.cwlStatus}
     return workflow_map
 
 

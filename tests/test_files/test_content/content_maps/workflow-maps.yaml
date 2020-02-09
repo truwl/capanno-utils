@@ -1,6 +1,6 @@
 WF_1f4d8f.cb:
   path: cwl-workflows/example_workflows/cat_sort/master/cat_sort.cwl
   name: cat sort
-  softwareVersion: master
+  versionName: master
   metadataStatus: Released
   cwlStatus: Released
