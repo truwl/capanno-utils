@@ -87,7 +87,8 @@ class ScriptMetadata(CommonPropsMixin, ScriptMetadataBase):
             ('name', None),
             ('softwareVersion', None),
             ('identifier', None),
-            ('version', '0.1'),
+            ('metadataStatus', 'None'),
+            ('cwlStatus', 'None'),
             ('description', None),
             ('codeRepository', None),
             ('WebSite', None),
@@ -144,15 +145,14 @@ class ScriptMetadata(CommonPropsMixin, ScriptMetadataBase):
         return identifier
 
     def _mk_identifier(self, start=0):
-        if not (self.name and self.softwareVersion):
+        if not (self.name and self.softwareVersion.versionName):
             raise ValueError(f"Name and softwareVersion must be provided to make an identifier.")
-        name_hash, version_hash = _mk_hashes(self.name, self.softwareVersion)
+        name_hash, version_hash = _mk_hashes(self.name, self.softwareVersion.versionName)
         identifier = f"ST_{name_hash[start:start + 6]}.{version_hash[:2]}"
         return identifier
 
     def _load_common_metadata(self, file_path):
         """
-
         :param file_path: path of the original file that specifies parent/commonMetadata. parentMetadata file paths are relative to this.
         :return:
         """
@@ -182,19 +182,19 @@ class ScriptMetadata(CommonPropsMixin, ScriptMetadataBase):
         """
         for attribute_name in self._init_metadata().keys():
             try:
-                attribute = getattr(self, attribute_name)
+                getattr(self, attribute_name)  # See if it's already set on self. If it is, leave it alone.
+                continue
             except AttributeError:  # attribute doesn't exist yet.
-                attribute = None
                 try:
-                    getattr(update_instance, attribute_name)
+                    attribute = getattr(update_instance, attribute_name)  # See if attribute exists for update_instance. Store it if it does.
                 except AttributeError:
                     # attribute doesn't exist in self, or update_instance. Don't do anything.
                     continue
             if is_attr_empty(attribute):
-                update_value = getattr(update_instance, attribute_name)
-                setattr(self, attribute_name, update_value)
-            else: # attribute has something there. Leave it alone.
-                continue
+                continue # Don't set anything to an empty value. This can happen at __init__
+
+            else: # There was nothing  has something there.
+                setattr(self, attribute_name, attribute)
         return
 
     def _mk_master_common_metadata(self):
@@ -279,6 +279,18 @@ class CommonScriptMetadata(CommonPropsMixin, ScriptMetadataBase):
             else:
                 continue
         return
+
+    # override softwareVersion so it is not required for CommonScriptMetadata
+    @property
+    def softwareVersion(self):
+        return super().softwareVersion
+
+    @softwareVersion.setter
+    def softwareVersion(self, software_version_info):
+        if not software_version_info:
+            self._softwareVersion = None  # Allows softwar
+        else:
+            super(CommonScriptMetadata, type(self)).softwareVersion.fset(self, software_version_info)
 
     @classmethod
     def load_from_file(cls, file_path):

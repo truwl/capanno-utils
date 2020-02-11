@@ -6,7 +6,7 @@ import re
 from ruamel.yaml import safe_load
 from ...helpers.get_paths import get_tool_metadata, get_parent_tool_relative_path_string
 from ...classes.metadata.metadata_base import MetadataBase
-from ...classes.metadata.shared_properties import CodeRepository, Person, WebSite, Keyword, ApplicationSuite
+from ...classes.metadata.shared_properties import CodeRepository, Person, WebSite, Keyword
 from ...helpers.get_metadata_from_biotools import make_tool_metadata_kwargs_from_biotools
 from ...classes.metadata.common_functions import _mk_hashes, CommonPropsMixin
 
@@ -27,9 +27,9 @@ class ToolMetadataBase(MetadataBase):
         return self._identifier
 
     @identifier.setter
-    def identifier(self, identifier=None, **kwargs):
-        if identifier:
-            identifier = self._check_identifier(identifier)
+    def identifier(self, new_identifier=None, **kwargs):
+        if new_identifier:
+            identifier = self._check_identifier(new_identifier)
         else:
             identifier = self._mk_identifier(**kwargs)
         self._identifier = identifier
@@ -67,9 +67,9 @@ class ParentToolMetadata(CommonPropsMixin, ToolMetadataBase):
         return OrderedDict([
             ('name', None),
             ('softwareVersion', None),
-            ('version', '0.1.0'),
             ('identifier', None),
             ('featureList', None),
+            ('metadataStatus', 'Incomplete'),
             ('description', None),
             ('codeRepository', None),
             ('license', None),
@@ -93,13 +93,12 @@ class ParentToolMetadata(CommonPropsMixin, ToolMetadataBase):
             match_obj = re.match(hex_pattern, identifier[3:])
             if not match_obj:
                 raise ValueError(f"Tool identifier not formatted correctly: {identifier}")
-
         return identifier
 
     def _mk_identifier(self, start=0):
-        if not (self.name and self.softwareVersion):
+        if not (self.name and self.softwareVersion.versionName):
             raise ValueError(f"Name and softwareVersion must be provided to make an identifier.")
-        name_hash, version_hash = _mk_hashes(self.name, self.softwareVersion)
+        name_hash, version_hash = _mk_hashes(self.name, self.softwareVersion.versionName)
         identifier = f"TL_{name_hash[start:start + 6]}.{version_hash[:2]}"
         return identifier
 
@@ -129,7 +128,7 @@ class ParentToolMetadata(CommonPropsMixin, ToolMetadataBase):
         return cls(**kwargs)
 
     def mk_file(self, base_dir, keys=None, replace_none=True):
-        file_path = get_tool_metadata(self.name, self.softwareVersion, subtool_name=None, parent=True, base_dir=base_dir)
+        file_path = get_tool_metadata(self.name, self.softwareVersion.versionName, subtool_name=None, parent=True, base_dir=base_dir)
         super().mk_file(file_path, keys, replace_none)
 
 
@@ -138,8 +137,9 @@ class SubtoolMetadata(CommonPropsMixin, ToolMetadataBase):
     @staticmethod
     def _init_metadata():
         return OrderedDict([
-            ('applicationSuite', None),
             ('name', None),
+            ('metadataStatus', 'Incomplete'),
+            ('cwlStatus', 'Incomplete'),
             ('version', '0.1'),
             ('identifier', None),
             ('description', None),
@@ -167,8 +167,7 @@ class SubtoolMetadata(CommonPropsMixin, ToolMetadataBase):
         for k, value in kwargs.items():  # populate _primary_file_attrs
             if value:
                 self._primary_file_attrs.append(k)  # keep track of kwargs supplied.
-        self._load_attrs_from_parent()
-        super_ = super()
+        # self._load_attrs_from_parent()
         super().__init__(**kwargs, ignore_empties=ignore_empties)
 
 
@@ -206,10 +205,9 @@ class SubtoolMetadata(CommonPropsMixin, ToolMetadataBase):
         self._parentMetadata = ParentToolMetadata(**parent_metadata_dict, ignore_empties=ignore_empties)
 
     def _load_attrs_from_parent(self):
-        # initialize everything from parent. Will be overwritten anything supplied in kwargs.
+        # initialize everything from parent. Will be overwritten anything supplied in kwargs. Doesn't do much anymore.
         parent_meta = self._parentMetadata
-        self.applicationSuite = {'name': parent_meta.name, 'softwareVersion': parent_meta.softwareVersion,
-                                                 'identifier': parent_meta.identifier}
+        self.parentMetadata = '../common/common-metadata.yaml'
         # self.identifier = self._mk_identifier()
         # self.keywords = parent_meta.keywords
         return
@@ -237,9 +235,6 @@ class SubtoolMetadata(CommonPropsMixin, ToolMetadataBase):
     @classmethod
     def initialize_from_parent(cls, parent_metadata, subtool_name):
         subtool_dict = {}
-        subtool_dict['applicationSuite'] = {'name': parent_metadata.name,
-                                            'softwareVersion': parent_metadata.softwareVersion,
-                                            'identifier': parent_metadata.identifier}
         if not subtool_name in parent_metadata.featureList:
             raise ValueError(
                 f"Cannot create subtool metadata. {subtool_name} is not in featureList of {parent_metadata.name}")
@@ -254,11 +249,9 @@ class SubtoolMetadata(CommonPropsMixin, ToolMetadataBase):
 
     def mk_file(self, base_dir, keys=None, replace_none=True):
         try:
-            file_path = get_tool_metadata(self.applicationSuite.name, self.applicationSuite.softwareVersion, subtool_name=self.name, parent=False, base_dir=base_dir)
+            file_path = get_tool_metadata(self._parentMetadata.name, self._parentMetadata.softwareVersion.versionName, subtool_name=self.name, parent=False, base_dir=base_dir)
         except AttributeError:
-            print(type(self.applicationSuite))
-            print(self.applicationSuite)
-            print(self.name)
+            print(self)
             raise
         if not file_path.parent.exists():
             file_path.parent.mkdir()
