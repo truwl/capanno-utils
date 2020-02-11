@@ -301,11 +301,11 @@ class ParentScript(AttributeBase):
 
     @property
     def version(self):
-        return self._version
+        return str(self._version)
 
     @version.setter
     def version(self, new_version):
-        self._version = new_version
+        self._version = str(new_version)
 
     @property
     def identifier(self):
@@ -347,11 +347,11 @@ class Tool(AttributeBase):
 
     @property
     def version(self):
-        return self._version
+        return str(self._version)
 
     @version.setter
     def version(self, new_version):
-        self._version = new_version
+        self._version = str(new_version)
 
     @property
     def identifier(self):
