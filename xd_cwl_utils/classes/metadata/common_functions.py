@@ -138,7 +138,10 @@ class CommonPropsMixin:
     @creator.setter
     def creator(self, person_list):
         if person_list:
-            people = [Person(**person) for person in person_list]
+            if isinstance(person_list[0], dict):
+                people = [Person(**person) for person in person_list]
+            elif isinstance(person_list[0], Person):
+                people = person_list
         else:
             people = None
         self._creator = people
@@ -160,6 +163,26 @@ class CommonPropsMixin:
             code_repo = None
         self._codeRepository = code_repo
 
+    @property
+    def keywords(self):
+        return self._keywords
+
+    @keywords.setter
+    def keywords(self, keywords_list):
+        if keywords_list:
+            keywords = []
+            for keyword in keywords_list:
+                if isinstance(keyword, Keyword):
+                    new_keyword = keyword
+                else:
+                    if isinstance(keyword, dict):
+                        new_keyword  =  Keyword(**keyword)
+                    else:
+                        new_keyword = Keyword(keyword)  # Should be a uri.
+                keywords.append(new_keyword)
+        else:
+            keywords = None
+        self._keywords = keywords
 
     @property
     def WebSite(self):
@@ -191,4 +214,18 @@ class CommonPropsMixin:
             raise ValueError(f"cwlStatus must be on of  {allowed_statuses}, not {cwl_status}")
         else:
             self._cwlStatus = cwl_status
+
+    @property
+    def metadataStatus(self):
+        return self._metadataStatus
+
+    @metadataStatus.setter
+    def metadataStatus(self, metadata_status):
+        allowed_statuses = ('Incomplete', 'Draft', 'Released')
+        if not metadata_status:
+            raise ValueError("cwlStatus must be set.")
+        elif metadata_status not in allowed_statuses:
+            raise ValueError(f"cwlStatus must be on of  {allowed_statuses}, not {metadata_status}")
+        else:
+            self._metadataStatus = metadata_status
 

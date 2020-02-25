@@ -169,7 +169,7 @@ def get_cwl_script(group_name, project_name, version, script_name, base_dir=None
 
 def get_script_metadata(group_name, project_name, version, script_name, base_dir=None):
     script_ver_dir = get_script_version_dir(group_name, project_name, version, base_dir=base_dir)
-    script_metadata_path = script_ver_dir / script_name / f"{script_name}-metadata.cwl"
+    script_metadata_path = script_ver_dir / script_name / f"{script_name}-metadata.yaml"
     return script_metadata_path
 
 
