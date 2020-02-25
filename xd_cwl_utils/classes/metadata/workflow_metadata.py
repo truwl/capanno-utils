@@ -102,7 +102,7 @@ class WorkflowMetadata(CommonPropsMixin, WorkflowMetadataBase):
         file_path = Path(file_path)
         with file_path.open('r') as file:
             file_dict = safe_load(file)
-        return cls(**file_dict)
+        return cls(**file_dict, ignore_empties=ignore_empties)
 
     def make_instance(self):
         raise NotImplementedError

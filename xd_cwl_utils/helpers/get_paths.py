@@ -131,7 +131,7 @@ def get_tool_type_from_path(tool_path):
             raise ValueError(f"Provided a .yaml file {tool_path} for file that is not in a 'common' directory")
         tool_type = "parent"
     elif tool_path.suffix == '.cwl':
-        tool_type = 'tool'
+        tool_type = 'subtool'
     else:
         raise ValueError(f"Do not recognize {tool_path} as a path to a tool.")
 
