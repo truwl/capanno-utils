@@ -137,4 +137,8 @@ class MetadataBase(ABC):
 
         with file_path.open('w') as yaml_file:
                 yaml.dump(meta_map, yaml_file)
+        assert file_path.exists()
+        with file_path.open('r') as blah:
+            logging.debug(f"{file_path} contents: {blah.readlines()}")
+            # print(f"{file_path} contents: {blah.readlines()}")
         return

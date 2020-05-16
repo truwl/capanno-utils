@@ -118,13 +118,13 @@ class ParentToolMetadata(CommonPropsMixin, ToolMetadataBase):
         return cls(**file_dict, ignore_empties=ignore_empties)
 
     @classmethod
-    def create_from_biotools(cls, biotools_id, softwareVersion, subtools, tool_name=None, version='0.1.0'):
+    def create_from_biotools(cls, biotools_id, version_name, subtools, tool_name=None):
         kwargs = make_tool_metadata_kwargs_from_biotools(biotools_id, tool_name=tool_name)
         if not subtools:  # Assume it is a 'standalone' type tool
             subtools = ["__main__"]
         kwargs['featureList'] = list(subtools)  # A lot more to do here.
-        kwargs['softwareVersion'] = softwareVersion
-        kwargs['version'] = version
+        kwargs['softwareVersion'] = {}
+        kwargs['softwareVersion']['versionName'] = version_name
         return cls(**kwargs)
 
     def mk_file(self, base_dir, keys=None, replace_none=True):

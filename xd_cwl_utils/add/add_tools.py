@@ -2,6 +2,7 @@
 
 from pathlib import Path
 from xd_cwl_utils.classes.metadata.tool_metadata import ParentToolMetadata
+from xd_cwl_utils.classes.cwl.make_cwl import initialize_commmand_line_tool_file
 from xd_cwl_utils.helpers.get_paths import get_tool_common_dir, main_tool_subtool_name, get_tool_metadata, get_tool_dir
 
 
@@ -40,6 +41,8 @@ def add_tool(tool_name, version_name, subtool_names=None, biotools_id=None, has_
             instances_dir.mkdir()
             git_keep_file = instances_dir / '.gitkeep'
             git_keep_file.touch()
+            if init_cwl:
+                initialize_commmand_line_tool_file(tool_name, version_name, subtool, base_dir=root_repo_path)
     parent_metadata.mk_file(root_repo_path)
     return
 

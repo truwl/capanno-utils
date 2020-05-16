@@ -2,7 +2,7 @@
 from pathlib import Path
 from xd_cwl_utils.classes.metadata.script_metadata import ScriptMetadata, CommonScriptMetadata
 
-def _get_script_directory(group_name, project_name, script_version):
+def _get_script_directory(group_name, project_name, script_version, root_repo_path):
     """
     Gets the script directory specified. Makes the directory if it doesn't exist.
     :param group_name:
@@ -10,7 +10,7 @@ def _get_script_directory(group_name, project_name, script_version):
     :param script_version:
     :return:
     """
-    base_path = Path().cwd() / 'cwl-scripts' / group_name / project_name / script_version
+    base_path = root_repo_path / 'cwl-scripts' / group_name / project_name / script_version
     if base_path.exists():
         if not base_path.is_dir():
             raise TypeError(f"{base_path} must be a directory")
@@ -19,8 +19,8 @@ def _get_script_directory(group_name, project_name, script_version):
     return base_path
 
 
-def add_common_script_metadata(group_name, project_name, script_version, filename, **kwargs):
-    path = _get_script_directory(group_name, project_name, script_version) / 'common'
+def add_common_script_metadata(group_name, project_name, script_version, filename, root_repo_path=Path.cwd(), **kwargs):
+    path = _get_script_directory(group_name, project_name, script_version, root_repo_path=root_repo_path) / 'common'
     path.mkdir(exist_ok=True)
     filename = f"{filename}-metadata.yaml"
     file_path = path / filename
@@ -29,11 +29,11 @@ def add_common_script_metadata(group_name, project_name, script_version, filenam
     return
 
 
-def add_script(group_name, project_name, script_version, script_name, **kwargs):
+def add_script(group_name, project_name, script_version, script_name, root_repo_path=Path.cwd(), **kwargs):
     script_version = str(script_version)
-    script_dir = _get_script_directory(group_name, project_name, script_version) / script_name
+    script_dir = _get_script_directory(group_name, project_name, script_version, root_repo_path) / script_name
     script_dir.mkdir()
-    script_metadata = ScriptMetadata(name=script_name, softwareVersion=script_version, **kwargs)
+    script_metadata = ScriptMetadata(name=script_name, softwareVersion={'versionName': script_version}, **kwargs)
     filename = f"{script_name}-metadata.yaml"
     script_metadata.mk_file(script_dir / filename)
     instances_dir = script_dir / 'instances'

@@ -3,6 +3,7 @@ import logging
 import os
 import argparse
 from unittest import defaultTestLoader, TestSuite
+from tests.test_add_content import TestAddToolMain, TestAddScriptMain
 from tests.test_add_tool import TestAddTool
 from tests.test_tool_metadata import TestMakeParentToolMetadata, TestMakeSubtoolMetadata
 from tests.test_script_metadata import TestScriptMetadata
@@ -17,6 +18,7 @@ from tests.test_validate_tool_inputs import TestValidateInputs
 
 def suite_full():
     suite = TestSuite()
+    suite.addTest(suite_add_content())
     suite.addTest((suite_add_tool()))
     suite.addTest(suite_content_maps())
     suite.addTest(suite_script_metadata())
@@ -28,6 +30,11 @@ def suite_full():
     suite.addTest(suite_workflow_metadata())
     return suite
 
+
+def suite_add_content():
+    suite = defaultTestLoader.loadTestsFromTestCase(TestAddToolMain)
+    suite.addTest(defaultTestLoader.loadTestsFromTestCase(TestAddScriptMain))
+    return suite
 
 def suite_add_tool():
     suite = defaultTestLoader.loadTestsFromTestCase(TestAddTool)
@@ -70,7 +77,8 @@ def suite_workflow_metadata():
     return suite
 
 def suite_dict():
-    suite_dict = {'add_tool': suite_add_tool(),
+    suite_dict = {'add_content': suite_add_content(),
+                  'add_tool': suite_add_tool(),
                   'content_maps': suite_content_maps(),
                   'full': suite_full(),
                   'script_metadata': suite_script_metadata(),

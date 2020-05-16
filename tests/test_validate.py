@@ -2,7 +2,7 @@
 from tests.test_base import TestBase
 from pathlib import Path
 from xd_cwl_utils.helpers.get_paths import get_tool_metadata
-from xd_cwl_utils.validate_metadata import metadata_validator_factory
+from xd_cwl_utils.validate_content import metadata_validator_factory
 from xd_cwl_utils.classes.metadata.tool_metadata import ParentToolMetadata, SubtoolMetadata
 
 

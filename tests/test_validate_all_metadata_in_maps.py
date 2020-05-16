@@ -4,7 +4,7 @@ from pathlib import Path
 from ruamel.yaml import safe_load
 from xd_cwl_utils.config import config
 from xd_cwl_utils.helpers.get_paths import get_metadata_path
-from xd_cwl_utils.validate_metadata import main
+from xd_cwl_utils.validate_content import main
 
 class TestValidateContent(TestBase):
 

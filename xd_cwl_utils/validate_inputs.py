@@ -25,4 +25,3 @@ def validate_all_inputs_for_tool(cwl_tool_document_path):
                 print(f"{instance_file} failed validation")
                 raise
     return
-

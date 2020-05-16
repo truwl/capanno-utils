@@ -4,7 +4,7 @@ from pathlib import Path
 from ruamel.yaml import safe_load
 from semantic_version import Version
 from .content_maps import make_tools_map, make_script_maps, make_workflow_maps
-from .validate_metadata import main as validate_meta
+from .validate_content import main as validate_meta
 from .helpers.get_paths import get_metadata_path
 from .helpers.validate_cwl import validate_cwl_tool
 from .validate_inputs import validate_all_inputs_for_tool

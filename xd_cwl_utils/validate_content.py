@@ -21,12 +21,7 @@ def metadata_validator_factory(class_to_validate):
         return
     return metadata_validator
 
-def main(argsl=None):
-    if not argsl:
-        argsl = sys.argv[1:]
-
-
-
+def get_parser():
     parser = argparse.ArgumentParser(description="Validate metadata files.")
     subparsers = parser.add_subparsers(description="Specify type of metadata to validate.", dest='command')
 
@@ -48,32 +43,35 @@ def main(argsl=None):
     validate_workflow = subparsers.add_parser('workflow', help="Validate workflow metadata.")
     validate_workflow.add_argument('path', help="Path to workflow metadata")
 
+    return parser
+
+def main(argsl=None):
+    if not argsl:
+        argsl = sys.argv[1:]
+
+    parser = get_parser()
     args = parser.parse_args(argsl)
     command = args.command
-    path =args.path
 
-    # if command == 'tool':
-    #     validate_tool_metadata = metadata_validator_factory(ToolMetadata)
-    #     validate_tool_metadata(path)
     if command == 'parent_tool':
         validate_parent_tool_metadata = metadata_validator_factory(ParentToolMetadata)
-        validate_parent_tool_metadata(path)
+        validate_parent_tool_metadata(args.path)
     elif command == 'subtool':
         validate_subtool_metadata = metadata_validator_factory(SubtoolMetadata)
-        validate_subtool_metadata(path)
+        validate_subtool_metadata(args.path)
     elif command == 'script':
         validate_script_metadata = metadata_validator_factory(ScriptMetadata)
         try:
-            validate_script_metadata(path)
+            validate_script_metadata(args.path)
         except:
-            logging.error(f"Problem with {path}")
+            logging.error(f"Problem with {args.path}")
             raise
     elif command == 'script_common':
         validate_common_script_metadata = metadata_validator_factory(CommonScriptMetadata)
-        validate_common_script_metadata(path)
+        validate_common_script_metadata(args.path)
     elif command == 'workflow':
         validate_workflow_metadata = metadata_validator_factory(WorkflowMetadata)
-        validate_workflow_metadata(path)
+        validate_workflow_metadata(args.path)
     else:
         parser.print_help()
     return 0
