@@ -30,6 +30,8 @@ def get_parser():
     addsubtool.add_argument('version_name', help='The version of the tool.')
     addsubtool.add_argument('subtool_name', help="The name of the subtool. The subtool name must be present in the parent's featureList field.")
     addsubtool.add_argument('-u', '--update_featureList', action='store_true', help='Update the featureList of the Application Suite metadata to contain new subtool.')
+    addsubtool.add_argument('--init_cwl', action='store_true',
+                         help="If specified, CWL CommandLineTool files will be intiated for the subtools and primary tool if it exists.")
 
     # add_common_script_parser
     addscriptcommon = subparsers.add_parser('common_script', help='add script metadata that other scripts can inherit from')
@@ -45,6 +47,8 @@ def get_parser():
     addscript.add_argument('script_version', help='The version of the script.')
     addscript.add_argument('script_name', help='The name of the script. File extensions should be omitted. Replace spaces with underscores')
     addscript.add_argument('--parent_metadata', '-p', nargs='+', help="path(s) to common script metadata that the script should inherit from.")
+    addscript.add_argument('--init_cwl', action='store_true',
+                         help="If specified, CWL CommandLineTool files will be intiated for the subtools and primary tool if it exists. ")
     # Could add flags for more kwargs here. Probably easiest to just add to file though.
 
     addworkflow = subparsers.add_parser('workflow', help='add a workflow')
@@ -65,11 +69,11 @@ def main(argsl=None):
     if args.command == 'tool':
         add_tool(args.tool_name, args.version_name, subtool_names=args.subtool_names, biotools_id=args.biotoolsID, has_primary=args.has_primary, init_cwl=args.init_cwl, root_repo_path=args.root_path)
     elif args.command == 'subtool':
-        add_subtool(args.tool_name, args.version_name, args.subtool_name, update_featureList=args.update_featureList, root_repo_path=args.root_path)
+        add_subtool(args.tool_name, args.version_name, args.subtool_name, update_featureList=args.update_featureList, init_cwl=args.init_cwl, root_repo_path=args.root_path)
     elif args.command == 'common_script':
         add_common_script_metadata(args.group_name, args.project_name, args.script_version, args.filename, root_repo_path=args.root_path)
     elif args.command == 'script':
-        add_script(args.group_name, args.project_name, args.script_version, args.script_name, parentMetadata=args.parent_metadata, root_repo_path=args.root_path)
+        add_script(args.group_name, args.project_name, args.script_version, args.script_name, parentMetadata=args.parent_metadata, init_cwl=args.init_cwl, root_repo_path=args.root_path)
     elif args.command == 'workflow':
         add_workflow(args.group_name, args.workflow_name, args.workflow_version)
     else:

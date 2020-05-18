@@ -2,11 +2,11 @@
 
 from pathlib import Path
 from xd_cwl_utils.classes.metadata.tool_metadata import ParentToolMetadata
-from xd_cwl_utils.classes.cwl.make_cwl import initialize_commmand_line_tool_file
+from xd_cwl_utils.classes.cwl.make_cwl import initialize_command_line_tool_file_yaml
 from xd_cwl_utils.helpers.get_paths import get_tool_common_dir, main_tool_subtool_name, get_tool_metadata, get_tool_dir
 
 
-def add_tool(tool_name, version_name, subtool_names=None, biotools_id=None, has_primary=False, root_repo_path=Path.cwd(), init_cwl=True):
+def add_tool(tool_name, version_name, subtool_names=None, biotools_id=None, has_primary=False, root_repo_path=Path.cwd(), init_cwl=False):
     """
     Make the correct directory structure for adding a new command line tool. Optionally, create initialized CWL
     and metadata files. Run from cwl-tools directory.
@@ -42,12 +42,12 @@ def add_tool(tool_name, version_name, subtool_names=None, biotools_id=None, has_
             git_keep_file = instances_dir / '.gitkeep'
             git_keep_file.touch()
             if init_cwl:
-                initialize_commmand_line_tool_file(tool_name, version_name, subtool, base_dir=root_repo_path)
+                initialize_command_line_tool_file_yaml(tool_name, version_name, subtool, base_dir=root_repo_path)
     parent_metadata.mk_file(root_repo_path)
     return
 
 
-def add_subtool(tool_name, tool_version, subtool_name, root_repo_path=Path.cwd(), update_featureList=False, init_cwl=True):
+def add_subtool(tool_name, tool_version, subtool_name, root_repo_path=Path.cwd(), update_featureList=False, init_cwl=False):
     """
     Add subtool to already existing ToolLibrary (ParentTool file already exists)
     :param tool_name(str):
@@ -75,4 +75,6 @@ def add_subtool(tool_name, tool_version, subtool_name, root_repo_path=Path.cwd()
     instances_dir.mkdir()
     git_keep_file = instances_dir / '.gitkeep'
     git_keep_file.touch()
+    if init_cwl:
+        initialize_command_line_tool_file_yaml(tool_name, tool_version, subtool_name, base_dir=root_repo_path)
     return

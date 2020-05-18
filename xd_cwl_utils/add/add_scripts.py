@@ -1,6 +1,7 @@
 
 from pathlib import Path
 from xd_cwl_utils.classes.metadata.script_metadata import ScriptMetadata, CommonScriptMetadata
+from xd_cwl_utils.classes.cwl.make_cwl import initialize_command_line_tool_file_script
 
 def _get_script_directory(group_name, project_name, script_version, root_repo_path):
     """
@@ -29,7 +30,7 @@ def add_common_script_metadata(group_name, project_name, script_version, filenam
     return
 
 
-def add_script(group_name, project_name, script_version, script_name, root_repo_path=Path.cwd(), **kwargs):
+def add_script(group_name, project_name, script_version, script_name, root_repo_path=Path.cwd(), init_cwl=False, **kwargs):
     script_version = str(script_version)
     script_dir = _get_script_directory(group_name, project_name, script_version, root_repo_path) / script_name
     script_dir.mkdir()
@@ -40,6 +41,8 @@ def add_script(group_name, project_name, script_version, script_name, root_repo_
     instances_dir.mkdir()
     git_keep_file = instances_dir / '.gitkeep'
     git_keep_file.touch()
+    if init_cwl:
+        initialize_command_line_tool_file_script(group_name, project_name, script_version, script_name, base_dir=root_repo_path)
     return
 
 
