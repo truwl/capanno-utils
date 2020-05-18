@@ -30,7 +30,7 @@ class TestValidateInputs(TestBase):
         validate_inputs_for_instance(instance_path, cwl_tool_path=cwl_document_path)
         return
 
-    @unittest.skip('')
+    # @unittest.skip('')
     def test_validate_all_tool_inputs(self):
         tool_map = config[os.environ.get('CONFIG_KEY')]['content_maps_dir'] / 'tool-maps.yaml'
         with tool_map.open('r') as tm:

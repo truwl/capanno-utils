@@ -5,7 +5,7 @@ from unittest import skip
 from tests.test_base import TestBase
 from xd_cwl_utils.add_content import main as add_content_main
 
-@skip('')
+# @skip('')
 class TestAddToolMain(TestBase):
     # @skip('')
     def test_add_tool(self):

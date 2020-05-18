@@ -3,13 +3,32 @@ import logging
 from pathlib import Path
 from ruamel.yaml import safe_load
 from semantic_version import Version
+from xd_cwl_utils.classes.metadata.tool_metadata import ParentToolMetadata, SubtoolMetadata
+from xd_cwl_utils.classes.metadata.script_metadata import ScriptMetadata, CommonScriptMetadata
+from xd_cwl_utils.classes.metadata.workflow_metadata import WorkflowMetadata
 from .content_maps import make_tools_map, make_script_maps, make_workflow_maps
-from .validate_content import main as validate_meta
 from .helpers.get_paths import get_metadata_path
 from .helpers.validate_cwl import validate_cwl_tool
 from .validate_inputs import validate_all_inputs_for_tool
 from .classes.cwl.command_line_tool import ValidationException
 
+def metadata_validator_factory(class_to_validate):
+    def metadata_validator(metadata_path):
+        try:
+            metadata_instance = class_to_validate.load_from_file(metadata_path)
+            # print(f"Metadata in {metadata_path} is valid {str(class_to_validate)}")
+            logging.info(f"Metadata in {metadata_path} is valid {str(class_to_validate)}")
+        except:
+            logging.error(f"{str(class_to_validate)} in {metadata_path} failed validation.")
+            raise
+        return
+    return metadata_validator
+
+validate_parent_tool_metadata = metadata_validator_factory(ParentToolMetadata)
+validate_subtool_metadata = metadata_validator_factory(SubtoolMetadata)
+validate_script_metadata = metadata_validator_factory(ScriptMetadata)
+validate_common_script_metadata = metadata_validator_factory(CommonScriptMetadata)
+validate_workflow_metadata = metadata_validator_factory(WorkflowMetadata)
 
 def validate_tools_dir(base_dir=None):
     """
@@ -30,17 +49,17 @@ def validate_tools_dir(base_dir=None):
             if not 'common' in tool_path.parts:
                 raise ValueError  # an extra check.
             meta_type = 'parent_tool'  # correspond to command in validate_metadata
-            validate_meta([meta_type, str(tool_path)])
+            validate_parent_tool_metadata(tool_path)
             # assert no instances directory here?
-        else:  # either a subtool or 'main' tool
+        else:  # is a subtool.
+            assert tool_type == 'subtool'
             cwl_status = values['cwlStatus']
             # validate metadata
             metadata_path = get_metadata_path(tool_path)
-            meta_type = tool_type
-            validate_meta([meta_type, str(metadata_path)])
+            validate_subtool_metadata(metadata_path)
 
             # validate cwl only if metadata specifies if it is version Released
-            if cwl_status in ('Released',):
+            if cwl_status in ('Draft', 'Released'):
                 validate_cwl_tool(tool_path)
 
                 # validate instances
@@ -59,7 +78,7 @@ def validate_scripts_dir(base_dir=None):
         # validate metadata
         script_path = base_dir / values['path']
         metadata_path = get_metadata_path(script_path)
-        validate_meta(['script', str(metadata_path)])
+        validate_script_metadata(metadata_path)
 
         # validate cwl
         cwl_status = values['cwlStatus']
@@ -77,7 +96,7 @@ def validate_workflows_dir(base_dir=None):
     for identifier, values in workflow_map_dict.items():
         workflow_path = base_dir / values['path']
         workflow_metadata = get_metadata_path(workflow_path)
-        validate_meta(['workflow', str(workflow_metadata)])
+        validate_workflow_metadata(workflow_metadata)
 
         cwl_status = values['cwlStatus']
         if cwl_status in ('Draft', 'Released'):
