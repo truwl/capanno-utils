@@ -17,7 +17,7 @@ blank_line_tk = tokens.CommentToken('\n\n', error.CommentMark(0), None)
 
 
 
-def initialize_command_line_tool_file_yaml(base_command, cwl_path):
+def _initialize_command_line_tool_file_yaml(base_command, cwl_path):
     cwl_map = CommentedMap()
     doc_placholder = 'Document here.'
     input_name = 'input1'
@@ -42,11 +42,11 @@ def initialize_command_line_tool_file_yaml(base_command, cwl_path):
 def initialize_command_line_tool_file_tool(tool_name, version_name, subtool_name, base_dir):
     cwl_tool_path = get_cwl_tool(tool_name, version_name, subtool_name=subtool_name, base_dir=base_dir)
     base_command = f"{tool_name} {subtool_name}" if subtool_name != main_tool_subtool_name else tool_name
-    initialize_command_line_tool_file_yaml(base_command, cwl_tool_path)
+    _initialize_command_line_tool_file_yaml(base_command, cwl_tool_path)
     return
 
 def initialize_command_line_tool_file_script(group_name, project_name, script_version, script_name, base_dir):
     cwl_script_path = get_cwl_script(group_name, project_name, script_version, script_name, base_dir)
     base_command = script_name
-    initialize_command_line_tool_file_yaml(base_command, cwl_script_path)
+    _initialize_command_line_tool_file_yaml(base_command, cwl_script_path)
     return
