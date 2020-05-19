@@ -248,50 +248,46 @@ class Keyword(AttributeBase):
     def _attrs():
         return frozenset(['name', 'category', 'uri'])
 
-class ApplicationSuite(AttributeBase):
 
-    def __init__(self, name=None, softwareVersion=None, identifier=None):
+class SoftwareVersion(AttributeBase):
+    def __init__(self, versionName=None, includedVersions=None):
         super().__init__()
-        self._name = name
-        self._softwareVersion = str(softwareVersion)
-        self._identifier = identifier
+        self.versionName = versionName
+        self.includedVersions = includedVersions
 
     @property
-    def name(self):
-        return self._name
+    def versionName(self):
+        return self._versionName
 
-    @name.setter
-    def name(self, new_name):
-        self._name = new_name
-
-    @property
-    def softwareVersion(self):
-        return self._softwareVersion
-
-    @softwareVersion.setter
-    def softwareVersion(self, new_softwareVersion):
-        self._softwareVersion = new_softwareVersion
+    @versionName.setter
+    def versionName(self, new_versionName):
+        if not new_versionName:
+            raise TypeError(f"versionName must be set.")
+        self._versionName = str(new_versionName)
 
     @property
-    def identifier(self):
-        return self._identifier
+    def includedVersions(self):
+        return self._includedVersions
 
-    @identifier.setter
-    def identifier(self, new_identifier):
-        self._identifier = new_identifier
+    @includedVersions.setter
+    def includedVersions(self, includedVersions_list):
+        if includedVersions_list:
+            self._includedVersions = [str(specific_version) for specific_version in includedVersions_list]
+        else:
+            self._includedVersions = []
 
 
     @staticmethod
     def _attrs():
-        return frozenset(['name', 'softwareVersion', 'identifier'])
+        return frozenset(['versionName', 'includedVersions'])
 
 
 class ParentScript(AttributeBase):
 
-    def __init__(self, name=None, softwareVersion=None, identifier=None):
+    def __init__(self, name=None, version=None, identifier=None):
         super().__init__()
         self._name = name
-        self._softwareVersion = softwareVersion
+        self._version = version
         self._identifier = identifier
 
     @property
@@ -304,12 +300,12 @@ class ParentScript(AttributeBase):
 
 
     @property
-    def softwareVersion(self):
-        return self._softwareVersion
+    def version(self):
+        return str(self._version)
 
-    @softwareVersion.setter
-    def softwareVersion(self, new_softwareVersion):
-        self._softwareVersion = new_softwareVersion
+    @version.setter
+    def version(self, new_version):
+        self._version = str(new_version)
 
     @property
     def identifier(self):
@@ -321,16 +317,16 @@ class ParentScript(AttributeBase):
 
     @staticmethod
     def _attrs():
-        return frozenset(['name','softwareVersion', 'identifier'])
+        return frozenset(['name','version', 'identifier'])
 
 
 class Tool(AttributeBase):
 
-    def __init__(self, name=None, softwareVersion=None, identifier=None, alternateName=None):
+    def __init__(self, name=None, version=None, identifier=None, alternateName=None):
         super().__init__()
         self._name = name
         self._alternateName = alternateName
-        self._softwareVersion = softwareVersion
+        self._version = version
         self._identifier = identifier
 
     @property
@@ -350,12 +346,12 @@ class Tool(AttributeBase):
         self._alternateName = value
 
     @property
-    def softwareVersion(self):
-        return self._softwareVersion
+    def version(self):
+        return str(self._version)
 
-    @softwareVersion.setter
-    def softwareVersion(self, new_softwareVersion):
-        self._softwareVersion = new_softwareVersion
+    @version.setter
+    def version(self, new_version):
+        self._version = str(new_version)
 
     @property
     def identifier(self):
@@ -368,7 +364,7 @@ class Tool(AttributeBase):
 
     @staticmethod
     def _attrs():
-        return frozenset(['name', 'alternateName', 'softwareVersion', 'identifier'])
+        return frozenset(['name', 'alternateName', 'version', 'identifier'])
 
 
 class CallMap(AttributeBase):
@@ -487,4 +483,4 @@ class IOArrayItem(AttributeBase):
 
 
 object_attributes = (
-CodeRepository, Person, Publication, WebSite, Keyword, ApplicationSuite, Tool, ParentScript, IOObjectItem, CallMap)
+CodeRepository, Person, Publication, WebSite, Keyword, Tool, ParentScript, IOObjectItem, CallMap, SoftwareVersion)

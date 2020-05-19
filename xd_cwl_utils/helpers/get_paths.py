@@ -131,7 +131,7 @@ def get_tool_type_from_path(tool_path):
             raise ValueError(f"Provided a .yaml file {tool_path} for file that is not in a 'common' directory")
         tool_type = "parent"
     elif tool_path.suffix == '.cwl':
-        tool_type = 'tool'
+        tool_type = 'subtool'
     else:
         raise ValueError(f"Do not recognize {tool_path} as a path to a tool.")
 
@@ -169,7 +169,7 @@ def get_cwl_script(group_name, project_name, version, script_name, base_dir=None
 
 def get_script_metadata(group_name, project_name, version, script_name, base_dir=None):
     script_ver_dir = get_script_version_dir(group_name, project_name, version, base_dir=base_dir)
-    script_metadata_path = script_ver_dir / script_name / f"{script_name}-metadata.cwl"
+    script_metadata_path = script_ver_dir / script_name / f"{script_name}-metadata.yaml"
     return script_metadata_path
 
 

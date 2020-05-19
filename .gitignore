@@ -15,7 +15,7 @@ __pycache__/
 *.swp
 # C extensions
 *.so
-
+tests/test_files/test_content/populate_test_content.py
 temp/
 dist/
 build/

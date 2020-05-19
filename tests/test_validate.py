@@ -2,7 +2,7 @@
 from tests.test_base import TestBase
 from pathlib import Path
 from xd_cwl_utils.helpers.get_paths import get_tool_metadata
-from xd_cwl_utils.validate_metadata import metadata_validator_factory
+from xd_cwl_utils.validate import metadata_validator_factory
 from xd_cwl_utils.classes.metadata.tool_metadata import ParentToolMetadata, SubtoolMetadata
 
 
@@ -30,7 +30,7 @@ class TestValidateMetadata(TestBase):
 
     def test_validate_parent_tool_metadata_fail(self):
         validate_parent_metadata = metadata_validator_factory(ParentToolMetadata)
-        metadata_path = Path.cwd() / ('tests/test_files/test_content/cwl_tools_bad/samtools/1.3/common/bad_samtools-metadata.yaml')
+        metadata_path = Path.cwd() / ('tests/test_files/test_content/invalid_content/cwl-tools/cat/8.x/common/common-metadata.yaml')
         with self.assertRaises(AttributeError):
             validate_parent_metadata(metadata_path)
         return
@@ -43,7 +43,7 @@ class TestValidateMetadata(TestBase):
 
     def test_validate_subtool_metadata_fail(self):
         validate_subtool_metadata = metadata_validator_factory(SubtoolMetadata)
-        metadata_path = Path.cwd() / 'tests/test_files/test_content/cwl_tools_bad/samtools/1.3/samtools_notRight/samtools-notRight-metadata.yaml'  # subtool name not in parent featurelist.
+        metadata_path = Path.cwd() / 'tests/test_files/test_content/invalid_content/cwl-tools/samtools/1.9/samtools_view/samtools-view-metadata.yaml' # Works for now.  # subtool name not in parent featurelist.
         with self.assertRaises(ValueError):
             validate_subtool_metadata(metadata_path)
         return

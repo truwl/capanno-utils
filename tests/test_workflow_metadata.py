@@ -5,7 +5,7 @@
 import os
 from pathlib import Path
 from ruamel.yaml import safe_load
-from tests.test_base import TestBase
+from tests.test_base import TestBase, test_constants
 from xd_cwl_utils.config import config
 from xd_cwl_utils.helpers.get_paths import get_workflow_metadata
 from xd_cwl_utils.classes.metadata.workflow_metadata import WorkflowMetadata
@@ -15,16 +15,16 @@ class TestWorkflowMetadata(TestBase):
 
     def test_make_workflow_metadata(self):
         test_name = 'Test wf name'
-        wf = WorkflowMetadata(name=test_name, softwareVersion=1)
+        wf = WorkflowMetadata(name=test_name, softwareVersion=test_constants['test_software_version'], metadataStatus='Released', cwlStatus='Incomplete')
         self.assertEqual(test_name, wf.name)
 
     def test_load_from_file(self):
-        metafile_path = get_workflow_metadata('example_workflows', 'cat_sort', '1.0', 'cat_sort')
+        metafile_path = get_workflow_metadata('example_workflows', 'cat_sort', 'master', 'cat_sort')
         wf_meta = WorkflowMetadata.load_from_file(metafile_path)
         self.assertEqual(wf_meta.name, 'cat sort')
 
     def test_mk_file(self):
-        metafile_path = get_workflow_metadata('example_workflows', 'cat_sort', '1.0', 'cat_sort')
+        metafile_path = get_workflow_metadata('example_workflows', 'cat_sort', 'master', 'cat_sort')
         wf_meta = WorkflowMetadata.load_from_file(metafile_path)
         test_filename = Path(config[os.environ.get('CONFIG_KEY')]['temp_dir'].name) / 'wf_test_metadata.yaml'
         wf_meta.mk_file(test_filename)

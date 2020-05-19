@@ -1,4 +1,5 @@
 
+from pathlib import Path
 from cwltool.process import shortname
 
 class CommandLineToolMixin:
@@ -55,6 +56,9 @@ class CommandInputParameterMixin:
             input_type = type_field.save()  # Takes care of CommandInput[Array/Enum/Record]Schmema. Can deal with separately later if we want to.
 
         return input_type
+
+    def initialize_cwl_file(self, path):
+        path = Path(path)
 
 class SchemaDefRequirementMixin:
 

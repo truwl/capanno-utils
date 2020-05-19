@@ -63,7 +63,8 @@ class WorkflowMetadata(CommonPropsMixin, WorkflowMetadataBase):
         ('softwareVersion', None),
         ('description', None),
         ('identifier', None),
-        ('version', '0.1'),
+        ('metadataStatus', None),
+        ('cwlStatus', None),
         ('callMap', None),
         ('codeRepository', None),
         ('WebSite', None),
@@ -94,12 +95,14 @@ class WorkflowMetadata(CommonPropsMixin, WorkflowMetadataBase):
         identifier = f"WF_{name_hash[start:start + 6]}.{version_hash[:2]}"
         return identifier
 
+
+
     @classmethod
     def load_from_file(cls, file_path, ignore_empties=False):
         file_path = Path(file_path)
         with file_path.open('r') as file:
             file_dict = safe_load(file)
-        return cls(**file_dict)
+        return cls(**file_dict, ignore_empties=ignore_empties)
 
     def make_instance(self):
         raise NotImplementedError

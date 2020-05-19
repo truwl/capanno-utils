@@ -22,7 +22,7 @@ class MetadataBase(ABC):
     @staticmethod
     @abstractmethod
     def _init_metadata():
-        return dict([('name', None), ('version', None)])
+        return dict([('name', None), ('version', None), ('metadataStatus', None)])
 
     @property
     def name(self):
@@ -52,6 +52,19 @@ class MetadataBase(ABC):
             v = semantic_version.Version.coerce(str(v))
         self._version = str(v)
 
+    @property
+    def metadataStatus(self):
+        return self._metadataStatus
+
+    @metadataStatus.setter
+    def metadataStatus(self, metadata_status):
+        allowed_statuses = ('Incomplete', 'Draft', 'Released')
+        if not metadata_status:
+            raise ValueError(f"metadataStatus must be set.")
+        elif metadata_status not in allowed_statuses:
+            raise ValueError(f"metadataStatus cannot be '{metadata_status}' must be one of {allowed_statuses}")
+        else:
+            self._metadataStatus = metadata_status
 
 
     def _get_metafile_keys(self):
@@ -124,4 +137,8 @@ class MetadataBase(ABC):
 
         with file_path.open('w') as yaml_file:
                 yaml.dump(meta_map, yaml_file)
+        assert file_path.exists()
+        with file_path.open('r') as blah:
+            logging.debug(f"{file_path} contents: {blah.readlines()}")
+            # print(f"{file_path} contents: {blah.readlines()}")
         return

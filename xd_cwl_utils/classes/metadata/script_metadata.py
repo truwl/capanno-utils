@@ -56,25 +56,6 @@ class ScriptMetadataBase(MetadataBase):
             tools = None
         self._tools = tools
 
-    @property
-    def keywords(self):
-        return self._keywords
-
-    @keywords.setter
-    def keywords(self, keywords_list):
-        if keywords_list:
-            keywords = []
-            for keyword in keywords_list:
-                if isinstance(keyword, Keyword):
-                    keywords.append(keyword)
-                else:
-                    if isinstance(keyword, dict):
-                        keywords.append(Keyword(**keyword))
-                    else:
-                        keywords.append(Keyword(keyword))
-        else:
-            keywords = None
-        self._keywords = keywords
 
 
 
@@ -87,7 +68,8 @@ class ScriptMetadata(CommonPropsMixin, ScriptMetadataBase):
             ('name', None),
             ('softwareVersion', None),
             ('identifier', None),
-            ('version', '0.1'),
+            ('metadataStatus', 'Incomplete'),
+            ('cwlStatus', 'Incomplete'),
             ('description', None),
             ('codeRepository', None),
             ('WebSite', None),
@@ -101,6 +83,7 @@ class ScriptMetadata(CommonPropsMixin, ScriptMetadataBase):
             ('creator', None),
             ('programmingLanguage', None),
             ('datePublished', None),
+            ('isCallable', True),  # specify whether the script is meant to be called. If False, just contains object for importing to other scripts.
             ('parentMetadata', None),
             ('_parentMetadata', None),  # Place to store list of parent ScriptMetadata objects. Different than parentScripts!!
             ('_primary_file_attrs', None),
@@ -118,6 +101,7 @@ class ScriptMetadata(CommonPropsMixin, ScriptMetadataBase):
 
         ignore_empties = kwargs.pop('ignore_empties', None)
         # Get parent metadata first.
+        master_common_metadata = None  # Set to None so nothing happens if no common metadata.
         if kwargs.get('parentMetadata'):
             self.parentMetadata = kwargs['parentMetadata']
             self._load_common_metadata(file_path)  # Will set self._parentMetadata
@@ -128,8 +112,10 @@ class ScriptMetadata(CommonPropsMixin, ScriptMetadataBase):
             for k, value in kwargs.items():
                 if value:
                     self._primary_file_attrs.append(k)
-            self._update_attributes(master_common_metadata)
+
         super().__init__(ignore_empties=ignore_empties, **kwargs)
+        if master_common_metadata:
+            self._update_attributes(master_common_metadata)
 
     def _check_identifier(self, identifier):
         if not identifier[:3] == "ST_":
@@ -143,15 +129,14 @@ class ScriptMetadata(CommonPropsMixin, ScriptMetadataBase):
         return identifier
 
     def _mk_identifier(self, start=0):
-        if not (self.name and self.softwareVersion):
+        if not (self.name and self.softwareVersion.versionName):
             raise ValueError(f"Name and softwareVersion must be provided to make an identifier.")
-        name_hash, version_hash = _mk_hashes(self.name, self.softwareVersion)
+        name_hash, version_hash = _mk_hashes(self.name, self.softwareVersion.versionName)
         identifier = f"ST_{name_hash[start:start + 6]}.{version_hash[:2]}"
         return identifier
 
     def _load_common_metadata(self, file_path):
         """
-
         :param file_path: path of the original file that specifies parent/commonMetadata. parentMetadata file paths are relative to this.
         :return:
         """
@@ -180,20 +165,20 @@ class ScriptMetadata(CommonPropsMixin, ScriptMetadataBase):
         :return:
         """
         for attribute_name in self._init_metadata().keys():
+            orig_attribute_value = getattr(self, attribute_name)  # See if it's already set on self. If it is, leave it alone.
             try:
-                attribute = getattr(self, attribute_name)
-            except AttributeError:  # attribute doesn't exist yet.
-                attribute = None
-                try:
-                    getattr(update_instance, attribute_name)
-                except AttributeError:
-                    # attribute doesn't exist in self, or update_instance. Don't do anything.
-                    continue
-            if is_attr_empty(attribute):
-                update_value = getattr(update_instance, attribute_name)
-                setattr(self, attribute_name, update_value)
-            else: # attribute has something there. Leave it alone.
+                update_instance_attribute_value = getattr(update_instance, attribute_name)
+            except AttributeError:
+                continue  # Attribute doesn't exist for update_instance so can't be used to update. Move on.
+
+            if orig_attribute_value:  # There's already something there, leave it alone. Might combine data at some point.
                 continue
+            if is_attr_empty(orig_attribute_value):
+                assert True  # Nothing present initally
+                if is_attr_empty(update_instance_attribute_value):
+                    continue  # Nothing to do here. Move along.
+                else:
+                    setattr(self, attribute_name, update_instance_attribute_value)
         return
 
     def _mk_master_common_metadata(self):
@@ -232,8 +217,20 @@ class ScriptMetadata(CommonPropsMixin, ScriptMetadataBase):
         self._identifier = identifier
 
 
+    @property
+    def isCallable(self):
+        return self._is_callable
 
-class CommonScriptMetadata(ScriptMetadataBase):
+    @isCallable.setter
+    def isCallable(self, callable_value):
+        if not isinstance(callable_value, (bool, type(None))):
+            assert True
+            raise TypeError(f"callable must be a boolean, you provided {callable_value}")
+        self._is_callable = callable_value
+
+
+
+class CommonScriptMetadata(CommonPropsMixin, ScriptMetadataBase):
 
 
     @staticmethod
@@ -267,6 +264,18 @@ class CommonScriptMetadata(ScriptMetadataBase):
             else:
                 continue
         return
+
+    # override softwareVersion so it is not required for CommonScriptMetadata
+    @property
+    def softwareVersion(self):
+        return super().softwareVersion
+
+    @softwareVersion.setter
+    def softwareVersion(self, software_version_info):
+        if not software_version_info:
+            self._softwareVersion = None  # Allows softwar
+        else:
+            super(CommonScriptMetadata, type(self)).softwareVersion.fset(self, software_version_info)
 
     @classmethod
     def load_from_file(cls, file_path):

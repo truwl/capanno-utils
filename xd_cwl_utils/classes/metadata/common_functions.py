@@ -2,7 +2,7 @@
 # * This file is subject to the terms and conditions defined in
 # * file 'LICENSE.txt', which is part of this source code package.
 
-from .shared_properties import Publication, Person, CodeRepository, WebSite, Keyword, ApplicationSuite, object_attributes
+from .shared_properties import Publication, Person, CodeRepository, WebSite, Keyword, SoftwareVersion, object_attributes
 from hashlib import md5
 import uuid
 
@@ -86,14 +86,22 @@ class CommonPropsMixin:
 
     @property
     def softwareVersion(self):
-        return str(self._softwareVersion)
+        return (self._softwareVersion)
 
     @softwareVersion.setter
-    def softwareVersion(self, new_softwareVersion):
+    def softwareVersion(self, software_version_info):
 
-        if not new_softwareVersion:  # softwareVersion not defined. Check in parentMetadata
+        if not software_version_info:  # softwareVersion not defined. Check in parentMetadata
             raise ValueError(f"'softwareVersion must be set.")
-        self._softwareVersion = new_softwareVersion
+        if isinstance(software_version_info, SoftwareVersion):
+            software_version = software_version_info
+        elif isinstance(software_version_info, dict):
+            software_version = SoftwareVersion(**software_version_info)
+            # software_version = SoftwareVersion() # Don't initialize directly with **software_version_info. Skips setters.
+            # software_version.versionName, software_version.includedVersions = software_version_info['versionName'], software_version_info['includedVersions']
+        else:
+            raise TypeError(f"Cannot create softwareVersion with {software_version_info}")
+        self._softwareVersion = software_version
         return
 
     @property
@@ -115,7 +123,10 @@ class CommonPropsMixin:
     @contactPoint.setter
     def contactPoint(self, person_list):
         if person_list:
-            people = [Person(**person) for person in person_list]
+            if isinstance(person_list[0], dict):
+                people = [Person(**person) for person in person_list]
+            elif isinstance(person_list[0], Person):
+                people = person_list
         else:
             people = None
         self._contactPoint = people
@@ -127,7 +138,10 @@ class CommonPropsMixin:
     @creator.setter
     def creator(self, person_list):
         if person_list:
-            people = [Person(**person) for person in person_list]
+            if isinstance(person_list[0], dict):
+                people = [Person(**person) for person in person_list]
+            elif isinstance(person_list[0], Person):
+                people = person_list
         else:
             people = None
         self._creator = people
@@ -137,24 +151,38 @@ class CommonPropsMixin:
         return self._codeRepository
 
     @codeRepository.setter
-    def codeRepository(self, code_repo_dict):
-        if code_repo_dict:
-            code_repos = CodeRepository(**code_repo_dict)
+    def codeRepository(self, code_repo_info):
+        if code_repo_info:
+            if isinstance(code_repo_info, CodeRepository):
+                code_repo = code_repo_info
+            elif isinstance(code_repo_info, dict):
+                code_repo = CodeRepository(**code_repo_info)
+            else:
+                raise TypeError(f"Cannot create codeRepository with {code_repo_info}")
         else:
-            code_repos = None
-        self._codeRepository = code_repos
+            code_repo = None
+        self._codeRepository = code_repo
 
     @property
-    def applicationSuite(self):
-        return self._applicationSuite
+    def keywords(self):
+        return self._keywords
 
-    @applicationSuite.setter
-    def applicationSuite(self, application_suite_dict):
-        if application_suite_dict:
-            application_suite = ApplicationSuite(**application_suite_dict)
+    @keywords.setter
+    def keywords(self, keywords_list):
+        if keywords_list:
+            keywords = []
+            for keyword in keywords_list:
+                if isinstance(keyword, Keyword):
+                    new_keyword = keyword
+                else:
+                    if isinstance(keyword, dict):
+                        new_keyword  =  Keyword(**keyword)
+                    else:
+                        new_keyword = Keyword(keyword)  # Should be a uri.
+                keywords.append(new_keyword)
         else:
-            application_suite = None
-        self._applicationSuite = application_suite
+            keywords = None
+        self._keywords = keywords
 
     @property
     def WebSite(self):
@@ -163,7 +191,41 @@ class CommonPropsMixin:
     @WebSite.setter
     def WebSite(self, website_list):
         if website_list:
-            websites = [WebSite(**website_dict) for website_dict in website_list]
+            if isinstance(website_list[0], WebSite):
+                websites = website_list
+            elif isinstance(website_list[0], dict):
+                websites = [WebSite(**website_dict) for website_dict in website_list]
+            else:
+                raise TypeError(f"Cannot create WebSite with {website_list}")
         else:
             websites = None
         self._website = websites
+
+    @property
+    def cwlStatus(self):
+        return self._cwlStatus
+
+    @cwlStatus.setter
+    def cwlStatus(self, cwl_status):
+        allowed_statuses = ('Incomplete', 'Draft', 'Released')
+        if not cwl_status:
+            raise ValueError("cwlStatus must be set.")
+        elif cwl_status not in allowed_statuses:
+            raise ValueError(f"cwlStatus must be on of  {allowed_statuses}, not {cwl_status}")
+        else:
+            self._cwlStatus = cwl_status
+
+    @property
+    def metadataStatus(self):
+        return self._metadataStatus
+
+    @metadataStatus.setter
+    def metadataStatus(self, metadata_status):
+        allowed_statuses = ('Incomplete', 'Draft', 'Released')
+        if not metadata_status:
+            raise ValueError("cwlStatus must be set.")
+        elif metadata_status not in allowed_statuses:
+            raise ValueError(f"cwlStatus must be on of  {allowed_statuses}, not {metadata_status}")
+        else:
+            self._metadataStatus = metadata_status
+

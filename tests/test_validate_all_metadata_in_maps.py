@@ -4,16 +4,15 @@ from pathlib import Path
 from ruamel.yaml import safe_load
 from xd_cwl_utils.config import config
 from xd_cwl_utils.helpers.get_paths import get_metadata_path
-from xd_cwl_utils.validate_metadata import main
+from xd_cwl_utils.validate_content import main
 
 class TestValidateContent(TestBase):
 
     def test_validate_tools(self):
-        content_maps_dir = config[os.environ.get('CONFIG_KEY')]['content_maps_dir']
-        tool_map = content_maps_dir / 'tool-maps.yaml'
-        base_path = config[os.environ['CONFIG_KEY']]['base_path']
-        with tool_map.open('r') as tm:
+        self.update_tool_maps()
+        with self.get_content_map_paths()['tool_maps'].open('r') as tm:
             tool_map_dict = safe_load(tm)
+        base_path = config[os.environ['CONFIG_KEY']]['base_path']
         for identifier, values in tool_map_dict.items():
             path = base_path / values['path']
 
@@ -30,20 +29,24 @@ class TestValidateContent(TestBase):
         return
 
     def test_validate_scripts(self):
-        script_map_path = config[os.environ.get('CONFIG_KEY')]['content_maps_dir'] / 'script-maps.yaml'
+        self.update_script_maps()
+        script_map_path = self.get_content_map_paths()['script_maps']
         with script_map_path.open('r') as sm:
             script_map = safe_load(sm)
+        base_path = config[os.environ['CONFIG_KEY']]['base_path']
         for script_identifier, script_values in script_map.items():
-            metadata_path = get_metadata_path(Path(script_values['path']))
+            metadata_path = base_path / get_metadata_path(Path(script_values['path']))
             main(['script', str(metadata_path)])
         return
 
 
     def test_validate_workflows(self):
-        workflow_maps_path =config[os.environ.get('CONFIG_KEY')]['content_maps_dir'] / 'workflow-maps.yaml'
-        with workflow_maps_path.open('r') as wm:
+        self.update_workflow_maps()
+        with self.get_content_map_paths()['workflow_maps'].open('r') as wm:
             workflow_map = safe_load(wm)
+            base_path = config[os.environ['CONFIG_KEY']]['base_path']
+
         for workflow_identifier, workflow_values in workflow_map.items():
-            metadata_path = get_metadata_path(workflow_values['path'])
+            metadata_path = base_path / get_metadata_path(workflow_values['path'])
             main(['workflow', str(metadata_path)])
         return
