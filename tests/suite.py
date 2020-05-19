@@ -15,7 +15,6 @@ from tests.test_validate_all_metadata_in_maps import TestValidateContent
 from tests.test_validate_tool_inputs import TestValidateInputs
 
 
-
 def suite_full():
     suite = TestSuite()
     suite.addTest(suite_add_content())
@@ -36,9 +35,11 @@ def suite_add_content():
     suite.addTest(defaultTestLoader.loadTestsFromTestCase(TestAddScriptMain))
     return suite
 
+
 def suite_add_tool():
     suite = defaultTestLoader.loadTestsFromTestCase(TestAddTool)
     return suite
+
 
 def suite_content_maps():
     suite = defaultTestLoader.loadTestsFromTestCase(TestToolMaps)
@@ -49,32 +50,37 @@ def suite_script_metadata():
     suite = defaultTestLoader.loadTestsFromTestCase(TestScriptMetadata)
     return suite
 
+
 def suite_tool_metadata():
     suite = defaultTestLoader.loadTestsFromTestCase(TestMakeParentToolMetadata)
     suite.addTest(defaultTestLoader.loadTestsFromTestCase(TestMakeSubtoolMetadata))
     return suite
 
+
 def suite_validate():
     suite = defaultTestLoader.loadTestsFromTestCase(TestValidateMetadata)
     return suite
+
 
 def suite_validate_directories():
     suite = defaultTestLoader.loadTestsFromTestCase(TestValidateDirectories)
     return suite
 
+
 def suite_validate_all_metadata_in_maps():
     suite = defaultTestLoader.loadTestsFromTestCase(TestValidateContent)
     return suite
+
 
 def suite_validate_tool_inputs():
     suite = defaultTestLoader.loadTestsFromTestCase(TestValidateInputs)
     return suite
 
 
-
 def suite_workflow_metadata():
     suite = defaultTestLoader.loadTestsFromTestCase(TestWorkflowMetadata)
     return suite
+
 
 def suite_dict():
     suite_dict = {'add_content': suite_add_content(),
@@ -91,28 +97,26 @@ def suite_dict():
                   }
     return suite_dict
 
+
 parser = argparse.ArgumentParser(description="Run test suite")
-parser.add_argument("module", nargs='?', default='full', choices= suite_dict().keys(),
+parser.add_argument("module", nargs='?', default='full', choices=suite_dict().keys(),
                     help='Specify the test suite that you would like to run. All suites will run if not specified')
 parser.add_argument("--log_level", help="Set logging level", choices=['debug', 'info', 'warning', 'error', 'critical'])
 args = parser.parse_args()
 
 
-
-
-
 def run_tests():
     # logging.basicConfig(level=logging.CRITICAL)
     if args.log_level:
-        if args.log_level=='debug':
+        if args.log_level == 'debug':
             log_level = logging.DEBUG
-        elif args.log_level=='info':
+        elif args.log_level == 'info':
             log_level = logging.INFO
-        elif args.log_level=='warning':
+        elif args.log_level == 'warning':
             log_level = logging.WARNING
-        elif args.log_level=='error':
+        elif args.log_level == 'error':
             log_level = logging.ERROR
-        elif args.log_level=='critical':
+        elif args.log_level == 'critical':
             log_level = logging.CRITICAL
         else:
             raise ValueError  # Should never hit this.
@@ -123,12 +127,10 @@ def run_tests():
 
     # update this dictionary when new suites are added.
 
-
     try:
         test_suite = suite_dict()[args.module]
     except KeyError:
         raise ValueError(f"Test suite {args.module} not recognized.")
-
 
     # Set temp directory
 

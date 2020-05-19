@@ -11,7 +11,7 @@ def _get_script_directory(group_name, project_name, script_version, root_repo_pa
     :param script_version:
     :return:
     """
-    base_path = root_repo_path / 'cwl-scripts' / group_name / project_name / script_version
+    base_path = Path(root_repo_path) / 'cwl-scripts' / group_name / project_name / script_version
     if base_path.exists():
         if not base_path.is_dir():
             raise TypeError(f"{base_path} must be a directory")

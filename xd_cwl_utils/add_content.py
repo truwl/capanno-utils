@@ -63,7 +63,6 @@ def main(argsl=None):
     if not argsl:
         argsl = sys.argv[1:]
     parser = get_parser()
-
     args = parser.parse_args(argsl)
 
     if args.command == 'tool':

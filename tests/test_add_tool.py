@@ -7,11 +7,10 @@ from xd_cwl_utils.add.add_tools import add_tool, add_subtool
 class TestAddTool(TestBase):
 
     def test_add_parent_only(self):
-        with TemporaryDirectory() as tmp_dir:
+        with TemporaryDirectory(prefix='dont_see me_') as tmp_dir:
             tool_name = 'test__1'
             tool_version = '123'
-            new_path = add_tool(tool_name, tool_version, root_repo_path=tmp_dir)
-        # print(new_path)
+            add_tool(tool_name, tool_version, root_repo_path=tmp_dir)
         return
 
 
@@ -20,8 +19,7 @@ class TestAddTool(TestBase):
         with TemporaryDirectory() as tmp_dir:
             tool_name = 'test___2'
             tool_version = '123'
-            new_path = add_tool(tool_name, tool_version, has_primary=True, root_repo_path=tmp_dir)
-            # print(new_path)
+            add_tool(tool_name, tool_version, has_primary=True, root_repo_path=tmp_dir)
         return
 
 
@@ -29,8 +27,7 @@ class TestAddTool(TestBase):
         with TemporaryDirectory() as tmp_dir:
             tool_name = 'test___3'
             tool_version = '123'
-            new_path = add_tool(tool_name, tool_version, subtool_names=['first', 'second'], has_primary=True, root_repo_path=tmp_dir)
-            # print(new_path)
+            add_tool(tool_name, tool_version, subtool_names=['first', 'second'], has_primary=True, root_repo_path=tmp_dir)
         return
 
     def test_add_parent_then_subtool(self):
