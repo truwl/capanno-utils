@@ -1,20 +1,12 @@
 
 
-# from cwlgen import CommandLineTool, CommandInputParameter, CommandOutputParameter, CommandOutputBinding
+from urllib import request
+import requests
 from ruamel.yaml import YAML, tokens, error
 from ruamel.yaml.comments import CommentedMap
 from xd_cwl_utils.helpers.get_paths import get_cwl_tool, get_cwl_script, main_tool_subtool_name
 
 blank_line_tk = tokens.CommentToken('\n\n', error.CommentMark(0), None)
-
-# def initialize_commmand_line_tool_file_cwl_gen(tool_name, version_name, subtool_name, base_dir):
-#     cwl_tool_path = get_cwl_tool(tool_name, version_name, subtool_name=subtool_name, base_dir=base_dir)
-#     base_command = f"{tool_name} {subtool_name}" if subtool_name != main_tool_subtool_name else tool_name
-#     clt_obj = CommandLineTool(base_command=base_command, cwl_version="v1.0")
-#     clt_obj.inputs.append(CommandInputParameter('input1', param_type='string'))
-#     clt_obj.outputs.append(CommandOutputParameter('output1', param_type='File', doc="Add documentation here", output_binding=CommandOutputBinding()))
-#     clt_obj.export(str(cwl_tool_path))
-
 
 
 def _initialize_command_line_tool_file_yaml(base_command, cwl_path):
@@ -39,10 +31,29 @@ def _initialize_command_line_tool_file_yaml(base_command, cwl_path):
         yaml.dump(cwl_map, cwl_file)
     return
 
-def initialize_command_line_tool_file_tool(tool_name, version_name, subtool_name, base_dir):
-    cwl_tool_path = get_cwl_tool(tool_name, version_name, subtool_name=subtool_name, base_dir=base_dir)
-    base_command = f"{tool_name} {subtool_name}" if subtool_name != main_tool_subtool_name else tool_name
-    _initialize_command_line_tool_file_yaml(base_command, cwl_tool_path)
+def _initialize_command_line_tool_from_url(url, cwl_path):
+
+    response = requests.get(url)
+    yaml = YAML(typ='safe', pure=True)
+    yaml.indent(mapping=2, sequence=4, offset=2)
+    yaml_doc = yaml.load(response.text)
+    with cwl_path.open('w') as cwl_file:
+        yaml.dump(yaml_doc, cwl_file)
+        assert True
+    return
+
+
+def initialize_command_line_tool_file_tool(tool_name, version_name, subtool_name, init_cwl, base_dir):
+    if init_cwl == False:
+        pass
+    else:
+        cwl_tool_path = get_cwl_tool(tool_name, version_name, subtool_name=subtool_name, base_dir=base_dir)
+        if init_cwl == True:
+            base_command = f"{tool_name} {subtool_name}" if subtool_name != main_tool_subtool_name else tool_name
+            _initialize_command_line_tool_file_yaml(base_command, cwl_tool_path)
+        else:
+            assert isinstance(init_cwl, str)
+            _initialize_command_line_tool_from_url(init_cwl, cwl_tool_path)
     return
 
 def initialize_command_line_tool_file_script(group_name, project_name, script_version, script_name, base_dir):

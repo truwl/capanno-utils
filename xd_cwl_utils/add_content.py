@@ -18,10 +18,10 @@ def get_parser():
     addtool = subparsers.add_parser('tool', help='add a new standalone tool.')
     addtool.add_argument('tool_name', type=str, help="The name of the tool to add.")
     addtool.add_argument('version_name', type=str, help="The version of the tool to add.")
-    addtool.add_argument('subtool_names', nargs='*', type=str, help="The version of the tool to add.")
+    addtool.add_argument('subtool_names', nargs='*', type=str, help="The names subtool names to initialize directories for.")
     addtool.add_argument('--biotoolsID', type=str, help='biotools id from https://bio.tools')
     addtool.add_argument('--has_primary', action='store_true', help='Tool is called directly without a subtool.')
-    addtool.add_argument('--init_cwl', action='store_true', help="If specified, CWL CommandLineTool files will be intiated for the subtools and primary tool if it exists. ")
+    addtool.add_argument('--init_cwl', action='store_true', help="If specified, CWL CommandLineTool files will be intiated for the subtools and primary tool if it exists.")
 
 
     # add_subtool parser
@@ -30,7 +30,7 @@ def get_parser():
     addsubtool.add_argument('version_name', help='The version of the tool.')
     addsubtool.add_argument('subtool_name', help="The name of the subtool. The subtool name must be present in the parent's featureList field.")
     addsubtool.add_argument('-u', '--update_featureList', action='store_true', help='Update the featureList of the Application Suite metadata to contain new subtool.')
-    addsubtool.add_argument('--init_cwl', action='store_true',
+    addsubtool.add_argument('--init_cwl', nargs='?', type=str, default=False, const=True,
                          help="If specified, CWL CommandLineTool files will be intiated for the subtools and primary tool if it exists.")
 
     # add_common_script_parser

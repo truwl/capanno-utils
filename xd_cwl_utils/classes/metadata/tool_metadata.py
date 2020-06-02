@@ -120,8 +120,6 @@ class ParentToolMetadata(CommonPropsMixin, ToolMetadataBase):
     @classmethod
     def create_from_biotools(cls, biotools_id, version_name, subtools, tool_name=None):
         kwargs = make_tool_metadata_kwargs_from_biotools(biotools_id, tool_name=tool_name)
-        if not subtools:  # Assume it is a 'standalone' type tool
-            subtools = ["__main__"]
         kwargs['featureList'] = list(subtools)  # A lot more to do here.
         kwargs['softwareVersion'] = {}
         kwargs['softwareVersion']['versionName'] = version_name

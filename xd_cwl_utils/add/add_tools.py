@@ -75,6 +75,5 @@ def add_subtool(tool_name, tool_version, subtool_name, root_repo_path=Path.cwd()
     instances_dir.mkdir()
     git_keep_file = instances_dir / '.gitkeep'
     git_keep_file.touch()
-    if init_cwl:
-        initialize_command_line_tool_file_tool(tool_name, tool_version, subtool_name, base_dir=root_repo_path)
+    initialize_command_line_tool_file_tool(tool_name, tool_version, subtool_name, init_cwl=init_cwl, base_dir=root_repo_path)
     return
