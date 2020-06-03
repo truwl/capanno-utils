@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 from pathlib import Path
+from datetime import date
 from xd_cwl_utils.classes.metadata.tool_metadata import ParentToolMetadata
 from xd_cwl_utils.classes.cwl.make_cwl import initialize_command_line_tool_file_tool
 from xd_cwl_utils.helpers.get_paths import get_tool_common_dir, main_tool_subtool_name, get_tool_metadata, get_tool_dir
@@ -58,6 +59,8 @@ def add_subtool(tool_name, tool_version, subtool_name, root_repo_path=Path.cwd()
     :param init_cwl:
     :return:
     """
+
+    subtool_kwargs = {}  # initialize to add any additional information about the subtool.
     parent_path = get_tool_metadata(tool_name, tool_version, parent=True, base_dir=root_repo_path)
     parent_meta = ParentToolMetadata.load_from_file(parent_path)
     if update_featureList:
@@ -67,8 +70,9 @@ def add_subtool(tool_name, tool_version, subtool_name, root_repo_path=Path.cwd()
             if not subtool_name in parent_meta.featureList:
                 parent_meta.featureList.append(subtool_name)
         parent_meta.mk_file(base_dir=root_repo_path)  # Remake the file. Needs to be remade if updated.
-
-    subtool_meta = parent_meta.make_subtool_metadata(subtool_name)
+    if not isinstance(init_cwl, bool):  # initialized from a url.
+        subtool_kwargs['extra'] = {'cwlDocument': {'isBasedOn': init_cwl, 'dateCreated': str(date.today())}}
+    subtool_meta = parent_meta.make_subtool_metadata(subtool_name, **subtool_kwargs)
     subtool_meta.mk_file(base_dir=root_repo_path)
     subtool_dir = get_tool_dir(tool_name, tool_version, subtool_name, base_dir=root_repo_path)
     instances_dir = subtool_dir / 'instances'

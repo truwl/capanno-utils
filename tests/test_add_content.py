@@ -52,7 +52,7 @@ class TestAddToolMain(TestBase):
         biotools_id = 'bandage'
         tool_name = 'bandage'
         tool_version = 'fake.6'
-        subtool_name = '__main__'
+        subtool_name = 'image'
         with TemporaryDirectory(prefix='add_tool_with_cwl_') as tmp_dir:
             add_content_main(['-p', tmp_dir, 'tool', tool_name, tool_version, '--biotoolsID', biotools_id])
             add_content_main(['-p', tmp_dir, 'subtool', tool_name, tool_version, subtool_name, '-u', '--init_cwl', cwl_url])

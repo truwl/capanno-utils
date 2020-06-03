@@ -5,6 +5,7 @@ import requests
 from ruamel.yaml import YAML, tokens, error
 from ruamel.yaml.comments import CommentedMap
 from xd_cwl_utils.helpers.get_paths import get_cwl_tool, get_cwl_script, main_tool_subtool_name
+from xd_cwl_utils.classes.cwl.command_line_tool import load_document
 
 blank_line_tk = tokens.CommentToken('\n\n', error.CommentMark(0), None)
 
@@ -33,13 +34,17 @@ def _initialize_command_line_tool_file_yaml(base_command, cwl_path):
 
 def _initialize_command_line_tool_from_url(url, cwl_path):
 
-    response = requests.get(url)
-    yaml = YAML(typ='safe', pure=True)
-    yaml.indent(mapping=2, sequence=4, offset=2)
-    yaml_doc = yaml.load(response.text)
-    with cwl_path.open('w') as cwl_file:
-        yaml.dump(yaml_doc, cwl_file)
-        assert True
+    # response = requests.get(url)
+
+    clt = load_document(url)
+    clt.dump_cwl(cwl_path)
+    # yaml = YAML(typ='safe', pure=True)
+    # yaml.default_flow_style = False
+    # yaml.indent(mapping=2, sequence=4, offset=2)
+    # yaml_doc = yaml.load(response.text)
+    # with cwl_path.open('w') as cwl_file:
+    #     yaml.dump(yaml_doc, cwl_file)
+    #     assert True
     return
 
 

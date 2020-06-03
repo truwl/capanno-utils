@@ -102,12 +102,12 @@ class ParentToolMetadata(CommonPropsMixin, ToolMetadataBase):
         identifier = f"TL_{name_hash[start:start + 6]}.{version_hash[:2]}"
         return identifier
 
-    def make_subtool_metadata(self, subtool_name):
+    def make_subtool_metadata(self, subtool_name, **kwargs):
         if not self.featureList:
             raise ValueError(f"Cannot create subtool. featureList of {self.name} is not populated.")
         if subtool_name not in self.featureList:
             raise ValueError(f"{subtool_name} must be in the parent featureList")
-        subtool_metadata = SubtoolMetadata(name=subtool_name, _parentMetadata=self)
+        subtool_metadata = SubtoolMetadata(name=subtool_name, _parentMetadata=self, **kwargs)
         return subtool_metadata
 
     @classmethod
@@ -143,6 +143,7 @@ class SubtoolMetadata(CommonPropsMixin, ToolMetadataBase):
             ('description', None),
             ('keywords', None),
             ('alternateName', None),
+            ('extra', None),
             ('parentMetadata', '../common/common-metadata.yaml'),  # relative path to parentMetadata
             ('_parentMetadata', None),  # ParentMetadata instance. Can be loaded from parentMetadata or set directly.
             ('_primary_file_attrs', None), # Keep track of attributes that are set directly from kwargs and not inherited from parent.

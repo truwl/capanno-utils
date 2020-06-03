@@ -1,6 +1,22 @@
 
+from urllib.parse import urlparse
 from pathlib import Path
+from ruamel.yaml import YAML
+from ruamel.yaml.comments import CommentedMap
 from cwltool.process import shortname
+
+def get_short_name(url_string):
+    """
+    Return the part of a uri after the '#'
+    """
+    url_parse = urlparse(url_string)
+    if url_parse.fragment:
+        short_name = url_parse.fragment
+    else:
+        short_name = url_parse.path.split('#')[-1]
+    return short_name
+
+
 
 class CommandLineToolMixin:
     """Mixin methods for working with cwl_classes.CommandLineTool objects. These objects should be preprocessed and
@@ -8,7 +24,7 @@ class CommandLineToolMixin:
 
     cwl_types = ('null', 'boolean', 'int', 'long', 'float', 'double', 'string', 'File', 'Directory')
 
-    def _get_schema_def_requirement(self):
+    def get_schema_def_requirement(self):
         """
         Checks for SchemaDefRequirment in requirements, and if it is there returns it.
         :return: SchemaDefRequirement | None
@@ -17,11 +33,59 @@ class CommandLineToolMixin:
         if self.requirements:
             for requirement in self.requirements:
                 try:
-                    requirement.__getattribute__('types')
+                    requirement.__getattribute__('types')  # Only the SchemaDefRequirment has the types attribute.
                     schema_def_requirement = requirement
                 except AttributeError:
-                    pass # Requirement is not SchemaDefRequirement. Ignore it.
+                    pass  # Requirement is not SchemaDefRequirement. Ignore it.
         return schema_def_requirement
+
+    def create_cwl_commented_map(self):
+        """
+        Create a CWL CommentedMap with preferred formatting from CommandLineTool object.
+        """
+
+        cwl_map = CommentedMap()
+        cwl_map['cwlVersion'] = self.cwlVersion
+        cwl_map['class'] = 'CommandLineTool'
+        cwl_map['baseCommand'] = self.baseCommand
+        if self.requirements:
+            cwl_map['requirements'] = [requirement.save() for requirement in self.requirements]
+        if self.hints:
+            cwl_map['hints'] = self.hints
+        optional_class_fields = ['arguments']  # List non-required fields represented as classes that can be handled generically.
+        for optional_field_name in optional_class_fields:
+            optional_class_value = getattr(self, optional_field_name)
+            if optional_class_value:
+                cwl_map[optional_field_name] = optional_class_value
+
+            # Non-required fields represented as basic python data types. Order of list determines order in CWL file.
+            optional_simple_fields = ['stdin', 'stdout', 'stderr', 'temporaryFailCodes', 'permanentFailCodes',
+                                      'successCodes', 'label', 'doc']
+
+            for optional_simple_field in optional_simple_fields:
+                optional_field_value = getattr(self, optional_simple_field)
+                if optional_field_value:
+                    cwl_map[optional_simple_field] = optional_field_value
+        cwl_map['inputs'] = self.inputs
+        cwl_map['outputs'] = self.outputs
+
+        return cwl_map
+
+    def dump_cwl(self, filename):
+        """
+        Create a formatted CWL file.
+        """
+        file_path = Path(filename)
+        cwl_yaml = self.create_cwl_commented_map()
+
+        yaml = YAML(pure=True)
+        yaml.default_flow_style = False
+        yaml.indent(mapping=2, sequence=4, offset=2)
+        with file_path.open('w') as cwl_file:
+            yaml.dump(cwl_yaml, cwl_file)
+            assert True
+        return
+
 
 class CommandInputParameterMixin:
 
@@ -59,6 +123,7 @@ class CommandInputParameterMixin:
 
     def initialize_cwl_file(self, path):
         path = Path(path)
+
 
 class SchemaDefRequirementMixin:
 
