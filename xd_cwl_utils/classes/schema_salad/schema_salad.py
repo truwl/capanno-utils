@@ -217,7 +217,7 @@ class InputsSchema:
         self.cwl_path = cwl_path
         cwl_document = load_document(str(self.cwl_path))
         self._cwl_inputs = cwl_document.inputs
-        self._cwl_schema_def_requirement = cwl_document._get_schema_def_requirement()
+        self._cwl_schema_def_requirement = cwl_document.get_schema_def_requirement()
 
     @property
     def cwl_inputs(self):

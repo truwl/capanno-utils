@@ -21,7 +21,7 @@ import six
 from ruamel.yaml.comments import CommentedBase, CommentedMap, CommentedSeq
 from typing_extensions import Text  # pylint: disable=unused-import
 # move to a regular typing import when Python 3.3-3.6 is no longer supported
-from .command_line_tool_mixins import CommandLineToolMixin, CommandInputParameterMixin, SchemaDefRequirementMixin
+from .command_line_tool_mixins import CommandLineToolMixin, CommandInputParameterMixin, SchemaDefRequirementMixin, CommandLineBindingMixin, CommandOutputParameterMixin
 
 
 lineno_re = re.compile(u"^(.*?:[0-9]+:[0-9]+: )(( *)(.*))")
@@ -2476,7 +2476,7 @@ result of executing an expression, such as getting a parameter from input.
     attrs = frozenset(['envName', 'envValue'])
 
 
-class CommandLineBinding(InputBinding):
+class CommandLineBinding(InputBinding, CommandLineBindingMixin):
     """
 
 When listed under `inputBinding` in the input schema, the term
@@ -3526,7 +3526,7 @@ An input parameter for a CommandLineTool.
     attrs = frozenset(['label', 'secondaryFiles', 'streamable', 'doc', 'id', 'format', 'inputBinding', 'default', 'type'])
 
 
-class CommandOutputParameter(OutputParameter):
+class CommandOutputParameter(OutputParameter, CommandOutputParameterMixin):
     """
 An output parameter for a CommandLineTool.
     """
