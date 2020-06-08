@@ -9,7 +9,7 @@ from xd_cwl_utils.validate import validate_parent_tool_metadata, validate_subtoo
 
 
 def get_parser():
-    parser = argparse.ArgumentParser(description="Validate metadata files.")
+    parser = argparse.ArgumentParser(description="Validate metadata and cwl files.")
     subparsers = parser.add_subparsers(description="Specify type of metadata to validate.", dest='command')
     parser.add_argument('-p', '--root_repo_path', dest='root_path', type=Path, default=Path.cwd(),
                         help="Specify the root path of your cwl content repo if it is not the current working directory.")
