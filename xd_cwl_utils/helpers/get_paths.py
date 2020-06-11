@@ -313,7 +313,7 @@ def get_file_type_from_instance_dir(file_path):
     Raises and error if it doesn't look like either.
     """
     if instance_file_pattern.match(file_path.name):
-        file_type = 'instance_file'
+        file_type = 'instance'
     elif instance_metadata_file_pattern.match(file_path.name):
         file_type = 'instance_metadata'
     else:

@@ -1,7 +1,5 @@
 Small test repository.
 
-STAR is an example of a complex tool and metadata.
+This repository is populated using tests/populate_test_content/populate_test_file.py
 
-ENCODE-DCC has many scripts that are good for testing.
-
-Todo: either make a script that updates the test content, or use a sibling content repo for testing. Don't want to get out of sync.
+repopulating the test repository requires https://github.com/xDBio-Inc/cwl-source to be present in a sibling directory of this project.

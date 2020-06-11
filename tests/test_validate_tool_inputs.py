@@ -22,11 +22,11 @@ class TestValidateInputs(TestBase):
     # @unittest.skip("Comment out and run smaller tests to isolate problems.")
     def test_validate_tool_inputs_2(self):
         tool_name = 'samtools'
-        tool_version = '1.9'
+        tool_version = '1.x'
         subtool = 'flagstat'
         instance_hash = '395d'
-        cwl_document_path = get_cwl_tool(tool_name, tool_version, subtool_name=subtool)
-        instance_path = get_tool_instance_path(tool_name, tool_version, instance_hash, subtool_name=subtool)
+        cwl_document_path = get_cwl_tool(tool_name, tool_version, subtool_name=subtool, base_dir=self.test_content_dir)
+        instance_path = get_tool_instance_path(tool_name, tool_version, instance_hash, subtool_name=subtool, base_dir=self.test_content_dir)
         validate_inputs_for_instance(instance_path, cwl_tool_path=cwl_document_path)
         return
 

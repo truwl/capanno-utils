@@ -9,42 +9,49 @@ metadataStatus: Released
 cwlStatus: Released
 
 tools:
-  - name: awk
-    version:
+  - name: mawk
+    version: 1.2
 
   - name: grep
-    version:
+    version: 2.25
 
   - name: Picard MarkDuplicates
-    version:
+    version: 2.10.6-SNAPSHOT
 
   - name: sambamba sort
-    version:
+    version: 0.6.6
+    identifier: TL_bf790f_ca.e9
 
   - name: sambamba index
-    version:
+    version: 0.6.6
+    identifier: TL_bf790f_6a.e9
 
   - name: sambamba flagstat
-    version:
+    version: 0.6.6
+    identifier: TL_bf790f_c2.e9
 
   - name: samtools sort
-    version:
+    version: 1.2
+    identifier: TL_ec2a8d_ca.0b
 
   - name: samtools view
-    version:
+    version: 1.2
+    identifier: TL_ec2a8d_46.0b
 
   - name: samtools fixmate
-    version:
+    version: 1.2
+    identifier: TL_ec2a8d_a2.0b
 
   - name: sambamba markdup
-    version:
+    version: 0.6.6
+    identifier: TL_bf790f_02.e9
 
   - name: bedtools bamtobed
-    version:
+    version: 2.26.0
 
 parentScripts:
   - name: assign_multimappers.py
-    version:
+    version: 1.1.x
 
 parentMetadata:  # additional metadata from most specific to least.
   - ../common/encode_atac_script-metadata.yaml
