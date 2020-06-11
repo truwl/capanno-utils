@@ -40,6 +40,8 @@ def main(argsl=None):
             validate_parent_tool_metadata(full_path)
         elif specific_type == 'cwl':
             validate_cwl_tool(full_path)
+        elif specific_type == 'metadata':
+            validate_subtool_metadata(full_path)
         elif specific_type == 'instance':
             validate_inputs_for_instance(full_path)
         elif specific_type == 'instance_metadata':
@@ -59,7 +61,17 @@ def main(argsl=None):
             raise ValueError(f"")
 
     elif base_type == 'workflow':
-        raise NotImplementedError
+        if specific_type == 'cwl':
+            raise NotImplementedError
+        elif specific_type == 'metadata':
+            validate_workflow_metadata(full_path)
+        elif specific_type == 'instance':
+            raise NotImplementedError
+        elif specific_type == 'instance_metadata':
+            raise NotImplementedError
+        else:
+            raise ValueError(f"")
+
     else:
         parser.print_help()
     return

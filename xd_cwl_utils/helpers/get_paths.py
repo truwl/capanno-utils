@@ -206,6 +206,11 @@ def get_script_instance_path(group_name, project_name, version, script_name, ins
     instance_path = script_instance_dir / f"{instance_hash}.yaml"
     return instance_path
 
+def get_script_instance_metadata_path(group_name, project_name, version, script_name, instance_hash, base_dir=None):
+    script_instance_dir = get_script_instance_dir(group_name, project_name, version, script_name, base_dir=base_dir)
+    instance_metadata_path = script_instance_dir / f"{instance_hash}-metadata.yaml"
+    return instance_metadata_path
+
 
 # cwl-workflows
 
@@ -261,6 +266,11 @@ def get_workflow_instance_path(group_name, project_name, version, instance_hash,
     workflow_instances_dir = get_workflow_inputs_dir(group_name, project_name, version, base_dir=base_dir)
     instance_path = workflow_instances_dir / f"{instance_hash}.yaml"
     return instance_path
+
+def get_workflow_instance_metadata(group_name, project_name, version, instance_hash, base_dir=None):
+    workflow_instances_dir = get_workflow_inputs_dir(group_name, project_name, version, base_dir=base_dir)
+    instance_metadata_path = workflow_instances_dir / f"{instance_hash}-metadata.yaml"
+    return instance_metadata_path
 
 
 def get_workflow_args_from_path(cwl_workflows_path):

@@ -1,7 +1,10 @@
 
 import os
 from tests.test_base import TestBase, test_constants
-from xd_cwl_utils.helpers.get_paths import get_types_from_path, get_script_metadata, get_script_instance_path, get_cwl_script, get_cwl_tool, get_tool_common_dir, main_tool_subtool_name, get_tool_metadata, get_tool_instance_path, get_tool_instance_metadata_path
+from xd_cwl_utils.helpers.get_paths import get_types_from_path, get_script_metadata, get_script_instance_path, \
+    get_cwl_script, get_cwl_tool, get_tool_common_dir, main_tool_subtool_name, get_tool_metadata, \
+    get_tool_instance_path, get_tool_instance_metadata_path, get_cwl_workflow, get_workflow_metadata, \
+    get_workflow_instance_path, get_workflow_instance_metadata
 
 
 class TestGetTypesFromPath(TestBase):
@@ -55,4 +58,29 @@ class TestGetTypesFromPath(TestBase):
         tool_instance_metadata_type_tuple = get_types_from_path(tool_instance_metadata_path)
         self.assertEqual(tool_instance_metadata_type_tuple, ('tool', 'instance_metadata'))
 
+        return
+
+    def test_get_type_from_workflow_path(self):
+
+        group_name = 'example_workflows'
+        project_name = 'cat_sort'
+        workflow_version = 'master'
+        workflow_name = 'cat_sort'
+        input_hash = 'ecd8'
+
+        workflow_cwl_path = get_cwl_workflow(group_name, project_name, workflow_version, workflow_name)
+        cwl_workflow_type_tuple = get_types_from_path(workflow_cwl_path)
+        self.assertEqual(cwl_workflow_type_tuple, ('workflow', 'cwl'))
+
+        workflow_metadata_path = get_workflow_metadata(group_name, project_name, workflow_version, workflow_name)
+        workflow_metadata_type_tuple = get_types_from_path(workflow_metadata_path)
+        self.assertEqual(workflow_metadata_type_tuple, ('workflow', 'metadata'))
+
+        workflow_instance_path = get_workflow_instance_path(group_name, project_name, workflow_version, input_hash)
+        workflow_instance_type_tuple = get_types_from_path(workflow_instance_path)
+        self.assertEqual(workflow_instance_type_tuple, ('workflow', 'instance'))
+
+        workflow_instance_metadata_path = get_workflow_instance_metadata(group_name, project_name, workflow_version, input_hash)
+        workflow_instance_metadata_type_tuple = get_types_from_path(workflow_instance_metadata_path)
+        self.assertEqual(workflow_instance_metadata_type_tuple, ('workflow', 'instance_metadata'))
         return
