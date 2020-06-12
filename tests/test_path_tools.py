@@ -1,10 +1,11 @@
 
 import os
 from tests.test_base import TestBase, test_constants
-from xd_cwl_utils.helpers.get_paths import get_types_from_path, get_script_metadata, get_script_instance_path, \
-    get_cwl_script, get_cwl_tool, get_tool_common_dir, main_tool_subtool_name, get_tool_metadata, \
-    get_tool_instance_path, get_tool_instance_metadata_path, get_cwl_workflow, get_workflow_metadata, \
-    get_workflow_instance_path, get_workflow_instance_metadata
+from xd_cwl_utils.helpers.get_paths import *
+    # get_types_from_path, get_script_metadata, get_script_instance_path, \
+    # get_cwl_script, get_cwl_tool, get_tool_common_dir, main_tool_subtool_name, get_tool_metadata, \
+    # get_tool_instance_path, get_tool_instance_metadata_path, get_cwl_workflow, get_workflow_metadata, \
+    # get_workflow_instance_path, get_workflow_instance_metadata
 
 
 class TestGetTypesFromPath(TestBase):
@@ -83,4 +84,34 @@ class TestGetTypesFromPath(TestBase):
         workflow_instance_metadata_path = get_workflow_instance_metadata(group_name, project_name, workflow_version, input_hash)
         workflow_instance_metadata_type_tuple = get_types_from_path(workflow_instance_metadata_path)
         self.assertEqual(workflow_instance_metadata_type_tuple, ('workflow', 'instance_metadata'))
+        return
+
+
+    def test_get_type_from_tool_dirs(self):
+
+        tool_name = 'gawk'
+        tool_version = '4.1.x'
+        subtool_name = main_tool_subtool_name
+        cwl_root_repo_name = self.test_content_dir.stem
+
+        root_tools_dir = get_root_tools_dir()
+        root_tools_dir_type_tuple = get_types_from_path(root_tools_dir, cwl_root_repo_name=cwl_root_repo_name)
+        self.assertEqual(root_tools_dir_type_tuple, ('tool', 'base_dir'))
+
+
+        tool_dir = get_main_tool_dir(tool_name)
+        tool_dir_type_tuple = get_types_from_path(tool_dir, cwl_root_repo_name=cwl_root_repo_name)
+        self.assertEqual(tool_dir_type_tuple, ('tool', 'tool_dir'))
+
+        tool_version_dir = get_tool_version_dir(tool_name, tool_version)
+        tool_version_dir_type_tuple = get_types_from_path(tool_version_dir, cwl_root_repo_name=cwl_root_repo_name)
+        self.assertEqual(tool_version_dir_type_tuple, ('tool', 'version_dir'))
+
+        tool_common_dir = get_tool_common_dir(tool_name, tool_version)
+        tool_common_dir_type_tuple = get_types_from_path(tool_common_dir, cwl_root_repo_name=cwl_root_repo_name)
+        self.assertEqual(tool_common_dir_type_tuple, ('tool', 'common_dir'))
+
+        subtool_dir = get_tool_dir(tool_name, tool_version)
+        subtool_dir_type_tuple = get_types_from_path(subtool_dir, cwl_root_repo_name=cwl_root_repo_name)
+        self.assertEqual(subtool_dir_type_tuple, ('tool', 'subtool_dir'))
         return
