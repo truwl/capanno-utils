@@ -20,6 +20,7 @@ def get_inputs_schema_template():
 def get_base_dir(base_dir=None):
     if not base_dir:
         base_dir = config[os.environ['CONFIG_KEY']]['base_path']
+        import pdb; pdb.set_trace()
     return Path(base_dir)
 
 
@@ -93,7 +94,7 @@ def get_parent_tool_relative_path_string():
     return rel_path_to_parent
 
 
-def get_tool_inputs_dir(tool_name, tool_version, subtool_name=None, base_dir=None):
+def get_tool_instances_dir(tool_name, tool_version, subtool_name=None, base_dir=None):
     cwl_tool_dir = get_tool_dir(tool_name, tool_version, subtool_name=subtool_name, base_dir=base_dir)
     instances_dir = cwl_tool_dir / instances_dir_name
     return instances_dir
@@ -106,14 +107,14 @@ def get_tool_instances_dir_from_cwl_path(cwl_path):
 
 
 def get_tool_instance_path(tool_name, tool_version, input_hash, subtool_name=None, base_dir=None):
-    cwl_tool_inst_dir = get_tool_inputs_dir(tool_name, tool_version, subtool_name=subtool_name, base_dir=base_dir)
+    cwl_tool_inst_dir = get_tool_instances_dir(tool_name, tool_version, subtool_name=subtool_name, base_dir=base_dir)
     inputs_path = cwl_tool_inst_dir / f"{input_hash}.yaml"
 
     return inputs_path
 
 
 def get_tool_instance_metadata_path(tool_name, tool_version, input_hash, subtool_name=None, base_dir=None):
-    cwl_tool_inst_dir = get_tool_inputs_dir(tool_name, tool_version, subtool_name=subtool_name, base_dir=base_dir)
+    cwl_tool_inst_dir = get_tool_instances_dir(tool_name, tool_version, subtool_name=subtool_name, base_dir=base_dir)
     instance_metadata_path = cwl_tool_inst_dir / f"{input_hash}-metadata.yaml"
     return instance_metadata_path
 
@@ -171,6 +172,10 @@ def get_script_version_dir(group_name, project_name, version, base_dir=None):
     script_ver_dir = get_script_project_dir(group_name, project_name, base_dir=base_dir) / version
     return script_ver_dir
 
+
+def get_script_dir(group_name, project_name, version, script_name, base_dir=None):
+    script_dir = get_script_version_dir(group_name, project_name, version, base_dir=base_dir) / script_name
+    return script_dir
 
 def get_cwl_script(group_name, project_name, version, script_name, base_dir=None):
     script_ver_dir = get_script_version_dir(group_name, project_name, version, base_dir=base_dir)
@@ -430,7 +435,30 @@ def get_dir_type_from_path(abs_dir_path, cwl_root_repo_name=root_repo_name):
             raise ValueError
     elif base_type == 'script':
         # dir type could be base_dir, group_dir, project_dir, version_dir, common_dir, script_dir, instances_dir
-        raise NotImplementedError
+        if path_parts[-1] == scripts_dir_name:
+            assert path_parts[-2] == cwl_root_repo_name
+            dir_type = 'base_dir'
+        elif path_parts[-2] == scripts_dir_name:
+            assert path_parts[-3] == cwl_root_repo_name
+            dir_type = 'group_dir'
+        elif path_parts[-3] == scripts_dir_name:
+            assert path_parts[-4] == cwl_root_repo_name
+            dir_type = 'project_dir'
+        elif path_parts[-4] == scripts_dir_name:
+            assert path_parts[-5] == cwl_root_repo_name
+            dir_type = 'version_dir'
+        elif path_parts[-5] == scripts_dir_name:
+            assert path_parts[-6] == cwl_root_repo_name
+            # could be script_dir or common_dir.
+            if path_parts[-1] == 'common':
+                dir_type = 'common_dir'
+            else:
+                dir_type = 'script_dir'
+        elif path_parts[-6] == scripts_dir_name:
+            assert path_parts[-7] == cwl_root_repo_name
+            dir_type = 'instance_dir'
+        else:
+            raise ValueError
     elif base_type == 'workflow':
         # dir type could be base_dir, group_dir, project_dir, version_dir, common_dir, script_dir, instances_dir
         raise NotImplementedError

@@ -27,7 +27,7 @@ def main(argsl=None):
     parser = get_parser()
     args = parser.parse_args(argsl)
 
-
+    # from pdb import set_trace; set_trace()
     if args.path.is_absolute():
         full_path = args.path
     else:
@@ -36,6 +36,7 @@ def main(argsl=None):
     base_type, specific_type = get_types_from_path(full_path, base_path=args.root_path)
 
     if base_type == 'tool':
+        # Check for file types.
         if specific_type == 'common_metadata':
             validate_parent_tool_metadata(full_path)
         elif specific_type == 'cwl':
@@ -45,6 +46,19 @@ def main(argsl=None):
         elif specific_type == 'instance':
             validate_inputs_for_instance(full_path)
         elif specific_type == 'instance_metadata':
+            raise NotImplementedError
+        # Check for directory types.
+        elif specific_type == 'base_dir':
+            validate_tools_dir(base_dir=args.root_path)
+        elif specific_type == 'tool_dir':
+            raise NotImplementedError
+        elif specific_type == 'version_dir':
+            raise NotImplementedError
+        elif specific_type == 'common_dir':
+            raise NotImplementedError
+        elif specific_type == 'subtool_dir':
+            raise NotImplementedError
+        elif specific_type == 'instance_dir':
             raise NotImplementedError
         else:
             raise ValueError(f"")
@@ -56,6 +70,19 @@ def main(argsl=None):
         elif specific_type == 'instance':
             validate_inputs_for_instance(full_path)
         elif specific_type == 'instance_metadata':
+            raise NotImplementedError
+        # Check for directory types.
+        elif specific_type == 'base_dir':
+            validate_scripts_dir(base_dir=args.root_path)
+        elif specific_type == 'group_dir':
+            raise NotImplementedError
+        elif specific_type == 'project_dir':
+            raise NotImplementedError
+        elif specific_type == 'version_dir':
+            raise NotImplementedError
+        elif specific_type == 'script_dir':
+            raise NotImplementedError
+        elif specific_type == 'instance_dir':
             raise NotImplementedError
         else:
             raise ValueError(f"")
@@ -71,6 +98,8 @@ def main(argsl=None):
             raise NotImplementedError
         else:
             raise ValueError(f"")
+    elif base_type == 'repo_root':
+        validate_repo(full_path)
 
     else:
         parser.print_help()

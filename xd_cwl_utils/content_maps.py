@@ -21,6 +21,7 @@ def make_tools_map(outfile_path, base_dir=None):
     cwl_tools_dir = get_root_tools_dir(base_dir=base_dir)
     content_map = {}
     outfile_path = Path(outfile_path)
+    import pdb; pdb.set_trace()
     for tool_dir in  cwl_tools_dir.iterdir():
         for version_dir in tool_dir.iterdir():
             tool_map = make_tool_map(tool_dir.name, version_dir.name, base_dir=base_dir)
