@@ -5,9 +5,10 @@ from xd_cwl_utils.config import config
 from xd_cwl_utils.classes.metadata.script_metadata import ScriptMetadata
 from xd_cwl_utils.classes.metadata.tool_metadata import ParentToolMetadata, SubtoolMetadata
 from xd_cwl_utils.classes.metadata.workflow_metadata import WorkflowMetadata
-from xd_cwl_utils.helpers.get_paths import get_cwl_tool, get_tool_metadata, get_tool_version_dir, \
-    get_script_version_dir, get_metadata_path, get_relative_path, get_workflow_version_dir, get_root_tools_dir, \
-    get_root_scripts_dir, get_workflows_root_dir, get_cwl_workflow
+from xd_cwl_utils.helpers.get_paths import *
+# get_cwl_tool, get_tool_metadata, get_tool_version_dir, \
+#     get_script_version_dir, get_metadata_path, get_relative_path, get_workflow_version_dir, get_root_tools_dir, \
+#     get_root_scripts_dir, get_workflows_root_dir, get_cwl_workflow
 
 def make_tools_map(outfile_path, base_dir=None):
     """
@@ -21,10 +22,9 @@ def make_tools_map(outfile_path, base_dir=None):
     cwl_tools_dir = get_root_tools_dir(base_dir=base_dir)
     content_map = {}
     outfile_path = Path(outfile_path)
-    import pdb; pdb.set_trace()
     for tool_dir in  cwl_tools_dir.iterdir():
         for version_dir in tool_dir.iterdir():
-            tool_map = make_tool_map(tool_dir.name, version_dir.name, base_dir=base_dir)
+            tool_map = make_tool_version_dir_map(tool_dir.name, version_dir.name, base_dir=base_dir)
             content_map.update(tool_map)
     yaml = YAML(pure=True)
     yaml.default_flow_style = False
@@ -33,39 +33,47 @@ def make_tools_map(outfile_path, base_dir=None):
         yaml.dump(content_map, outfile)
     return
 
+def make_map_for_main_tool(tool_name, outfile_path=None, base_dir=None):
+    """
+    Make a yaml file that specifies paths and attributes of tools in a single tool directory. If outfile is provided, dump contents to outfile.
 
-def make_tool_map(tool_name, tool_version, base_dir=None):
-    tool_map = {}
+    """
+    main_tool_map = {}
+    tool_dir = get_main_tool_dir(tool_name, base_dir=base_dir)
+    for version_dir in tool_dir.iterdir():
+        main_tool_map.update(make_tool_version_dir_map(tool_name, version_dir.name))
+    return main_tool_map
+
+def make_tool_version_dir_map(tool_name, tool_version, base_dir=None):
+    tool_version_map = {}
+
     tool_version_dir = get_tool_version_dir(tool_name, tool_version, base_dir=base_dir)
     subdir_names = [subdir.name for subdir in tool_version_dir.iterdir()]
 
     parent_metadata_path = get_tool_metadata(tool_name, tool_version, parent=True, base_dir=base_dir)
     parent_metadata = ParentToolMetadata.load_from_file(parent_metadata_path)
     parent_rel_path = get_relative_path(parent_metadata_path, base_path=base_dir)
-    tool_map[parent_metadata.identifier] = {'path': str(parent_rel_path), 'metadataStatus': parent_metadata.metadataStatus, 'name': parent_metadata.name, 'versionName': parent_metadata.softwareVersion.versionName, 'type': 'parent'}
+    tool_version_map[parent_metadata.identifier] = {'path': str(parent_rel_path), 'metadataStatus': parent_metadata.metadataStatus, 'name': parent_metadata.name, 'versionName': parent_metadata.softwareVersion.versionName, 'type': 'parent'}
     subdir_names.remove('common')
-    tool_name_len = len(tool_name)
     for subdir_name in subdir_names:
-        assert subdir_name[:tool_name_len] == tool_name
-        subtool_name_parts = subdir_name[tool_name_len:].split('_')
-        subtool_name_parts_len = len(subtool_name_parts)
-        if subtool_name_parts_len > 2:
-            subtool_name = '_'.join(subtool_name_parts[1:])
-        elif subtool_name_parts_len == 2:  # The common case.
-            subtool_name = subdir_name.split('_')[1]
-        elif subtool_name_parts_len == 1: # have a subtool that is the 'main' part of the tool; i.e. not a submodule. e.g. md5sum and md5sum_check
-            subtool_name = None
-        else:
-            raise NotImplementedError(
-                f"There are zero underscores in a subtool directory {subdir_name}. Can't handle this yet.")
-        # Lots that could happen here. tool name could have an underscore, etc.
-        subtool_cwl_path = get_cwl_tool(tool_name, tool_version, subtool_name=subtool_name, base_dir=base_dir)
-        subtool_rel_path = get_relative_path(subtool_cwl_path, base_path=base_dir)
-        subtool_metadata_path = get_tool_metadata(tool_name, tool_version, subtool_name=subtool_name, parent=False, base_dir=base_dir)
-        subtool_metadata = SubtoolMetadata.load_from_file(subtool_metadata_path)
-        tool_map[subtool_metadata.identifier] = {'path': str(subtool_rel_path), 'name': subtool_metadata.name, 'metadataStatus': subtool_metadata.metadataStatus, 'cwlStatus': subtool_metadata.cwlStatus, 'type': 'subtool'}
-    return tool_map
+        subdir_map = make_subtool_map(tool_name, tool_version, subdir_name)
+        tool_version_map.update(subdir_map)
+    return tool_version_map
 
+def make_subtool_map(tool_name, tool_version, subdir_name, base_dir=None):
+    tool_name_length = len(
+        tool_name)  # Use to get directory name string after 'tool_name'. In case there are underscores in tool_name.
+    subtool_name = subdir_name[tool_name_length + 1:]  # the +1 accounts for the underscore
+    if not subtool_name:  # Will be empty string for main tool.
+        subtool_name = None  # Will be 'main' tool.
+    subtool_cwl_path = get_cwl_tool(tool_name, tool_version, subtool_name=subtool_name, base_dir=base_dir)
+    subtool_rel_path = get_relative_path(subtool_cwl_path, base_path=base_dir)
+    subtool_metadata_path = get_tool_metadata(tool_name, tool_version, subtool_name=subtool_name, parent=False,
+                                              base_dir=base_dir)
+    subtool_metadata = SubtoolMetadata.load_from_file(subtool_metadata_path)
+    subdir_map = {}
+    subdir_map[subtool_metadata.identifier] = {'path': str(subtool_rel_path), 'name': subtool_metadata.name, 'metadataStatus': subtool_metadata.metadataStatus, 'cwlStatus': subtool_metadata.cwlStatus, 'type': 'subtool'}
+    return subdir_map
 
 def make_script_maps(outfile_path, base_dir=None):
     cwl_scripts_dir = get_root_scripts_dir(base_dir=base_dir)

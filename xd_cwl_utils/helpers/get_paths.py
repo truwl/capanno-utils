@@ -20,7 +20,6 @@ def get_inputs_schema_template():
 def get_base_dir(base_dir=None):
     if not base_dir:
         base_dir = config[os.environ['CONFIG_KEY']]['base_path']
-        import pdb; pdb.set_trace()
     return Path(base_dir)
 
 
