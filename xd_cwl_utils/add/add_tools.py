@@ -54,7 +54,7 @@ def add_subtool(tool_name, tool_version, subtool_name, root_repo_path=Path.cwd()
     :param tool_name(str):
     :param version_name (str):
     :param subtool_name (str):
-    :param root_repo_path (Path):
+    :param root_repo_path (Path): The local directory under which this subtool should be added
     :param update_featureList (Bool): If True, subtool does not need to be in ParentTool featureList and ParentTool will be updated. Will throw error if False and subtool is not in ParentTool featureList.
     :param init_cwl:
     :return:
