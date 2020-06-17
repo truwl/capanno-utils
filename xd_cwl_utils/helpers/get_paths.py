@@ -3,7 +3,7 @@ import re
 from pathlib import Path
 from xd_cwl_utils.config import config, main_tool_subtool_name, tools_dir_name, scripts_dir_name, workflows_dir_name, \
     instances_dir_name, instance_file_pattern, instance_metadata_file_pattern, script_common_metadata_file_pattern, \
-    common_dir_name, root_repo_name
+    common_dir_name, root_repo_name, common_tool_metadata_name
 
 
 # IDEA: Using Path class, it might be better to generate the get methods by getting longest path, then using Path.parents
@@ -77,7 +77,7 @@ def get_tool_metadata(tool_name, tool_version, subtool_name=None, parent=False, 
     if parent:
         assert not subtool_name
         cwl_tool_metadata_path = get_tool_common_dir(tool_name, tool_version,
-                                                     base_dir=base_dir) / f"common-metadata.yaml"
+                                                     base_dir=base_dir) / common_tool_metadata_name
     else:
         tool_dir = get_tool_dir(tool_name, tool_version, subtool_name, base_dir)
         if subtool_name in (None, main_tool_subtool_name):
@@ -89,7 +89,7 @@ def get_tool_metadata(tool_name, tool_version, subtool_name=None, parent=False, 
 
 def get_parent_tool_relative_path_string():
     """Used to populate Subtool.parentMetadata"""
-    rel_path_to_parent = "../../common/common-metadata.yaml"
+    rel_path_to_parent = f"../../common/{common_tool_metadata_name}"
     return rel_path_to_parent
 
 
@@ -345,9 +345,8 @@ def check_common_metadata_file_name(file_path, method_type):
     if method_type == 'workflow':
         raise NotImplementedError(f"Common metadata has not been implemented for workflows yet.")
     elif method_type == 'tool':
-        common_tool_metadata_file_name = 'common-metadata.yaml'
-        if not file_path.name == common_tool_metadata_file_name:
-            raise ValueError(f"common metadadata files for tools must be named '{common_tool_metadata_file_name}'")
+        if not file_path.name == common_tool_metadata_name:
+            raise ValueError(f"common metadadata files for tools must be named '{common_tool_metadata_name}'")
     elif method_type == 'script':
         if not script_common_metadata_file_pattern.match(file_path.name):
             raise ValueError(f"common metadadata files for scripts must be named")

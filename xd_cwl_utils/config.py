@@ -3,7 +3,7 @@ import re
 import tempfile
 from pathlib import Path
 
-test_rel_content_path = Path.cwd() / 'tests' / 'test_files' / 'test_content'
+test_rel_content_path = Path.cwd() / 'tests' / 'test_files' / 'cwl-source'
 travis_root = Path('/home/travis/build/xDBio-Inc/cwl-source')
 content_base_path = Path.cwd()
 
@@ -18,6 +18,8 @@ instance_metadata_file_pattern = re.compile(r'[0-9a-f]{4}-metadata\.ya?ml')
 script_common_metadata_file_pattern = re.compile(r'[A-Za-z_]+-metadata\.yaml')
 
 common_dir_name = 'common'
+
+common_tool_metadata_name = 'common-metadata.yaml'
 
 instances_dir_name = 'instances'
 

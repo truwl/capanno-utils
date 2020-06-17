@@ -33,7 +33,7 @@ def make_tools_map(outfile_path, base_dir=None):
         yaml.dump(content_map, outfile)
     return
 
-def make_map_for_main_tool(tool_name, outfile_path=None, base_dir=None):
+def make_main_tool_map(tool_name, base_dir=None):
     """
     Make a yaml file that specifies paths and attributes of tools in a single tool directory. If outfile is provided, dump contents to outfile.
 
@@ -41,7 +41,7 @@ def make_map_for_main_tool(tool_name, outfile_path=None, base_dir=None):
     main_tool_map = {}
     tool_dir = get_main_tool_dir(tool_name, base_dir=base_dir)
     for version_dir in tool_dir.iterdir():
-        main_tool_map.update(make_tool_version_dir_map(tool_name, version_dir.name))
+        main_tool_map.update(make_tool_version_dir_map(tool_name, version_dir.name, base_dir=base_dir))
     return main_tool_map
 
 def make_tool_version_dir_map(tool_name, tool_version, base_dir=None):
@@ -56,16 +56,17 @@ def make_tool_version_dir_map(tool_name, tool_version, base_dir=None):
     tool_version_map[parent_metadata.identifier] = {'path': str(parent_rel_path), 'metadataStatus': parent_metadata.metadataStatus, 'name': parent_metadata.name, 'versionName': parent_metadata.softwareVersion.versionName, 'type': 'parent'}
     subdir_names.remove('common')
     for subdir_name in subdir_names:
-        subdir_map = make_subtool_map(tool_name, tool_version, subdir_name)
+        tool_name_length = len(
+            tool_name)  # Use to get directory name string after 'tool_name'. In case there are underscores in tool_name.
+        subtool_name = subdir_name[tool_name_length+1:]
+        if subtool_name == '':
+            subtool_name = None
+        subdir_map = make_subtool_map(tool_name, tool_version, subtool_name, base_dir=base_dir)
         tool_version_map.update(subdir_map)
     return tool_version_map
 
-def make_subtool_map(tool_name, tool_version, subdir_name, base_dir=None):
-    tool_name_length = len(
-        tool_name)  # Use to get directory name string after 'tool_name'. In case there are underscores in tool_name.
-    subtool_name = subdir_name[tool_name_length + 1:]  # the +1 accounts for the underscore
-    if not subtool_name:  # Will be empty string for main tool.
-        subtool_name = None  # Will be 'main' tool.
+def make_subtool_map(tool_name, tool_version, subtool_name, base_dir=None):
+
     subtool_cwl_path = get_cwl_tool(tool_name, tool_version, subtool_name=subtool_name, base_dir=base_dir)
     subtool_rel_path = get_relative_path(subtool_cwl_path, base_path=base_dir)
     subtool_metadata_path = get_tool_metadata(tool_name, tool_version, subtool_name=subtool_name, parent=False,
@@ -74,6 +75,14 @@ def make_subtool_map(tool_name, tool_version, subdir_name, base_dir=None):
     subdir_map = {}
     subdir_map[subtool_metadata.identifier] = {'path': str(subtool_rel_path), 'name': subtool_metadata.name, 'metadataStatus': subtool_metadata.metadataStatus, 'cwlStatus': subtool_metadata.cwlStatus, 'type': 'subtool'}
     return subdir_map
+
+def make_tool_common_dir_map(tool_name, tool_version, base_dir):
+
+    common_metadata_path = get_tool_common_dir(tool_name, tool_version, base_dir=base_dir) / common_tool_metadata_name
+    common_metadata = ParentToolMetadata.load_from_file(common_metadata_path)
+    common_dir_map = {}
+    common_dir_map[common_metadata.identifier] = {'path': str(common_metadata_path), 'metadataStatus': common_metadata.metadataStatus, 'name': common_metadata.name, 'versionName': common_metadata.softwareVersion.versionName, 'type': 'parent'}
+    return common_dir_map
 
 def make_script_maps(outfile_path, base_dir=None):
     cwl_scripts_dir = get_root_scripts_dir(base_dir=base_dir)

@@ -13,6 +13,7 @@ from tests.test_workflow_metadata import TestWorkflowMetadata
 from tests.test_validate import TestValidateMetadata
 from tests.test_validate_all import TestValidateDirectories
 from tests.test_validate_all_metadata_in_maps import TestValidateContent
+import tests.test_validate_content
 from tests.test_validate_tool_inputs import TestValidateInputs
 
 
@@ -75,6 +76,9 @@ def suite_validate_all_metadata_in_maps():
     suite = defaultTestLoader.loadTestsFromTestCase(TestValidateContent)
     return suite
 
+def suite_validate_content():
+    suite = defaultTestLoader.loadTestsFromTestCase(tests.test_validate_content.TestValidateTools)
+    return suite
 
 def suite_validate_tool_inputs():
     suite = defaultTestLoader.loadTestsFromTestCase(TestValidateInputs)
@@ -96,6 +100,7 @@ def suite_dict():
                   'tool_metadata': suite_tool_metadata(),
                   'validate': suite_validate(),
                   'validate_all_metadata_in_maps': suite_validate_all_metadata_in_maps(),
+                  'validate_content': suite_validate_content(),
                   'validate_directories': suite_validate_directories(),
                   'validate_tool_inputs': suite_validate_tool_inputs(),
                   'workflow_metadata': suite_workflow_metadata(),

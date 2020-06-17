@@ -6,7 +6,7 @@ from semantic_version import Version
 from xd_cwl_utils.classes.metadata.tool_metadata import ParentToolMetadata, SubtoolMetadata
 from xd_cwl_utils.classes.metadata.script_metadata import ScriptMetadata, CommonScriptMetadata
 from xd_cwl_utils.classes.metadata.workflow_metadata import WorkflowMetadata
-from .content_maps import make_tools_map, make_script_maps, make_workflow_maps
+from .content_maps import make_tools_map, make_main_tool_map, make_tool_version_dir_map, make_tool_common_dir_map, make_subtool_map, make_script_maps, make_workflow_maps
 from .helpers.get_paths import get_metadata_path
 from .helpers.validate_cwl import validate_cwl_tool
 from .validate_inputs import validate_all_inputs_for_tool
@@ -30,6 +30,30 @@ validate_script_metadata = metadata_validator_factory(ScriptMetadata)
 validate_common_script_metadata = metadata_validator_factory(CommonScriptMetadata)
 validate_workflow_metadata = metadata_validator_factory(WorkflowMetadata)
 
+
+def validate_tool_content_from_map(tool_map_dict, base_dir):
+    """
+    tool_map(dict): Keys are identiers, values are dict with path, metadataStatus, name, versionName, and type keys.
+    """
+    for identifier, values in tool_map_dict.items():
+        tool_path = base_dir / values['path']
+        tool_type = values['type']
+
+        if tool_type == 'parent':  # could now also get type directly from path.
+            if not 'common' in tool_path.parts:
+                raise ValueError(f"")
+            validate_parent_tool_metadata(tool_path)
+        else:  # is a subtool
+            cwl_status = values['cwlStatus']
+            metadata_path = get_metadata_path(tool_path)
+            validate_subtool_metadata(metadata_path)
+
+            if cwl_status in ('Draft', 'Release'):
+                validate_cwl_tool(tool_path)
+
+                validate_all_inputs_for_tool(tool_path)
+    return
+
 def validate_tools_dir(base_dir=None):
     """
     Validate all cwl files, metadata files, instances and instance metadata in a cwl-tools directory
@@ -39,34 +63,36 @@ def validate_tools_dir(base_dir=None):
     make_tools_map(tool_map_temp_file.name, base_dir=base_dir)
     with tool_map_temp_file as tool_map:
         tool_map_dict = safe_load(tool_map)
-    for identifier, values in tool_map_dict.items():
-        tool_path = base_dir / values['path']
-        tool_type = values['type']
-        metadata_status = values['metadataStatus']
-
-
-        if tool_type == 'parent':
-            if not 'common' in tool_path.parts:
-                raise ValueError  # an extra check.
-            meta_type = 'parent_tool'  # correspond to command in validate_metadata
-            validate_parent_tool_metadata(tool_path)
-            # assert no instances directory here?
-        else:  # is a subtool.
-            assert tool_type == 'subtool'
-            cwl_status = values['cwlStatus']
-            # validate metadata
-            metadata_path = get_metadata_path(tool_path)
-            validate_subtool_metadata(metadata_path)
-
-            # validate cwl only if metadata specifies if it is version Released
-            if cwl_status in ('Draft', 'Released'):
-                validate_cwl_tool(tool_path)
-
-                # validate instances
-                validate_all_inputs_for_tool(tool_path)
+    validate_tool_content_from_map(tool_map_dict, base_dir)
 
     return
 
+
+def validate_main_tool_directory(tool_name, base_dir=None):
+    """
+    Validate all content in a tool directory. All versions, subtools, etc.
+    """
+    tool_map_dict = make_main_tool_map(tool_name, base_dir=base_dir)
+    validate_tool_content_from_map(tool_map_dict, base_dir)
+    return
+
+def validate_tool_version_dir(tool_name, tool_version, base_dir=None):
+
+    tool_version_map =  make_tool_version_dir_map(tool_name, tool_version, base_dir=base_dir)
+    validate_tool_content_from_map(tool_version_map, base_dir=base_dir)
+    return
+
+def validate_tool_comomon_dir(tool_name, tool_version, base_dir=None):
+
+    common_tool_map = make_tool_common_dir_map(tool_name, tool_version, base_dir=base_dir)
+    validate_tool_content_from_map(common_tool_map, base_dir=base_dir)
+    return
+
+def validate_subtool_dir(tool_name, version_name, subtool_name=None, base_dir=None):
+
+    subtool_dir_map = make_subtool_map(tool_name, version_name, subtool_name, base_dir=base_dir)
+    validate_tool_content_from_map(subtool_dir_map, base_dir=base_dir)
+    return
 
 def validate_scripts_dir(base_dir=None):
 
