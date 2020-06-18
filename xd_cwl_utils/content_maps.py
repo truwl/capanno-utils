@@ -6,6 +6,8 @@ from xd_cwl_utils.classes.metadata.script_metadata import ScriptMetadata
 from xd_cwl_utils.classes.metadata.tool_metadata import ParentToolMetadata, SubtoolMetadata
 from xd_cwl_utils.classes.metadata.workflow_metadata import WorkflowMetadata
 from xd_cwl_utils.helpers.get_paths import *
+
+
 # get_cwl_tool, get_tool_metadata, get_tool_version_dir, \
 #     get_script_version_dir, get_metadata_path, get_relative_path, get_workflow_version_dir, get_root_tools_dir, \
 #     get_root_scripts_dir, get_workflows_root_dir, get_cwl_workflow
@@ -22,7 +24,7 @@ def make_tools_map(outfile_path, base_dir=None):
     cwl_tools_dir = get_root_tools_dir(base_dir=base_dir)
     content_map = {}
     outfile_path = Path(outfile_path)
-    for tool_dir in  cwl_tools_dir.iterdir():
+    for tool_dir in cwl_tools_dir.iterdir():
         for version_dir in tool_dir.iterdir():
             tool_map = make_tool_version_dir_map(tool_dir.name, version_dir.name, base_dir=base_dir)
             content_map.update(tool_map)
@@ -32,6 +34,7 @@ def make_tools_map(outfile_path, base_dir=None):
     with outfile_path.open('w') as outfile:
         yaml.dump(content_map, outfile)
     return
+
 
 def make_main_tool_map(tool_name, base_dir=None):
     """
@@ -44,6 +47,7 @@ def make_main_tool_map(tool_name, base_dir=None):
         main_tool_map.update(make_tool_version_dir_map(tool_name, version_dir.name, base_dir=base_dir))
     return main_tool_map
 
+
 def make_tool_version_dir_map(tool_name, tool_version, base_dir=None):
     tool_version_map = {}
 
@@ -53,45 +57,55 @@ def make_tool_version_dir_map(tool_name, tool_version, base_dir=None):
     parent_metadata_path = get_tool_metadata(tool_name, tool_version, parent=True, base_dir=base_dir)
     parent_metadata = ParentToolMetadata.load_from_file(parent_metadata_path)
     parent_rel_path = get_relative_path(parent_metadata_path, base_path=base_dir)
-    tool_version_map[parent_metadata.identifier] = {'path': str(parent_rel_path), 'metadataStatus': parent_metadata.metadataStatus, 'name': parent_metadata.name, 'versionName': parent_metadata.softwareVersion.versionName, 'type': 'parent'}
+    tool_version_map[parent_metadata.identifier] = {'path': str(parent_rel_path),
+                                                    'metadataStatus': parent_metadata.metadataStatus,
+                                                    'name': parent_metadata.name,
+                                                    'versionName': parent_metadata.softwareVersion.versionName,
+                                                    'type': 'parent'}
     subdir_names.remove('common')
     for subdir_name in subdir_names:
         tool_name_length = len(
             tool_name)  # Use to get directory name string after 'tool_name'. In case there are underscores in tool_name.
-        subtool_name = subdir_name[tool_name_length+1:]
+        subtool_name = subdir_name[tool_name_length + 1:]
         if subtool_name == '':
             subtool_name = None
         subdir_map = make_subtool_map(tool_name, tool_version, subtool_name, base_dir=base_dir)
         tool_version_map.update(subdir_map)
     return tool_version_map
 
-def make_subtool_map(tool_name, tool_version, subtool_name, base_dir=None):
 
+def make_subtool_map(tool_name, tool_version, subtool_name, base_dir=None):
     subtool_cwl_path = get_cwl_tool(tool_name, tool_version, subtool_name=subtool_name, base_dir=base_dir)
     subtool_rel_path = get_relative_path(subtool_cwl_path, base_path=base_dir)
     subtool_metadata_path = get_tool_metadata(tool_name, tool_version, subtool_name=subtool_name, parent=False,
                                               base_dir=base_dir)
     subtool_metadata = SubtoolMetadata.load_from_file(subtool_metadata_path)
     subdir_map = {}
-    subdir_map[subtool_metadata.identifier] = {'path': str(subtool_rel_path), 'name': subtool_metadata.name, 'metadataStatus': subtool_metadata.metadataStatus, 'cwlStatus': subtool_metadata.cwlStatus, 'type': 'subtool'}
+    subdir_map[subtool_metadata.identifier] = {'path': str(subtool_rel_path), 'name': subtool_metadata.name,
+                                               'metadataStatus': subtool_metadata.metadataStatus,
+                                               'cwlStatus': subtool_metadata.cwlStatus, 'type': 'subtool'}
     return subdir_map
 
-def make_tool_common_dir_map(tool_name, tool_version, base_dir):
 
+def make_tool_common_dir_map(tool_name, tool_version, base_dir):
     common_metadata_path = get_tool_common_dir(tool_name, tool_version, base_dir=base_dir) / common_tool_metadata_name
     common_metadata = ParentToolMetadata.load_from_file(common_metadata_path)
     common_dir_map = {}
-    common_dir_map[common_metadata.identifier] = {'path': str(common_metadata_path), 'metadataStatus': common_metadata.metadataStatus, 'name': common_metadata.name, 'versionName': common_metadata.softwareVersion.versionName, 'type': 'parent'}
+    common_dir_map[common_metadata.identifier] = {'path': str(common_metadata_path),
+                                                  'metadataStatus': common_metadata.metadataStatus,
+                                                  'name': common_metadata.name,
+                                                  'versionName': common_metadata.softwareVersion.versionName,
+                                                  'type': 'parent'}
     return common_dir_map
+
 
 def make_script_maps(outfile_path, base_dir=None):
     cwl_scripts_dir = get_root_scripts_dir(base_dir=base_dir)
     outfile_path = Path(outfile_path)
     script_maps = {}
     for group_dir in cwl_scripts_dir.iterdir():
-        for project_dir in group_dir.iterdir():
-            for version_dir in project_dir.iterdir():
-                script_maps.update(make_script_map(group_dir.name, project_dir.name, version_dir.name, base_dir=base_dir))
+        group_script_map = make_group_script_map(group_dir.name, base_dir=base_dir)
+        script_maps.update(group_script_map)
     yaml = YAML(pure=True)
     yaml.default_flow_style = False
     yaml.indent(mapping=2, sequence=4, offset=2)
@@ -100,19 +114,49 @@ def make_script_maps(outfile_path, base_dir=None):
     return
 
 
-def make_script_map(group_name, project_name, version, base_dir=None):
-    script_map = {}
-    script_ver_dir = get_script_version_dir(group_name, project_name, version, base_dir=base_dir)
-    for script_dir in script_ver_dir.iterdir():
+def make_group_script_map(group_name, base_dir=None):
+    group_script_map = {}
+    script_group_dir = get_script_group_dir(group_name, base_dir=base_dir)
+    for project_dir in script_group_dir.iterdir():
+        script_project_map = make_project_script_map(group_name, project_dir.name, base_dir=base_dir)
+        group_script_map.update(script_project_map)
+    return group_script_map
+
+
+def make_project_script_map(group_name, project_name, base_dir=None):
+    script_project_map = {}
+    script_project_dir = get_script_project_dir(group_name, project_name, base_dir=base_dir)
+    for version_dir in script_project_dir.iterdir():
+        version_map = make_script_version_map(group_name, project_name, version_dir.name, base_dir=base_dir)
+        script_project_map.update(version_map)
+    return script_project_map
+
+
+def make_script_version_map(group_name, project_name, version_name, base_dir=None):
+    script_version_map = {}
+    script_version_dir = get_script_version_dir(group_name, project_name, version_name, base_dir=base_dir)
+    for script_dir in script_version_dir.iterdir():
         if script_dir.name == 'common':
             continue
-        script_cwl_path = script_dir / f"{script_dir.name}.cwl"
+        script_map = make_script_map(group_name, project_name, version_name, script_dir.name, base_dir=base_dir)
+        script_version_map.update(script_map)
+    return script_version_map
+
+
+def make_script_map(group_name, project_name, version_name, script_name, base_dir=None):
+    script_map = {}
+    if script_name == 'common':  # script_name would also be common
+        raise ValueError(f"Should not pass {script_name} to make map.")
+    else:
+        script_cwl_path = get_cwl_script(group_name, project_name, version_name, script_name, base_dir=base_dir)
         script_rel_path = get_relative_path(script_cwl_path, base_path=base_dir)
         metadata_path = get_metadata_path(script_cwl_path)
         script_metadata = ScriptMetadata.load_from_file(metadata_path)
-        script_map[script_metadata.identifier] = {'path': str(script_rel_path), 'name': script_metadata.name, 'versionName': script_metadata.softwareVersion.versionName, 'metadataStatus': script_metadata.metadataStatus, 'cwlStatus': script_metadata.cwlStatus}
+        script_map[script_metadata.identifier] = {'path': str(script_rel_path), 'name': script_metadata.name,
+                                                  'versionName': script_metadata.softwareVersion.versionName,
+                                                  'metadataStatus': script_metadata.metadataStatus,
+                                                  'cwlStatus': script_metadata.cwlStatus}
     return script_map
-
 
 
 def make_workflow_maps(outfile_name='workflow-maps', base_dir=None):
@@ -124,7 +168,8 @@ def make_workflow_maps(outfile_name='workflow-maps', base_dir=None):
             for version_dir in project_dir.iterdir():
                 for item in version_dir.iterdir():
                     if item.suffix == '.cwl':
-                        workflow_dict = make_workflow_map(group_dir.name, project_dir.name, version_dir.name, item.stem, base_dir=base_dir)
+                        workflow_dict = make_workflow_map(group_dir.name, project_dir.name, version_dir.name, item.stem,
+                                                          base_dir=base_dir)
                         master_workflow_map.update(workflow_dict)
     yaml = YAML(pure=True)
     yaml.default_flow_style = False
@@ -140,9 +185,11 @@ def make_workflow_map(group_name, project_name, version, workflow_name, base_dir
     workflow_rel_path = get_relative_path(workflow_path, base_path=base_dir)
     workflow_metadata_path = get_metadata_path(workflow_path)
     workflow_metadata = WorkflowMetadata.load_from_file(workflow_metadata_path)
-    workflow_map[workflow_metadata.identifier] = {'path': str(workflow_rel_path), 'name': workflow_metadata.name, 'versionName': workflow_metadata.softwareVersion.versionName, 'metadataStatus': workflow_metadata.metadataStatus, 'cwlStatus': workflow_metadata.cwlStatus}
+    workflow_map[workflow_metadata.identifier] = {'path': str(workflow_rel_path), 'name': workflow_metadata.name,
+                                                  'versionName': workflow_metadata.softwareVersion.versionName,
+                                                  'metadataStatus': workflow_metadata.metadataStatus,
+                                                  'cwlStatus': workflow_metadata.cwlStatus}
     return workflow_map
-
 
 
 def combine_yaml_files_into_dict(file_path, *file_paths):
@@ -155,14 +202,16 @@ def combine_yaml_files_into_dict(file_path, *file_paths):
             combined_dict.update(safe_load(f))
     return combined_dict
 
-def make_master_map(file_name, *file_names, outfile_name="master_map"):
 
+def make_master_map(file_name, *file_names, outfile_name="master_map"):
     file_path = config[os.environ['CONFIG_KEY']]['content_maps_dir'] / f"{file_name}.yaml"
 
     raise NotImplementedError
 
+
 def get_tool_map():
     raise NotImplementedError
+
 
 def add_to_map(path):
     """

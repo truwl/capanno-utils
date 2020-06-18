@@ -26,6 +26,7 @@ def suite_full():
     suite.addTest(suite_tool_metadata())
     suite.addTest(suite_validate())
     suite.addTest(suite_validate_all_metadata_in_maps())
+    suite.addTest(suite_validate_content())
     suite.addTest(suite_validate_directories())
     suite.addTest(suite_validate_tool_inputs())
     suite.addTest(suite_workflow_metadata())
@@ -47,9 +48,11 @@ def suite_content_maps():
     suite = defaultTestLoader.loadTestsFromTestCase(TestToolMaps)
     return suite
 
+
 def suite_path_tools():
     suite = defaultTestLoader.loadTestsFromTestCase(TestGetTypesFromPath)
     return suite
+
 
 def suite_script_metadata():
     suite = defaultTestLoader.loadTestsFromTestCase(TestScriptMetadata)
@@ -76,9 +79,12 @@ def suite_validate_all_metadata_in_maps():
     suite = defaultTestLoader.loadTestsFromTestCase(TestValidateContent)
     return suite
 
+
 def suite_validate_content():
     suite = defaultTestLoader.loadTestsFromTestCase(tests.test_validate_content.TestValidateTools)
+    suite.addTest(defaultTestLoader.loadTestsFromTestCase(tests.test_validate_content.TestValidateScripts))
     return suite
+
 
 def suite_validate_tool_inputs():
     suite = defaultTestLoader.loadTestsFromTestCase(TestValidateInputs)
