@@ -3,4 +3,6 @@ semantic-version==2.8.2
 pandoc-include==0.3.2
 cwltool>=1.0,<1.1
 cwlgen==0.4.0
+ruamel.yaml==0.16.5
+schema-salad==6.0.20200601095207
 cwl-utils==0.5

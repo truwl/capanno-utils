@@ -36,7 +36,7 @@ setup(
         'cwltool',
     ],
     entry_points={
-        'console_scripts': ["xd-cwl-validate=xd_cwl_utils.validate_content:main", "xd-cwl-add=xd_cwl_utils.add_content:main"]
+        'console_scripts': ["xd-cwl-validate=xd_cwl_utils.validate_content:main", "xd-cwl-add=xd_cwl_utils.add_content:main", "get-bio-tools=xd_cwl_utils.import_content:main"]
                   },
     classifiers=[
         "Development Status :: 3 - Alpha",
