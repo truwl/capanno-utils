@@ -7,8 +7,10 @@
 
 import cwl_utils.parser_v1_0 as parser
 import os
+import re
 import sys
 import glob
+from abc import abstractmethod
 import ruamel.yaml
 from ruamel.yaml.comments import CommentedMap, CommentedSeq
 from ruamel.yaml.compat import string_types, ordereddict
@@ -16,8 +18,9 @@ import logging, sys
 import subprocess
 from typing import Optional
 from xd_cwl_utils.add.add_tools import add_tool, add_subtool
+from xd_cwl_utils.helpers.get_paths import get_tool_common_dir, main_tool_subtool_name, get_tool_metadata, get_tool_dir
 
-logging.basicConfig(stream=sys.stderr, level=logging.ERROR)
+logging.basicConfig(stream=sys.stderr, level=logging.INFO)
 
 
 class repoImporter(object):
@@ -27,7 +30,8 @@ class repoImporter(object):
             *,
             path: str,
             name: Optional[str] = None,
-            identifier: Optional[str] = None
+            identifier: Optional[str] = None,
+            commithash: Optional[str] = None
     ) -> None:
         """Create some generic repoImporter object
         :param path: local path to the repo (usually a git subclone e.g. bio-cwl-tools-submodule)
@@ -52,12 +56,17 @@ class repoImporter(object):
                                    stdout=subprocess.PIPE,
                                    stderr=subprocess.PIPE)
         stdout, stderr = process.communicate()
-        print(stdout, stderr)
 
-    def getCwlInfos(self):
+        m = re.search(' ([a-z0-9]+)', str(stdout))
+        # TODO: if there are multiple submodules then it won't work
+        self.commithash=m[1]
+
+    @abstractmethod
+    def getCwlInfos(self) -> None:
         pass
 
-    def getCwlInfo(self):
+    @abstractmethod
+    def getCwlInfo(self, tool: str, subtoolcwl: str) -> dict:
         pass
 
 class bioCwl(repoImporter):
@@ -68,22 +77,63 @@ class bioCwl(repoImporter):
             name: Optional[str] = None,
             identifier: Optional[str] = None
     ) -> None:
-        super().__init__()
+        super().__init__(path=path)
 
-    def getCwlInfos(self):
-        for tool in [os.path.basename(x[0]) for x in os.walk(self.path)]:
-            logging.info(tool)
-            #TODO: consider using the x[2] from os.walk
-            for subtoolcwl in glob.glob(self.path+"/"+tool+'/*cwl'):
-                logging.info("\t{}".format(os.path.basename(subtoolcwl)))
-                res=self.getBioCwlInfo(self.path,tool,os.path.basename(subtoolcwl))
-                for k,v in res.items():
-                    print("{}:{}".format(k, v))
-                    #add_tool(args.tool_name, args.version_name, subtool_names=args.subtool_names, biotools_id=args.biotoolsID, has_primary=args.has_primary, init_cwl=args.init_cwl,root_repo_path=args.root_path)
+    def getCwlInfos(self) -> None:
+        logging.info("getCWLinfos")
+        tooldict = {}
+        #for tool in [os.path.basename(x[1]) for x in os.walk(self.path)]:
+        for tool in os.listdir(self.path):
+            logging.info("a potential:{}".format(tool))
+            if os.path.isdir(os.path.join(self.path,tool)) and not tool.startswith('.'):
+                logging.info("going with:{}".format(tool))
+                tooldict[tool] = {}
+                tooldict[tool]['subtools'] = []
+
+                #TODO: consider using the x[2] from os.walk
+                versions_reported = []
+                for subtoolcwl in glob.glob(self.path+"/"+tool+'/*cwl'):
+                    logging.info("\tsub:{}".format(os.path.basename(subtoolcwl)))
+                    subtooldict=self.getCwlInfo(tool,str(os.path.basename(subtoolcwl)))
+                    tooldict[tool]['subtools']+=[subtooldict]
+
+                    for k,v in subtooldict.items():
+                        logging.info("{}:{}".format(k, v))
+                        #can we figure out a consensus for the version?
+                        if k=='version':
+                            versions_reported+=[v]
+                if len(set(versions_reported)) > 1:
+                    raise ValueError('Observing multiple versions in the tool {}'.format(tool))
+                elif len(versions_reported) == 0:
+                    raise ValueError('Observing no versions in the tool {}'.format(tool))
+                tooldict[tool]['version']=versions_reported[0]
+        logging.info("addtool loop")
+        for tool in tooldict.keys():
+            if len(tooldict[tool]['subtools'])>1:
+                # TODO: has_primary could be true? we need to figure this out
+                has_primary = False
+                subtoolnames = tooldict[tool]['subtools']
+            else:
+                has_primary = True
+                subtoolnames=main_tool_subtool_name
+            # TODO: study the existing tool directory and try not to clobber other versions
+            logging.info("adding tool {}".format(tool))
+            add_tool(tool, version_name=tooldict[tool]['version'], subtool_names=subtoolnames, biotools_id=tool,
+                             has_primary=has_primary) #, init_cwl=args.init_cwl, root_repo_path=args.root_path)
+            for subtool in tooldict['tools']['subtools']:
+                logging.info("adding subtool {}".format(subtool['name']))
+                add_subtool(tool_name=tool, tool_version=subtool['version'], subtool_name=subtool['name'],
+                            init_cwl=subtool['subtoolcwl']) #root_repo_path=Path.cwd(),update_featureList=False, init_cwl=subtoolcwl)
 
 
-    def getCwlInfo(biocwltoolspath="bio-cwl-tools-submodule",tool="bamtools",subtoolcwl="bamtools_stats.cwl"):
-        filename=os.path.join(biocwltoolspath,tool,subtoolcwl)
+    def getCwlInfo(self, tool: str, subtoolcwl: str) -> dict:
+        """
+        Fetch vital information about a subtool
+        :param tool: the tool e.g. bamtools
+        :param subtoolcwl: the subtool cwl file e.g. bamtools_stats.cwl
+        :return: dict with tool_name, version_name, subtool name
+        """
+        filename=os.path.join(self.path,tool,subtoolcwl)
         version = docker = None
         with open(filename) as fp:
             result = ruamel.yaml.main.round_trip_load(fp)
@@ -119,4 +169,5 @@ class bioCwl(repoImporter):
                 for req in result['requirements']:
                     if 'dockerPull' in req:
                         docker=req['dockerPull']
-        return({'version':version,'docker':docker})
+        name=subtoolcwl.replace('.cwl','')
+        return({'name':name,'subtoolcwl':subtoolcwl,'version':version,'docker':docker})
