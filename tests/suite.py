@@ -8,10 +8,12 @@ from tests.test_add_tool import TestAddTool
 from tests.test_tool_metadata import TestMakeParentToolMetadata, TestMakeSubtoolMetadata
 from tests.test_script_metadata import TestScriptMetadata
 from tests.test_content_maps import TestToolMaps
+from tests.test_path_tools import TestGetTypesFromPath
 from tests.test_workflow_metadata import TestWorkflowMetadata
 from tests.test_validate import TestValidateMetadata
 from tests.test_validate_all import TestValidateDirectories
 from tests.test_validate_all_metadata_in_maps import TestValidateContent
+import tests.test_validate_content
 from tests.test_validate_tool_inputs import TestValidateInputs
 
 
@@ -24,6 +26,7 @@ def suite_full():
     suite.addTest(suite_tool_metadata())
     suite.addTest(suite_validate())
     suite.addTest(suite_validate_all_metadata_in_maps())
+    suite.addTest(suite_validate_content())
     suite.addTest(suite_validate_directories())
     suite.addTest(suite_validate_tool_inputs())
     suite.addTest(suite_workflow_metadata())
@@ -43,6 +46,11 @@ def suite_add_tool():
 
 def suite_content_maps():
     suite = defaultTestLoader.loadTestsFromTestCase(TestToolMaps)
+    return suite
+
+
+def suite_path_tools():
+    suite = defaultTestLoader.loadTestsFromTestCase(TestGetTypesFromPath)
     return suite
 
 
@@ -72,6 +80,12 @@ def suite_validate_all_metadata_in_maps():
     return suite
 
 
+def suite_validate_content():
+    suite = defaultTestLoader.loadTestsFromTestCase(tests.test_validate_content.TestValidateTools)
+    suite.addTest(defaultTestLoader.loadTestsFromTestCase(tests.test_validate_content.TestValidateScripts))
+    return suite
+
+
 def suite_validate_tool_inputs():
     suite = defaultTestLoader.loadTestsFromTestCase(TestValidateInputs)
     return suite
@@ -87,10 +101,12 @@ def suite_dict():
                   'add_tool': suite_add_tool(),
                   'content_maps': suite_content_maps(),
                   'full': suite_full(),
+                  'path_tools': suite_path_tools(),
                   'script_metadata': suite_script_metadata(),
                   'tool_metadata': suite_tool_metadata(),
                   'validate': suite_validate(),
                   'validate_all_metadata_in_maps': suite_validate_all_metadata_in_maps(),
+                  'validate_content': suite_validate_content(),
                   'validate_directories': suite_validate_directories(),
                   'validate_tool_inputs': suite_validate_tool_inputs(),
                   'workflow_metadata': suite_workflow_metadata(),

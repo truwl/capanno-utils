@@ -8,7 +8,7 @@ from xd_cwl_utils.validate_content import main
 
 class TestValidateContent(TestBase):
 
-    def test_validate_tools(self):
+    def test_validate_tool_metadata(self):
         self.update_tool_maps()
         with self.get_content_map_paths()['tool_maps'].open('r') as tm:
             tool_map_dict = safe_load(tm)
@@ -20,15 +20,13 @@ class TestValidateContent(TestBase):
             if tool_type == 'parent':
                 if not 'common' in path.parts:  # values[type] would be better test.
                     raise ValueError(f"Have a parent tool that is not in a common directory {path}")
-                meta_type = 'parent_tool'
                 meta_path = path
             else:  # either a subtool or standalone tool.
                 meta_path = get_metadata_path(path)
-                meta_type = tool_type
-            main([meta_type, str(meta_path)])
+            main([str(meta_path), '-q'])
         return
 
-    def test_validate_scripts(self):
+    def test_validate_script_metadata(self):
         self.update_script_maps()
         script_map_path = self.get_content_map_paths()['script_maps']
         with script_map_path.open('r') as sm:
@@ -36,11 +34,11 @@ class TestValidateContent(TestBase):
         base_path = config[os.environ['CONFIG_KEY']]['base_path']
         for script_identifier, script_values in script_map.items():
             metadata_path = base_path / get_metadata_path(Path(script_values['path']))
-            main(['script', str(metadata_path)])
+            main([str(metadata_path), '-q'])
         return
 
 
-    def test_validate_workflows(self):
+    def test_validate_workflow_metadata(self):
         self.update_workflow_maps()
         with self.get_content_map_paths()['workflow_maps'].open('r') as wm:
             workflow_map = safe_load(wm)
@@ -48,5 +46,5 @@ class TestValidateContent(TestBase):
 
         for workflow_identifier, workflow_values in workflow_map.items():
             metadata_path = base_path / get_metadata_path(workflow_values['path'])
-            main(['workflow', str(metadata_path)])
+            main([str(metadata_path), '-q'])
         return

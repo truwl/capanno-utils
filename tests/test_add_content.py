@@ -36,6 +36,7 @@ class TestAddToolMain(TestBase):
             add_content_main(['-p', tmp_dir, 'tool', tool_name, tool_version] + subtools + options)
         return
 
+    # @skip('')
     def test_add_subtool(self):
         with TemporaryDirectory(prefix='add_subtool_') as tmp_dir:
             tool_name = 'test_4'
@@ -45,7 +46,20 @@ class TestAddToolMain(TestBase):
             add_content_main(['-p', tmp_dir, 'subtool', tool_name, tool_version, subtool_name, '-u'])
         return
 
+    def test_add_tool_with_existing_cwl_url(self):
 
+        cwl_url = 'https://raw.githubusercontent.com/common-workflow-library/bio-cwl-tools/release/bandage/bandage-image.cwl'
+        biotools_id = 'bandage'
+        tool_name = 'bandage'
+        tool_version = 'fake.6'
+        subtool_name = 'image'
+        with TemporaryDirectory(prefix='add_tool_with_cwl_') as tmp_dir:
+            add_content_main(['-p', tmp_dir, 'tool', tool_name, tool_version, '--biotoolsID', biotools_id])
+            add_content_main(['-p', tmp_dir, 'subtool', tool_name, tool_version, subtool_name, '-u', '--init_cwl', cwl_url])
+            assert True
+        return
+
+# @skip('')
 class TestAddScriptMain(TestBase):
 
     def test_add_common_script(self):

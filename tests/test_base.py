@@ -1,6 +1,7 @@
 import tempfile
 from unittest import TestCase
 import os
+from pathlib import Path
 from xd_cwl_utils.config import config
 from xd_cwl_utils.content_maps import make_tools_map, make_workflow_maps, make_script_maps
 
@@ -9,6 +10,10 @@ test_constants = {'script_group1': 'ENCODE-DCC', 'script_version1': '1.1.x', 'sc
 
 
 class TestBase(TestCase):
+    projects_path = Path(__file__).parents[2]
+    src_content_dir = projects_path / 'cwl-source'
+    test_content_dir = Path(__file__).parent / 'test_files' / 'cwl-source'
+    invalid_content_dir = Path(__file__).parent / 'test_files' / 'invalid_content'  # Will copy data here, then modify to make invalid.
 
     def get_content_map_paths(self):
         return {'tool_maps': config[os.environ.get('CONFIG_KEY')]['content_maps_dir'] / 'tool-maps.yaml',

@@ -102,12 +102,12 @@ class ParentToolMetadata(CommonPropsMixin, ToolMetadataBase):
         identifier = f"TL_{name_hash[start:start + 6]}.{version_hash[:2]}"
         return identifier
 
-    def make_subtool_metadata(self, subtool_name):
+    def make_subtool_metadata(self, subtool_name, **kwargs):
         if not self.featureList:
             raise ValueError(f"Cannot create subtool. featureList of {self.name} is not populated.")
         if subtool_name not in self.featureList:
             raise ValueError(f"{subtool_name} must be in the parent featureList")
-        subtool_metadata = SubtoolMetadata(name=subtool_name, _parentMetadata=self)
+        subtool_metadata = SubtoolMetadata(name=subtool_name, _parentMetadata=self, **kwargs)
         return subtool_metadata
 
     @classmethod
@@ -120,8 +120,6 @@ class ParentToolMetadata(CommonPropsMixin, ToolMetadataBase):
     @classmethod
     def create_from_biotools(cls, biotools_id, version_name, subtools, tool_name=None):
         kwargs = make_tool_metadata_kwargs_from_biotools(biotools_id, tool_name=tool_name)
-        if not subtools:  # Assume it is a 'standalone' type tool
-            subtools = ["__main__"]
         kwargs['featureList'] = list(subtools)  # A lot more to do here.
         kwargs['softwareVersion'] = {}
         kwargs['softwareVersion']['versionName'] = version_name
@@ -145,6 +143,7 @@ class SubtoolMetadata(CommonPropsMixin, ToolMetadataBase):
             ('description', None),
             ('keywords', None),
             ('alternateName', None),
+            ('extra', None),
             ('parentMetadata', '../common/common-metadata.yaml'),  # relative path to parentMetadata
             ('_parentMetadata', None),  # ParentMetadata instance. Can be loaded from parentMetadata or set directly.
             ('_primary_file_attrs', None), # Keep track of attributes that are set directly from kwargs and not inherited from parent.

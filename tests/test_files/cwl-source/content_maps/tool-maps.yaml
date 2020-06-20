@@ -1,0 +1,264 @@
+TL_d077f2.47:
+  path: cwl-tools/cat/8.x/common/common-metadata.yaml
+  metadataStatus: Released
+  name: cat
+  versionName: 8.x
+  type: parent
+TL_d077f2_54.47:
+  path: cwl-tools/cat/8.x/cat/cat.cwl
+  name: __main__
+  metadataStatus: Released
+  cwlStatus: Released
+  type: subtool
+TL_8ab263.82:
+  path: cwl-tools/STAR/2.5/common/common-metadata.yaml
+  metadataStatus: Released
+  name: STAR
+  versionName: '2.5'
+  type: parent
+TL_8ab263_d6.82:
+  path: cwl-tools/STAR/2.5/STAR_inputAlignmentsFromBAM/STAR-inputAlignmentsFromBAM.cwl
+  name: inputAlignmentsFromBAM
+  metadataStatus: Released
+  cwlStatus: Released
+  type: subtool
+TL_8ab263_95.82:
+  path: cwl-tools/STAR/2.5/STAR_genomeGenerate/STAR-genomeGenerate.cwl
+  name: genomeGenerate
+  metadataStatus: Released
+  cwlStatus: Released
+  type: subtool
+TL_8ab263_a4.82:
+  path: cwl-tools/STAR/2.5/STAR_alignReads/STAR-alignReads.cwl
+  name: alignReads
+  metadataStatus: Released
+  cwlStatus: Released
+  type: subtool
+TL_8ab263_15.82:
+  path: cwl-tools/STAR/2.5/STAR_liftOver/STAR-liftOver.cwl
+  name: liftOver
+  metadataStatus: Incomplete
+  cwlStatus: Incomplete
+  type: subtool
+TL_9579db.89:
+  path: cwl-tools/gawk/4.1.x/common/common-metadata.yaml
+  metadataStatus: Released
+  name: gawk
+  versionName: 4.1.x
+  type: parent
+TL_9579db_54.89:
+  path: cwl-tools/gawk/4.1.x/gawk/gawk.cwl
+  name: __main__
+  metadataStatus: Released
+  cwlStatus: Released
+  type: subtool
+TL_ec2a8d.0b:
+  path: cwl-tools/samtools/1.x/common/common-metadata.yaml
+  metadataStatus: Released
+  name: samtools
+  versionName: 1.x
+  type: parent
+TL_ec2a8d_a2.0b:
+  path: cwl-tools/samtools/1.x/samtools_fixmate/samtools-fixmate.cwl
+  name: fixmate
+  metadataStatus: Released
+  cwlStatus: Incomplete
+  type: subtool
+TL_ec2a8d_ac.0b:
+  path: cwl-tools/samtools/1.x/samtools_calmd/samtools-calmd.cwl
+  name: calmd
+  metadataStatus: Released
+  cwlStatus: Incomplete
+  type: subtool
+TL_ec2a8d_31.0b:
+  path: cwl-tools/samtools/1.x/samtools_collate/samtools-collate.cwl
+  name: collate
+  metadataStatus: Released
+  cwlStatus: Incomplete
+  type: subtool
+TL_ec2a8d_79.0b:
+  path: cwl-tools/samtools/1.x/samtools_targetcut/samtools-targetcut.cwl
+  name: targetcut
+  metadataStatus: Released
+  cwlStatus: Incomplete
+  type: subtool
+TL_ec2a8d_6a.0b:
+  path: cwl-tools/samtools/1.x/samtools_index/samtools-index.cwl
+  name: index
+  metadataStatus: Released
+  cwlStatus: Incomplete
+  type: subtool
+TL_ec2a8d_71.0b:
+  path: cwl-tools/samtools/1.x/samtools_reheader/samtools-reheader.cwl
+  name: reheader
+  metadataStatus: Released
+  cwlStatus: Incomplete
+  type: subtool
+TL_ec2a8d_46.0b:
+  path: cwl-tools/samtools/1.x/samtools_view/samtools-view.cwl
+  name: view
+  metadataStatus: Released
+  cwlStatus: Released
+  type: subtool
+TL_ec2a8d_e0.0b:
+  path: cwl-tools/samtools/1.x/samtools_mpileup/samtools-mpileup.cwl
+  name: mpileup
+  metadataStatus: Released
+  cwlStatus: Incomplete
+  type: subtool
+TL_ec2a8d_ee.0b:
+  path: cwl-tools/samtools/1.x/samtools_split/samtools-split.cwl
+  name: split
+  metadataStatus: Released
+  cwlStatus: Incomplete
+  type: subtool
+TL_ec2a8d_86.0b:
+  path: cwl-tools/samtools/1.x/samtools_rmdup/samtools-rmdup.cwl
+  name: rmdup
+  metadataStatus: Released
+  cwlStatus: Incomplete
+  type: subtool
+TL_ec2a8d_4e.0b:
+  path: cwl-tools/samtools/1.x/samtools_flags/samtools-flags.cwl
+  name: flags
+  metadataStatus: Released
+  cwlStatus: Incomplete
+  type: subtool
+TL_ec2a8d_a6.0b:
+  path: cwl-tools/samtools/1.x/samtools_flagstat/samtools-flagstat.cwl
+  name: flagstat
+  metadataStatus: Released
+  cwlStatus: Released
+  type: subtool
+TL_ec2a8d_9a.0b:
+  path: cwl-tools/samtools/1.x/samtools_quickcheck/samtools-quickcheck.cwl
+  name: quickcheck
+  metadataStatus: Released
+  cwlStatus: Incomplete
+  type: subtool
+TL_ec2a8d_d1.0b:
+  path: cwl-tools/samtools/1.x/samtools_idxstats/samtools-idxstats.cwl
+  name: idxstats
+  metadataStatus: Released
+  cwlStatus: Incomplete
+  type: subtool
+TL_ec2a8d_65.0b:
+  path: cwl-tools/samtools/1.x/samtools_merge/samtools-merge.cwl
+  name: merge
+  metadataStatus: Released
+  cwlStatus: Incomplete
+  type: subtool
+TL_ec2a8d_fd.0b:
+  path: cwl-tools/samtools/1.x/samtools_addreplacerg/samtools-addreplacerg.cwl
+  name: addreplacerg
+  metadataStatus: Released
+  cwlStatus: Incomplete
+  type: subtool
+TL_ec2a8d_a3.0b:
+  path: cwl-tools/samtools/1.x/samtools_fqidx/samtools-fqidx.cwl
+  name: fqidx
+  metadataStatus: Released
+  cwlStatus: Incomplete
+  type: subtool
+TL_ec2a8d_ab.0b:
+  path: cwl-tools/samtools/1.x/samtools_tview/samtools-tview.cwl
+  name: tview
+  metadataStatus: Released
+  cwlStatus: Incomplete
+  type: subtool
+TL_ec2a8d_44.0b:
+  path: cwl-tools/samtools/1.x/samtools_stats/samtools-stats.cwl
+  name: stats
+  metadataStatus: Released
+  cwlStatus: Incomplete
+  type: subtool
+TL_ec2a8d_a4.0b:
+  path: cwl-tools/samtools/1.x/samtools_bedcov/samtools-bedcov.cwl
+  name: bedcov
+  metadataStatus: Released
+  cwlStatus: Incomplete
+  type: subtool
+TL_ec2a8d_bb.0b:
+  path: cwl-tools/samtools/1.x/samtools_dict/samtools-dict.cwl
+  name: dict
+  metadataStatus: Released
+  cwlStatus: Incomplete
+  type: subtool
+TL_ec2a8d_3e.0b:
+  path: cwl-tools/samtools/1.x/samtools_depad/samtools-depad.cwl
+  name: depad
+  metadataStatus: Released
+  cwlStatus: Incomplete
+  type: subtool
+TL_ec2a8d_d0.0b:
+  path: cwl-tools/samtools/1.x/samtools_cat/samtools-cat.cwl
+  name: cat
+  metadataStatus: Released
+  cwlStatus: Incomplete
+  type: subtool
+TL_ec2a8d_02.0b:
+  path: cwl-tools/samtools/1.x/samtools_markdup/samtools-markdup.cwl
+  name: markdup
+  metadataStatus: Released
+  cwlStatus: Incomplete
+  type: subtool
+TL_ec2a8d_ca.0b:
+  path: cwl-tools/samtools/1.x/samtools_sort/samtools-sort.cwl
+  name: sort
+  metadataStatus: Released
+  cwlStatus: Incomplete
+  type: subtool
+TL_ec2a8d_2d.0b:
+  path: cwl-tools/samtools/1.x/samtools_fasta/samtools-fasta.cwl
+  name: fasta
+  metadataStatus: Released
+  cwlStatus: Incomplete
+  type: subtool
+TL_ec2a8d_7e.0b:
+  path: cwl-tools/samtools/1.x/samtools_phase/samtools-phase.cwl
+  name: phase
+  metadataStatus: Released
+  cwlStatus: Incomplete
+  type: subtool
+TL_ec2a8d_52.0b:
+  path: cwl-tools/samtools/1.x/samtools_fastq/samtools-fastq.cwl
+  name: fastq
+  metadataStatus: Released
+  cwlStatus: Incomplete
+  type: subtool
+TL_ec2a8d_12.0b:
+  path: cwl-tools/samtools/1.x/samtools_depth/samtools-depth.cwl
+  name: depth
+  metadataStatus: Released
+  cwlStatus: Incomplete
+  type: subtool
+TL_cadc8c.47:
+  path: cwl-tools/sort/8.x/common/common-metadata.yaml
+  metadataStatus: Released
+  name: sort
+  versionName: 8.x
+  type: parent
+TL_cadc8c_54.47:
+  path: cwl-tools/sort/8.x/sort/sort.cwl
+  name: __main__
+  metadataStatus: Released
+  cwlStatus: Released
+  type: subtool
+TL_c8f1ee.47:
+  path: cwl-tools/md5sum/8.x/common/common-metadata.yaml
+  metadataStatus: Released
+  name: md5sum
+  versionName: 8.x
+  type: parent
+TL_c8f1ee_d4.47:
+  path: cwl-tools/md5sum/8.x/md5sum/md5sum.cwl
+  name: __main__
+  metadataStatus: Released
+  cwlStatus: Released
+  type: subtool
+TL_c8f1ee_0b.47:
+  path: cwl-tools/md5sum/8.x/md5sum_check/md5sum-check.cwl
+  name: check
+  metadataStatus: Released
+  cwlStatus: Released
+  type: subtool
