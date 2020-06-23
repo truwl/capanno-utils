@@ -3,7 +3,7 @@ from semantic_version import Version
 
 
 """
-To relase package update `package_version` and commit/push changes, then run
+To release package update `package_version` and commit/push changes, then run
 $ python setup.py sdist bdist_wheel
 $ twine upload dist/*
 
