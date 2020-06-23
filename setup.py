@@ -20,7 +20,7 @@ setup(
     name='capanno_utils',
     version=str(package_version),
     packages=find_packages(),
-    url='https://github.com/truwl/capanno',
+    url='https://github.com/truwl/capanno-utils',
     license='Apache 2.0',
     author='Karl Sebby',
     author_email='karl.sebby@truwl.com',
