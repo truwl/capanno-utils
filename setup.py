@@ -13,18 +13,18 @@ for twine upload to work, must have credentials in .pypirc file
 with open('README.md', 'r') as fh:
     long_description = fh.read()
 
-package_version = Version(major=0, minor=9, patch=0, prerelease=('alpha', '1'))
+package_version = Version(major=0, minor=1, patch=0, prerelease=('alpha', '1'))
 # package_version = Version('0.5.0')  # Use this when installing locally with pip install -e
 
 setup(
-    name='xd_cwl_utils',
+    name='capanno_utils',
     version=str(package_version),
     packages=find_packages(),
-    url='https://github.com/xDBio-Inc/xd-cwl-utils',
+    url='https://github.com/truwl/capanno',
     license='Apache 2.0',
     author='Karl Sebby',
-    author_email='karl.sebby@xdbio.com',
-    description='Tool for managing CWL file repositories.',
+    author_email='karl.sebby@truwl.com',
+    description='Tool for managing bioinformatics content repositories.',
     long_description=long_description,
     long_description_content_type="text/markdown",
     install_requires = [
@@ -36,7 +36,7 @@ setup(
         'cwltool',
     ],
     entry_points={
-        'console_scripts': ["xd-cwl-validate=xd_cwl_utils.validate_content:main", "xd-cwl-add=xd_cwl_utils.add_content:main"]
+        'console_scripts': ["capanno-validate=capanno_utils.validate_content:main", "capanno-add=capanno_utils.add_content:main"]
                   },
     classifiers=[
         "Development Status :: 3 - Alpha",

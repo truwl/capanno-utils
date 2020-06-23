@@ -2,8 +2,8 @@ import tempfile
 from unittest import TestCase
 import os
 from pathlib import Path
-from xd_cwl_utils.config import config
-from xd_cwl_utils.content_maps import make_tools_map, make_workflow_maps, make_script_maps
+from capanno_utils.config import config
+from capanno_utils.content_maps import make_tools_map, make_workflow_maps, make_script_maps
 
 test_constants = {'script_group1': 'ENCODE-DCC', 'script_version1': '1.1.x', 'script_project1': 'atac-seq-pipeline',
                   'test_software_version': {'versionName': 'test_version'}}

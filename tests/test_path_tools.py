@@ -1,7 +1,7 @@
 
 import os
 from tests.test_base import TestBase, test_constants
-from xd_cwl_utils.helpers.get_paths import *
+from capanno_utils.helpers.get_paths import *
     # get_types_from_path, get_script_metadata, get_script_instance_path, \
     # get_cwl_script, get_cwl_tool, get_tool_common_dir, main_tool_subtool_name, get_tool_metadata, \
     # get_tool_instance_path, get_tool_instance_metadata_path, get_cwl_workflow, get_workflow_metadata, \

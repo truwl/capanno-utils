@@ -1,11 +1,11 @@
 import os
 from pathlib import Path
 from ruamel.yaml import safe_load, YAML
-from xd_cwl_utils.config import config
-from xd_cwl_utils.classes.metadata.script_metadata import ScriptMetadata
-from xd_cwl_utils.classes.metadata.tool_metadata import ParentToolMetadata, SubtoolMetadata
-from xd_cwl_utils.classes.metadata.workflow_metadata import WorkflowMetadata
-from xd_cwl_utils.helpers.get_paths import *
+from capanno_utils.config import config
+from capanno_utils.classes.metadata.script_metadata import ScriptMetadata
+from capanno_utils.classes.metadata.tool_metadata import ParentToolMetadata, SubtoolMetadata
+from capanno_utils.classes.metadata.workflow_metadata import WorkflowMetadata
+from capanno_utils.helpers.get_paths import *
 
 
 # get_cwl_tool, get_tool_metadata, get_tool_version_dir, \

@@ -7,9 +7,9 @@ from ruamel.yaml import YAML
 from schema_salad.ref_resolver import file_uri, Loader
 from schema_salad.jsonld_context import salad_to_jsonld_context
 from schema_salad.schema import get_metaschema, validate_doc, collect_namespaces, make_avro, make_avro_schema_from_avro
-from xd_cwl_utils.classes.cwl.command_line_tool import load_document
-from xd_cwl_utils.helpers.string_tools import uri_name
-from xd_cwl_utils.helpers.dict_tools import get_dict_from_list
+from capanno_utils.classes.cwl.command_line_tool import load_document
+from capanno_utils.helpers.string_tools import uri_name
+from capanno_utils.helpers.dict_tools import get_dict_from_list
 
 
 

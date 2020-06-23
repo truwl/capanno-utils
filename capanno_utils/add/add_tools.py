@@ -2,9 +2,9 @@
 
 from pathlib import Path
 from datetime import date
-from xd_cwl_utils.classes.metadata.tool_metadata import ParentToolMetadata
-from xd_cwl_utils.classes.cwl.make_cwl import initialize_command_line_tool_file_tool
-from xd_cwl_utils.helpers.get_paths import get_tool_common_dir, main_tool_subtool_name, get_tool_metadata, get_tool_dir
+from capanno_utils.classes.metadata.tool_metadata import ParentToolMetadata
+from capanno_utils.classes.cwl.make_cwl import initialize_command_line_tool_file_tool
+from capanno_utils.helpers.get_paths import get_tool_common_dir, main_tool_subtool_name, get_tool_metadata, get_tool_dir
 
 
 def add_tool(tool_name, version_name, subtool_names=None, biotools_id=None, has_primary=False, root_repo_path=Path.cwd(), init_cwl=False):

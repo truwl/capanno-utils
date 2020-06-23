@@ -2,8 +2,8 @@ import re
 import logging
 from pathlib import Path
 from schema_salad.validate import ValidationException
-from xd_cwl_utils.helpers.get_paths import get_cwl_tool, get_tool_instance_path, get_tool_dir, get_tool_instances_dir_from_cwl_path
-from xd_cwl_utils.classes.schema_salad.schema_salad import InputsSchema
+from capanno_utils.helpers.get_paths import get_cwl_tool, get_tool_instance_path, get_tool_dir, get_tool_instances_dir_from_cwl_path
+from capanno_utils.classes.schema_salad.schema_salad import InputsSchema
 
 def validate_inputs_for_instance(instance_path, inputs_schema=None, cwl_tool_path=None):
     if not inputs_schema:

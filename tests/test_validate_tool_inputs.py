@@ -1,10 +1,10 @@
 import os
 import unittest
 from tests.test_base import TestBase
-from xd_cwl_utils.config import config
+from capanno_utils.config import config
 from ruamel.yaml import safe_load
-from xd_cwl_utils.validate_inputs import validate_inputs_for_instance
-from xd_cwl_utils.helpers.get_paths import get_tool_instance_path, get_cwl_tool
+from capanno_utils.validate_inputs import validate_inputs_for_instance
+from capanno_utils.helpers.get_paths import get_tool_instance_path, get_cwl_tool
 
 class TestValidateInputs(TestBase):
 

@@ -2,7 +2,7 @@
 
 from tempfile import TemporaryDirectory
 from tests.test_base import TestBase
-from xd_cwl_utils.add.add_tools import add_tool, add_subtool
+from capanno_utils.add.add_tools import add_tool, add_subtool
 
 class TestAddTool(TestBase):
 
