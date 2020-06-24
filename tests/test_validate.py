@@ -1,9 +1,9 @@
 
 from tests.test_base import TestBase
 from pathlib import Path
-from xd_cwl_utils.helpers.get_paths import get_tool_metadata
-from xd_cwl_utils.validate import metadata_validator_factory
-from xd_cwl_utils.classes.metadata.tool_metadata import ParentToolMetadata, SubtoolMetadata
+from capanno_utils.helpers.get_paths import get_tool_metadata
+from capanno_utils.validate import metadata_validator_factory
+from capanno_utils.classes.metadata.tool_metadata import ParentToolMetadata, SubtoolMetadata
 
 
 class TestValidateMetadata(TestBase):

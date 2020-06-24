@@ -5,9 +5,9 @@
 import sys
 import argparse
 from pathlib import Path
-from xd_cwl_utils.add.add_tools import add_tool, add_subtool
-from xd_cwl_utils.add.add_scripts import add_script, add_common_script_metadata
-from xd_cwl_utils.add.add_workflows import add_workflow
+from capanno_utils.add.add_tools import add_tool, add_subtool
+from capanno_utils.add.add_scripts import add_script, add_common_script_metadata
+from capanno_utils.add.add_workflows import add_workflow
 
 def get_parser():
     parser = argparse.ArgumentParser(description='Initialize metadata and directories for a tool, script, or workflow.')

@@ -3,7 +3,7 @@ from tempfile import TemporaryDirectory
 from pathlib import Path
 from unittest import skip
 from tests.test_base import TestBase
-from xd_cwl_utils.add_content import main as add_content_main
+from capanno_utils.add_content import main as add_content_main
 
 # @skip('')
 class TestAddToolMain(TestBase):

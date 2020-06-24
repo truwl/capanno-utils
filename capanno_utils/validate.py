@@ -3,9 +3,9 @@ import logging
 from pathlib import Path
 from ruamel.yaml import safe_load
 from semantic_version import Version
-from xd_cwl_utils.classes.metadata.tool_metadata import ParentToolMetadata, SubtoolMetadata
-from xd_cwl_utils.classes.metadata.script_metadata import ScriptMetadata, CommonScriptMetadata
-from xd_cwl_utils.classes.metadata.workflow_metadata import WorkflowMetadata
+from capanno_utils.classes.metadata.tool_metadata import ParentToolMetadata, SubtoolMetadata
+from capanno_utils.classes.metadata.script_metadata import ScriptMetadata, CommonScriptMetadata
+from capanno_utils.classes.metadata.workflow_metadata import WorkflowMetadata
 from .content_maps import make_tools_map, make_main_tool_map, make_tool_version_dir_map, make_tool_common_dir_map, \
     make_subtool_map, make_script_maps, make_group_script_map, make_project_script_map, make_script_version_map, \
     make_script_map, make_workflow_maps

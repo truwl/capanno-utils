@@ -4,10 +4,10 @@ import argparse
 import sys
 import logging
 from pathlib import Path
-from xd_cwl_utils.validate import *
-from xd_cwl_utils.validate_inputs import validate_inputs_for_instance
-from xd_cwl_utils.helpers.validate_cwl import validate_cwl_tool
-from xd_cwl_utils.helpers.get_paths import get_types_from_path
+from capanno_utils.validate import *
+from capanno_utils.validate_inputs import validate_inputs_for_instance
+from capanno_utils.helpers.validate_cwl import validate_cwl_tool
+from capanno_utils.helpers.get_paths import get_types_from_path
 
 
 def get_parser():
