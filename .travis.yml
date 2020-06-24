@@ -4,6 +4,5 @@ python:
 install:
   - pip install -r requirements.txt
 env:
-  - TEST_TMP_DIR=/tmp
   - CONFIG_KEY=TRAVIS
 script: pytest
