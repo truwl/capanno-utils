@@ -1,10 +1,15 @@
 import configparser
+import os
 import re
 import tempfile
 from pathlib import Path
 
 test_rel_content_path = Path.cwd() / 'tests' / 'test_files' / 'cwl-source'
-travis_root = Path('/home/travis/build/truwl/capanno-utils/capanno-utils/tests/test_files/cwl-source')
+if os.environ.get('TRAVIS_BUILD_DIR'):
+    travis_root = Path(os.environ['TRAVIS_BUILD_DIR'] / 'tests' / 'test_files' / 'cwl-source')
+else:
+    travis_root = Path.cwd()
+
 content_base_path = Path.cwd()
 
 content_maps_dir_name = 'content_maps'
