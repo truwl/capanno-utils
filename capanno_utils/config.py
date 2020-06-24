@@ -4,7 +4,7 @@ import tempfile
 from pathlib import Path
 
 test_rel_content_path = Path.cwd() / 'tests' / 'test_files' / 'cwl-source'
-travis_root = Path('/home/travis/build/truwl/capanno-utils/tests/test_files/cwl-source')
+travis_root = Path('/home/travis/build/truwl/capanno-utils/capanno-utils/tests/test_files/cwl-source')
 content_base_path = Path.cwd()
 
 content_maps_dir_name = 'content_maps'
