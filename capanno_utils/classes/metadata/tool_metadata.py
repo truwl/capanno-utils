@@ -255,3 +255,25 @@ class SubtoolMetadata(CommonPropsMixin, ToolMetadataBase):
         if not file_path.parent.exists():
             file_path.parent.mkdir()
         super().mk_file(file_path, keys, replace_none)
+
+
+class ToolInstanceMetadata(MetadataBase):
+
+    @staticmethod
+    def _init_metadata():  # Todo: Look at cwlProv to see what kind of metadata they use for CommandLineTool run.
+        return OrderedDict([
+            ('name', None),
+            ('metadataStatus', 'Incomplete'),
+            ('jobStatus', 'Incomplete'),  # Describes status of a job file
+            ('toolIdentifer', None), # Identifier for subtool that this is an instance of.
+            ('identifier', None),  # Identifier for the instance
+            ('description', None),  # Description of what the instance does.
+            ('command', None),  # Generated command. Decide on whether to implement here.
+            ('input_objects', None),
+            ('outputObjects', None),
+            ('extra', None),
+        ])
+
+    def _mk_identifier(self):
+        pass
+
