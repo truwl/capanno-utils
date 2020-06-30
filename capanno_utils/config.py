@@ -22,6 +22,12 @@ instance_metadata_file_pattern = re.compile(r'[0-9a-f]{4}-metadata\.ya?ml')
 
 script_common_metadata_file_pattern = re.compile(r'[A-Za-z_]+-metadata\.yaml')
 
+parent_tool_identifier_pattern = re.compile(r'TL_[0-9a-f]{6}\.[0-9a-f]{2}$')
+
+subtool_identifier_pattern = re.compile(r'TL_[0-9a-f]{6}_[0-9a-f]{2}\.[0-9a-f]{2}$')
+
+tool_instance_identifier_pattern = re.compile(r'TL_[0-9a-f]{6}_[0-9a-f]{2}\.[0-9a-f]{2}\.[0-9a-f]{4}$')
+
 common_dir_name = 'common'
 
 common_tool_metadata_name = 'common-metadata.yaml'

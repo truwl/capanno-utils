@@ -1,9 +1,8 @@
 import os
 import re
 from pathlib import Path
-from capanno_utils.config import config, main_tool_subtool_name, tools_dir_name, scripts_dir_name, workflows_dir_name, \
-    instances_dir_name, instance_file_pattern, instance_metadata_file_pattern, script_common_metadata_file_pattern, \
-    common_dir_name, root_repo_name, common_tool_metadata_name
+
+from capanno_utils.config import *
 
 
 # IDEA: Using Path class, it might be better to generate the get methods by getting longest path, then using Path.parents
@@ -495,3 +494,5 @@ def get_types_from_path(path, cwl_root_repo_name=root_repo_name, base_path=None)
             raise TypeError(f"What kind of path is {abs_path} if it isn't a directory or file?")
 
     return method_type, file_type
+
+

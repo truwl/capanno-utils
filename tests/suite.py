@@ -5,6 +5,7 @@ import argparse
 from unittest import defaultTestLoader, TestSuite
 from tests.test_add_content import TestAddToolMain, TestAddScriptMain
 from tests.test_add_tool import TestAddTool
+from tests.test_tool_instance_metadata import TestMakeToolInstanceMetadata
 from tests.test_tool_metadata import TestMakeParentToolMetadata, TestMakeSubtoolMetadata
 from tests.test_script_metadata import TestScriptMetadata
 from tests.test_content_maps import TestToolMaps
@@ -58,6 +59,9 @@ def suite_script_metadata():
     suite = defaultTestLoader.loadTestsFromTestCase(TestScriptMetadata)
     return suite
 
+def suite_tool_instance_metadata():
+    suite = defaultTestLoader.loadTestsFromTestCase(TestMakeToolInstanceMetadata)
+    return suite
 
 def suite_tool_metadata():
     suite = defaultTestLoader.loadTestsFromTestCase(TestMakeParentToolMetadata)
@@ -103,6 +107,7 @@ def suite_dict():
                   'full': suite_full(),
                   'path_tools': suite_path_tools(),
                   'script_metadata': suite_script_metadata(),
+                  'tool_instance_metadata': suite_tool_instance_metadata(),
                   'tool_metadata': suite_tool_metadata(),
                   'validate': suite_validate(),
                   'validate_all_metadata_in_maps': suite_validate_all_metadata_in_maps(),

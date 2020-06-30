@@ -12,7 +12,7 @@ from capanno_utils.helpers.get_paths import *
 #     get_script_version_dir, get_metadata_path, get_relative_path, get_workflow_version_dir, get_root_tools_dir, \
 #     get_root_scripts_dir, get_workflows_root_dir, get_cwl_workflow
 
-def make_tools_map(outfile_path, base_dir=None):
+def make_tools_map(outfile_path=None, base_dir=None):
     """
     Make a yaml file that specifies paths and attributes of tools in tool_dir.
     :param tool_dir (Path): Path of directory that contains tools.
@@ -23,17 +23,19 @@ def make_tools_map(outfile_path, base_dir=None):
 
     cwl_tools_dir = get_root_tools_dir(base_dir=base_dir)
     content_map = {}
-    outfile_path = Path(outfile_path)
+
     for tool_dir in cwl_tools_dir.iterdir():
         for version_dir in tool_dir.iterdir():
             tool_map = make_tool_version_dir_map(tool_dir.name, version_dir.name, base_dir=base_dir)
             content_map.update(tool_map)
-    yaml = YAML(pure=True)
-    yaml.default_flow_style = False
-    yaml.indent(mapping=2, sequence=4, offset=2)
-    with outfile_path.open('w') as outfile:
-        yaml.dump(content_map, outfile)
-    return
+    if outfile_path:
+        outfile_path = Path(outfile_path)
+        yaml = YAML(pure=True)
+        yaml.default_flow_style = False
+        yaml.indent(mapping=2, sequence=4, offset=2)
+        with outfile_path.open('w') as outfile:
+            yaml.dump(content_map, outfile)
+    return content_map
 
 
 def make_main_tool_map(tool_name, base_dir=None):
@@ -221,3 +223,17 @@ def add_to_map(path):
     :return:
     """
     raise NotImplementedError
+
+
+def get_tool_args_from_identifier(identifier, base_dir=None):
+    base_dir = get_base_dir(base_dir)
+    instance_hash = None
+    if tool_instance_identifier_pattern.match(identifier):
+        identifier, instance_hash = identifier[:-4], identifier[-4:]
+    if parent_tool_identifier_pattern.match(identifier) | subtool_identifier_pattern.match(identifier):
+        tools_map = make_tools_map(base_dir=base_dir)
+        tool_path = tools_map[identifier]['path']
+        tool_args = get_tool_args_from_path(tool_path)
+    else:
+        raise ValueError()
+    return tool_args, instance_hash

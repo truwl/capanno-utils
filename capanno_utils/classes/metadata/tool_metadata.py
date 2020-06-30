@@ -3,8 +3,10 @@ from pathlib import Path
 from collections import OrderedDict
 from abc import abstractmethod
 import re
+import uuid
 from ruamel.yaml import safe_load
-from ...helpers.get_paths import get_tool_metadata, get_parent_tool_relative_path_string
+from capanno_utils.config import *
+from ...helpers.get_paths import *
 from ...classes.metadata.metadata_base import MetadataBase
 from ...classes.metadata.shared_properties import CodeRepository, Person, WebSite, Keyword
 from ...helpers.get_metadata_from_biotools import make_tool_metadata_kwargs_from_biotools
@@ -86,13 +88,8 @@ class ParentToolMetadata(CommonPropsMixin, ToolMetadataBase):
         ])
 
     def _check_identifier(self, identifier):
-        if not identifier[:3] == "TL_":
-            raise ValueError(f"Tool identifiers must start with 'TL_' you provided {identifier}")
-        else:
-            hex_pattern = r'[0-9a-f]{6}\.[0-9a-f]{2}$'
-            match_obj = re.match(hex_pattern, identifier[3:])
-            if not match_obj:
-                raise ValueError(f"Tool identifier not formatted correctly: {identifier}")
+        if not parent_tool_identifier_pattern.match(identifier):
+            raise ValueError(f"Tool identifier not formatted correctly: {identifier}")
         return identifier
 
     def _mk_identifier(self, start=0):
@@ -224,9 +221,7 @@ class SubtoolMetadata(CommonPropsMixin, ToolMetadataBase):
         if not identifier.endswith(parent_identifier[-3:]):  # should be '.xx'
             raise ValueError(
                 f"Subtool identifier {identifier} does not properly correspond to parent identifier {parent_identifier}")
-        hex_pattern = r'[0-9a-f]{6}_[0-9a-f]{2}\.[0-9a-f]{2}$'
-        match_obj = re.match(hex_pattern, identifier[3:])
-        if not match_obj:
+        if not subtool_identifier_pattern.match(identifier):
             raise ValueError(f"Tool identifier not formatted correctly: {identifier}")
 
         return identifier
@@ -243,8 +238,10 @@ class SubtoolMetadata(CommonPropsMixin, ToolMetadataBase):
     def mk_completed_file(self):
         raise NotImplementedError
 
-    def mk_instance(self):
-        raise NotImplementedError
+    def mk_instance(self, **kwargs):
+        tool_instance_dict = {'toolName': self.name, 'versionName': self._parentMetadata.softwareVersion.versionName, 'toolIdentifier': self.identifier, '_subtoolMetadata': self}
+        tool_instance_metadata = ToolInstanceMetadata(**tool_instance_dict, **kwargs)
+        return tool_instance_metadata
 
     def mk_file(self, base_dir, keys=None, replace_none=True):
         try:
@@ -258,22 +255,53 @@ class SubtoolMetadata(CommonPropsMixin, ToolMetadataBase):
 
 
 class ToolInstanceMetadata(MetadataBase):
-
     @staticmethod
     def _init_metadata():  # Todo: Look at cwlProv to see what kind of metadata they use for CommandLineTool run.
         return OrderedDict([
+            ('toolName', None),
+            ('versionName', None),
             ('name', None),
             ('metadataStatus', 'Incomplete'),
             ('jobStatus', 'Incomplete'),  # Describes status of a job file
-            ('toolIdentifer', None), # Identifier for subtool that this is an instance of.
+            ('toolIdentifier', None), # Identifier for subtool that this is an instance of.
             ('identifier', None),  # Identifier for the instance
             ('description', None),  # Description of what the instance does.
             ('command', None),  # Generated command. Decide on whether to implement here.
             ('input_objects', None),
             ('outputObjects', None),
             ('extra', None),
+            ('_subtoolMetadata', None), # Store the SubtoolMetadata instance that this is an instance of.
         ])
 
     def _mk_identifier(self):
-        pass
+        instance_hash = uuid.uuid4().hex[:4]
+        instance_identifier = f"{self.toolIdentifier}.{instance_hash}"
+        self._check_identifier(instance_identifier)  # Makes sure the toolIdentifier was correct too.
+        return instance_identifier
 
+    def _check_identifier(self, identifier):
+        if not identifier.startswith(self.toolIdentifier):
+            raise ValueError(f"Tool instance identifier {identifier} does not properly correspond to tool identifer {self.toolIdentifier}")
+        if not tool_instance_identifier_pattern.match(identifier):
+            raise ValueError(f"Tool instance identifier not formatted correctly: {identifier}")
+
+        return identifier
+
+    @property
+    def identifier(self):
+        return self._identifier
+
+    @identifier.setter
+    def identifier(self, new_identifier=None):
+        if new_identifier:
+            identifier = self._check_identifier(new_identifier)
+        else:
+            identifier = self._mk_identifier()
+        self._identifier = identifier
+
+    def mk_file(self, base_dir, keys=None, replace_none=True):
+        input_hash = self.identifier[-4:]
+        file_path = get_tool_instance_metadata_path(self._subtoolMetadata._parentMetadata.name, self.versionName, input_hash=input_hash, subtool_name=self._subtoolMetadata.name, base_dir=base_dir)
+        if not file_path.parent.exists():
+            file_path.parent.mkdir()
+        super().mk_file(file_path, keys, replace_none)
