@@ -397,7 +397,10 @@ class CallMap(AttributeBase):
 
 
 class IOObject(AttributeBase):
-
+    """
+    An input or output File or Directory. Not used directly but as part of IOObjectItem and IOArrayItem.
+    Need to make identifier OR path required. Identifier takes precedence.
+    """
     def __init__(self, identifier=None, path=None):
         super().__init__()
         self._identifier = identifier
@@ -413,22 +416,33 @@ class IOObject(AttributeBase):
 
     @property
     def path(self):
+        """Path on a local machine. Can generate uri from this. Not needed if """
         return self._path
 
     @path.setter
     def path(self, new_path):
         self._path = new_path
 
+    @property
+    def uri(self):
+        return self._uri
+
+    @uri.setter
+    def uri(self, new_uri):
+        self._uri = new_uri
 
     @staticmethod
     def _attrs():
-        return frozenset(['identifier', 'path'])
+        return frozenset(['identifier', 'path', 'uri'])
 
 class IOObjectItem(AttributeBase):
-    def __init__(self, id_=None, io_object=IOObject()):
+    """
+    Represents an individual file or file_collection/directory object associated with an id in a tool or workflow file.
+    """
+    def __init__(self, id=None, io_object=IOObject(), **kwargs):
         super().__init__()
 
-        self._id = id_
+        self._id = id
         self._io_object = io_object
 
     @property
@@ -441,7 +455,7 @@ class IOObjectItem(AttributeBase):
 
     @property
     def identifier(self):
-        return self._io_object._identifier
+        return self._io_object.identifier
 
     @identifier.setter
     def identifier(self, new_identifier):
@@ -470,9 +484,9 @@ class IOObjectItem(AttributeBase):
         return map_object
 
 class IOArrayItem(AttributeBase):
-    def __init__(self, id_, objects=None):
+    def __init__(self, id, objects=None):
         super().__init__()
-        self._id = id_
+        self._id = id
         self._objects = objects if objects else [IOObject()]
 
     @staticmethod

@@ -8,7 +8,7 @@ from ruamel.yaml import safe_load
 from capanno_utils.config import *
 from ...helpers.get_paths import *
 from ...classes.metadata.metadata_base import MetadataBase
-from ...classes.metadata.shared_properties import CodeRepository, Person, WebSite, Keyword
+from ...classes.metadata.shared_properties import CodeRepository, Person, WebSite, Keyword, IOObjectItem, IOArrayItem
 from ...helpers.get_metadata_from_biotools import make_tool_metadata_kwargs_from_biotools
 from ...classes.metadata.common_functions import _mk_hashes, CommonPropsMixin
 
@@ -239,7 +239,8 @@ class SubtoolMetadata(CommonPropsMixin, ToolMetadataBase):
         raise NotImplementedError
 
     def mk_instance(self, **kwargs):
-        tool_instance_dict = {'toolName': self.name, 'versionName': self._parentMetadata.softwareVersion.versionName, 'toolIdentifier': self.identifier, '_subtoolMetadata': self}
+        tool_name = f"{self._parentMetadata.name} {self.name}"
+        tool_instance_dict = {'toolName': tool_name, 'toolVersion': self._parentMetadata.softwareVersion.versionName, 'toolIdentifier': self.identifier, '_subtoolMetadata': self}
         tool_instance_metadata = ToolInstanceMetadata(**tool_instance_dict, **kwargs)
         return tool_instance_metadata
 
@@ -259,7 +260,7 @@ class ToolInstanceMetadata(MetadataBase):
     def _init_metadata():  # Todo: Look at cwlProv to see what kind of metadata they use for CommandLineTool run.
         return OrderedDict([
             ('toolName', None),
-            ('versionName', None),
+            ('toolVersion', None),
             ('name', None),
             ('metadataStatus', 'Incomplete'),
             ('jobStatus', 'Incomplete'),  # Describes status of a job file
@@ -267,11 +268,19 @@ class ToolInstanceMetadata(MetadataBase):
             ('identifier', None),  # Identifier for the instance
             ('description', None),  # Description of what the instance does.
             ('command', None),  # Generated command. Decide on whether to implement here.
-            ('input_objects', None),
+            ('inputObjects', None),
             ('outputObjects', None),
             ('extra', None),
-            ('_subtoolMetadata', None), # Store the SubtoolMetadata instance that this is an instance of.
+            ('_tool_instance_file_path', None),  # Populated if class is initialized from a file.
+            ('_subtoolMetadata', None) # Store the SubtoolMetadata instance that this is an instance of.
         ])
+
+    @classmethod
+    def load_from_file(cls, file_path, ignore_empties=False):
+        file_path = Path(file_path)
+        with file_path.open('r') as f:
+            file_dict = safe_load(f)
+        return cls(**file_dict, _tool_instance_file_path=file_path, ignore_empties=ignore_empties)
 
     def _mk_identifier(self):
         instance_hash = uuid.uuid4().hex[:4]
@@ -299,9 +308,36 @@ class ToolInstanceMetadata(MetadataBase):
             identifier = self._mk_identifier()
         self._identifier = identifier
 
+
+    @property
+    def inputObjects(self):
+        return self._inputObjects
+
+    @inputObjects.setter
+    def inputObjects(self, input_objects_list):
+        if input_objects_list:
+            input_objects = []
+            for input_object in input_objects_list:
+                if isinstance(input_object, (IOObjectItem, IOArrayItem)):
+                    pass  # ready to append
+                elif isinstance(input_object, dict):
+                    inp_object_keys = input_object.keys()
+                    if 'identifier' in inp_object_keys:
+                        input_object = IOObjectItem(**input_object)
+                    elif 'objects' in inp_object_keys:
+                        input_object = IOArrayItem(**input_object)
+                    else:
+                        raise ValueError(f"")
+                else:
+                    raise ValueError(f"{input_object} is not a valid value for an input object.")
+                input_objects.append(input_object)
+        else:
+            input_objects = None
+        self._inputObjects = input_objects
+
     def mk_file(self, base_dir, keys=None, replace_none=True):
         input_hash = self.identifier[-4:]
-        file_path = get_tool_instance_metadata_path(self._subtoolMetadata._parentMetadata.name, self.versionName, input_hash=input_hash, subtool_name=self._subtoolMetadata.name, base_dir=base_dir)
+        file_path = get_tool_instance_metadata_path(self._subtoolMetadata._parentMetadata.name, self.toolVersion, input_hash=input_hash, subtool_name=self._subtoolMetadata.name, base_dir=base_dir)
         if not file_path.parent.exists():
             file_path.parent.mkdir()
         super().mk_file(file_path, keys, replace_none)
