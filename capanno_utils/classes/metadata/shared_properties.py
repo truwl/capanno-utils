@@ -398,13 +398,13 @@ class CallMap(AttributeBase):
 
 class IOObject(AttributeBase):
     """
-    An input or output File or Directory. Not used directly but as part of IOObjectItem and IOArrayItem.
-    Need to make identifier OR path required. Identifier takes precedence.
+    An input or output File or Directory.
     """
-    def __init__(self, identifier=None, path=None):
+    def __init__(self, identifier=None, path=None, uri=None):
         super().__init__()
-        self._identifier = identifier
-        self._path = path
+        self.identifier = identifier
+        self.path = path
+        self.uri = uri
 
     @property
     def identifier(self):
@@ -439,11 +439,17 @@ class IOObjectItem(AttributeBase):
     """
     Represents an individual file or file_collection/directory object associated with an id in a tool or workflow file.
     """
-    def __init__(self, id=None, io_object=IOObject(), **kwargs):
+    def __init__(self, id, new_io_object=None, **io_object_kwargs):
         super().__init__()
 
-        self._id = id
-        self._io_object = io_object
+        self.id = id
+        if new_io_object:
+            self.io_object = new_io_object
+        else:
+            self.io_object = IOObject(**io_object_kwargs)
+
+
+
 
     @property
     def id(self):
@@ -452,14 +458,6 @@ class IOObjectItem(AttributeBase):
     @id.setter
     def id(self, new_id):
         self._id = new_id
-
-    @property
-    def identifier(self):
-        return self._io_object.identifier
-
-    @identifier.setter
-    def identifier(self, new_identifier):
-        self._io_object._identifier = new_identifier
 
     @property
     def path(self):
@@ -472,6 +470,13 @@ class IOObjectItem(AttributeBase):
     @property
     def io_object(self):
         return self._io_object
+
+    @io_object.setter
+    def io_object(self, new_io_object):
+        assert isinstance(new_io_object, IOObject)
+        self._io_object = new_io_object
+
+
 
     @staticmethod
     def _attrs():
@@ -487,11 +492,40 @@ class IOArrayItem(AttributeBase):
     def __init__(self, id, objects=None):
         super().__init__()
         self._id = id
-        self._objects = objects if objects else [IOObject()]
+        if not objects:
+            objects = [IOObject()]
+        for index, object in enumerate(objects):
+            if isinstance(object, IOObject):
+                continue
+            elif isinstance(object, dict):
+                objects[index] = IOObject(**object)
+            else:
+                raise ValueError
+
+        self.objects = objects
+
+    @property
+    def id(self):
+        return self._id
+
+    @id.setter
+    def id(self, new_id):
+        self._id = new_id
+
+    @property
+    def objects(self):
+        return self._objects
+
+    @objects.setter
+    def objects(self, new_objects):
+        for object in new_objects:
+            assert isinstance(object, IOObject)
+        self._objects = new_objects
 
     @staticmethod
     def _attrs():
         return frozenset(['id', 'objects'])
+
 
 
 

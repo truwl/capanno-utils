@@ -22,6 +22,19 @@ def get_base_dir(base_dir=None):
     return Path(base_dir)
 
 
+def get_base_dir_from_abs_path(absolute_path):
+    absolute_path = Path(absolute_path)
+    if not absolute_path.is_absolute():
+        raise ValueError(f"{absolute_path} is not an absolute path")
+    absolute_path_parts = absolute_path.parts
+    if not absolute_path_parts.count(root_repo_name) == 1:
+        raise ValueError(f"Expected the root repo name ({root_repo_name}) to be path one time.")
+    root_path_part_index = absolute_path_parts.index(root_repo_name)
+    base_dir = Path(*absolute_path_parts[:root_path_part_index + 1])
+    return base_dir
+
+
+
 # cwl-tools
 
 def get_root_tools_dir(base_dir=None):
@@ -40,7 +53,7 @@ def get_main_tool_dir(tool_name, base_dir=None):
 
 
 def get_tool_version_dir(tool_name, tool_version, base_dir=None):
-    version_dir = get_main_tool_dir(tool_name, base_dir=base_dir) / tool_version
+    version_dir = get_main_tool_dir(tool_name, base_dir=base_dir) / str(tool_version)
     return version_dir
 
 
@@ -115,6 +128,16 @@ def get_tool_instance_metadata_path(tool_name, tool_version, input_hash, subtool
     cwl_tool_inst_dir = get_tool_instances_dir(tool_name, tool_version, subtool_name=subtool_name, base_dir=base_dir)
     instance_metadata_path = cwl_tool_inst_dir / f"{input_hash}-metadata.yaml"
     return instance_metadata_path
+
+def get_subtool_metadata_path_from_tool_instance_metadata_path(tool_instance_path, base_dir=None):
+    tool_instance_path_parts = Path(tool_instance_path).parts
+    tool_name = tool_instance_path_parts[-5]
+    tool_version = tool_instance_path_parts[-4]
+    subtool_name = tool_instance_path_parts[-3]
+    if subtool_name == tool_name:
+        subtool_name = main_tool_subtool_name
+    subtool_metadata_path = get_tool_metadata(tool_name, tool_version, subtool_name=subtool_name, base_dir=base_dir)
+    return subtool_metadata_path
 
 
 def get_tool_args_from_path(cwl_tool_path):

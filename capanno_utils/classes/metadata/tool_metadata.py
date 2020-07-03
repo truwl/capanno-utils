@@ -275,12 +275,41 @@ class ToolInstanceMetadata(MetadataBase):
             ('_subtoolMetadata', None) # Store the SubtoolMetadata instance that this is an instance of.
         ])
 
+    def __init__(self, _tool_instance_metadata_file_path=None, **kwargs):
+        """
+        Initialize ToolInstanceMetadata
+        :param _metadata_file_path(Path): Absolute path of yaml file that SubtoolMetadata is loaded from. Should not be used directly. Only used if class is initiated using 'load_from_file' method.
+        :param kwargs: Key:value pairs that describe tool instance metadata.
+        """
+        self._subtoolMetadata = kwargs.get('_subtoolMetadata')
+        if self._subtoolMetadata:
+            assert isinstance(self._subtoolMetadata, SubtoolMetadata)
+        else:
+            self._load_subtool_metadata(_tool_instance_metadata_file_path)
+        super().__init__(**kwargs)
+
+
+    def _load_subtool_metadata(self, tool_instance_metadata_path, ignore_empties=False):
+        try:
+            base_dir = get_base_dir_from_abs_path(tool_instance_metadata_path)
+        except TypeError:
+            raise
+        subtool_metadata_path = get_subtool_metadata_path_from_tool_instance_metadata_path(tool_instance_metadata_path, base_dir=base_dir)
+
+        self._subtoolMetadata = SubtoolMetadata.load_from_file(subtool_metadata_path)
+
+        # with subtool_metadata_path.open('r') as f:
+        #     subtool_metadata_dict = safe_load(f)
+        # self._subtoolMetadata = SubtoolMetadata(**subtool_metadata_dict)
+
+
+
     @classmethod
     def load_from_file(cls, file_path, ignore_empties=False):
         file_path = Path(file_path)
         with file_path.open('r') as f:
             file_dict = safe_load(f)
-        return cls(**file_dict, _tool_instance_file_path=file_path, ignore_empties=ignore_empties)
+        return cls(**file_dict, _tool_instance_metadata_file_path=file_path, ignore_empties=ignore_empties)
 
     def _mk_identifier(self):
         instance_hash = uuid.uuid4().hex[:4]
@@ -335,9 +364,35 @@ class ToolInstanceMetadata(MetadataBase):
             input_objects = None
         self._inputObjects = input_objects
 
+    @property
+    def outputObjects(self):
+        return self._outputObjects
+
+    @outputObjects.setter
+    def outputObjects(self, output_objects_list):
+        if output_objects_list:
+            output_objects = []
+            for outputput_object in output_objects_list:
+                if isinstance(outputput_object, (IOObjectItem, IOArrayItem)):
+                    pass  # ready to append
+                elif isinstance(outputput_object, dict):
+                    output_object_keys = outputput_object.keys()
+                    if 'identifier' in output_object_keys:
+                        outputput_object = IOObjectItem(**outputput_object)
+                    elif 'objects' in output_object_keys:
+                        outputput_object = IOArrayItem(**outputput_object)
+                    else:
+                        raise ValueError(f"")
+                else:
+                    raise ValueError(f"{outputput_object} is not a valid value for an output object.")
+                output_objects.append(outputput_object)
+        else:
+            output_objects = None
+        self._outputObjects = output_objects
+
     def mk_file(self, base_dir, keys=None, replace_none=True):
         input_hash = self.identifier[-4:]
         file_path = get_tool_instance_metadata_path(self._subtoolMetadata._parentMetadata.name, self.toolVersion, input_hash=input_hash, subtool_name=self._subtoolMetadata.name, base_dir=base_dir)
         if not file_path.parent.exists():
-            file_path.parent.mkdir()
+            file_path.parent.mkdir(parents=True)
         super().mk_file(file_path, keys, replace_none)
