@@ -83,11 +83,11 @@ class ScriptMetadata(CommonPropsMixin, ScriptMetadataBase):
             ('creator', None),
             ('programmingLanguage', None),
             ('datePublished', None),
-            ('isCallable', True),  # specify whether the script is meant to be called. If False, just contains object for importing to other scripts.
+            ('isCallable', True),  # specify whether the script is meant to be called. If False, just contains attribute_value for importing to other scripts.
             ('parentMetadata', None),
             ('_parentMetadata', None),  # Place to store list of parent ScriptMetadata objects. Different than parentScripts!!
             ('_primary_file_attrs', None),
-            # List to store attributes that are not inherited from a parent metadata file or object.
+            # List to store attributes that are not inherited from a parent metadata file or attribute_value.
         ])
 
     def __init__(self, file_path=Path.cwd(), **kwargs):

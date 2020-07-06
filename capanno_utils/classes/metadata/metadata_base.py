@@ -125,7 +125,7 @@ class MetadataBase(ABC):
             elif isinstance(attr_value, list):
                 if not attr_value:  # empty list
                     meta_map[key] = attr_value
-                elif isinstance(attr_value[0], object_attributes):
+                elif isinstance(attr_value[0], object_attributes):  # Will not work for nested lists.
                     meta_map[key] = [item.dump() for item in attr_value]
                 else:
                     meta_map[key] = attr_value

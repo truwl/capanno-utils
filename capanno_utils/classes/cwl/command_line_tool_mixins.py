@@ -64,7 +64,7 @@ class CommandLineToolMixin:
 
     def get_sorted_inputs_dict(self):
         """
-        Transform CommandLineTool.inputs into a nested dict object sorted based on CommandLineBinding.
+        Transform CommandLineTool.inputs into a nested dict attribute_value sorted based on CommandLineBinding.
         CommandInputParameter objects cannot be represented by yaml (I could register it I guess???).
 
         """
@@ -92,7 +92,7 @@ class CommandLineToolMixin:
 
     def create_cwl_commented_map(self):
         """
-        Create a CWL CommentedMap with preferred formatting from CommandLineTool object.
+        Create a CWL CommentedMap with preferred formatting from CommandLineTool attribute_value.
         """
 
         cwl_map = CommentedMap()
@@ -202,7 +202,7 @@ class SchemaDefRequirementMixin:
         """
         Make dictionary from SchemaDefRequirement to populate inputs parameters fully.
 
-        :param schema_def_requirement: SchemaDefRequirement object.
+        :param schema_def_requirement: SchemaDefRequirement attribute_value.
         :return: keys are input names, values are input parameter fields to drop into inputs section.
         :rtype: dict
         """

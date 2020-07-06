@@ -119,6 +119,8 @@ class CommonPropsMixin:
                 people = [Person(**person) for person in person_list]
             elif isinstance(person_list[0], Person):
                 people = person_list
+            else:
+                raise NotImplementedError
         else:
             people = None
         self._creator = people

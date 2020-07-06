@@ -40,10 +40,21 @@ class AttributeBase(ABC):
     def attrs(self):
         return self._attrs()
 
-    def dump(self):
+
+
+    def dump(self):  # dump a class into a Commented Map which can be written to a file as yaml.
         map_object = CommentedMap()
         for attribute in self.attrs:
-            map_object[attribute] = getattr(self, attribute)
+            attr_value = getattr(self, attribute)
+            if isinstance(attr_value, list):
+                attribute_list = []
+                for list_item in attr_value:
+                    attribute_list.append(list_item.dump())
+                map_object[attribute] = attribute_list
+            elif isinstance(attr_value, object_attributes):
+                map_object[attribute] = attr_value.dump()
+            else:
+                map_object[attribute] = getattr(self, attribute)
         return map_object
 
 
@@ -531,4 +542,4 @@ class IOArrayItem(AttributeBase):
 
 
 object_attributes = (
-CodeRepository, Person, Publication, WebSite, Keyword, Tool, ParentScript, IOObjectItem, CallMap, SoftwareVersion)
+CodeRepository, Person, Publication, WebSite, Keyword, Tool, ParentScript, IOObjectItem, CallMap, SoftwareVersion, IOObject, IOObjectItem, IOArrayItem)
