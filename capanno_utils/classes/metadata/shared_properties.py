@@ -49,7 +49,10 @@ class AttributeBase(ABC):
             if isinstance(attr_value, list):
                 attribute_list = []
                 for list_item in attr_value:
-                    attribute_list.append(list_item.dump())
+                    if isinstance(list_item, object_attributes):
+                        attribute_list.append(list_item.dump())
+                    else:
+                        attribute_list.append(list_item)
                 map_object[attribute] = attribute_list
             elif isinstance(attr_value, object_attributes):
                 map_object[attribute] = attr_value.dump()
@@ -535,7 +538,7 @@ class IOArrayItem(AttributeBase):
 
     @staticmethod
     def _attrs():
-        return frozenset(['id', 'objects'])
+        return ('id', 'objects')
 
 
 
