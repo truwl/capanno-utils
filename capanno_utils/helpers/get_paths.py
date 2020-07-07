@@ -123,6 +123,12 @@ def get_tool_instance_path(tool_name, tool_version, input_hash, subtool_name=Non
 
     return inputs_path
 
+def get_tool_instance_path_from_tool_instance_metadata_path(tool_instance_metadata_path):
+    tool_instance_metadata_path = Path(tool_instance_metadata_path)
+    instance_metadata_file_name = tool_instance_metadata_path.stem
+    instance_file_name = f"{instance_metadata_file_name[:4]}.yaml"
+    tool_instance_path = Path(tool_instance_metadata_path).parent/ instance_file_name
+    return tool_instance_path
 
 def get_tool_instance_metadata_path(tool_name, tool_version, input_hash, subtool_name=None, base_dir=None):
     cwl_tool_inst_dir = get_tool_instances_dir(tool_name, tool_version, subtool_name=subtool_name, base_dir=base_dir)

@@ -1,9 +1,12 @@
 
+from shutil import copytree, move
 from tempfile import TemporaryDirectory
 from pathlib import Path
 from unittest import skip
+from capanno_utils.config import root_repo_name, tools_dir_name
 from tests.test_base import TestBase
 from capanno_utils.add_content import main as add_content_main
+from capanno_utils.helpers.get_paths import *
 
 # @skip('')
 class TestAddToolMain(TestBase):
@@ -12,7 +15,7 @@ class TestAddToolMain(TestBase):
         with TemporaryDirectory(prefix='test_add_tool_') as tmp_dir:
             tool_name = 'test_1'
             tool_version = 'fake.1'
-            add_content_main(['-p', tmp_dir, 'tool', tool_name, tool_version, "--has_primary"])
+            add_content_main(['-p', tmp_dir, 'tool', tool_name, tool_version, "--has-primary"])
         return
 
     # @skip('')
@@ -55,9 +58,22 @@ class TestAddToolMain(TestBase):
         subtool_name = 'image'
         with TemporaryDirectory(prefix='add_tool_with_cwl_') as tmp_dir:
             add_content_main(['-p', tmp_dir, 'tool', tool_name, tool_version, '--biotoolsID', biotools_id])
-            add_content_main(['-p', tmp_dir, 'subtool', tool_name, tool_version, subtool_name, '-u', '--init_cwl', cwl_url])
+            add_content_main(['-p', tmp_dir, 'subtool', tool_name, tool_version, subtool_name, '-u', '--init-cwl', cwl_url])
             assert True
         return
+
+    def test_add_tool_instance(self):
+        tool_name = 'STAR'
+        tool_version = '2.5'
+        subtool_name = 'alignReads'
+        tool_directory = get_main_tool_dir(tool_name, base_dir=self.test_content_dir)
+        with TemporaryDirectory() as tmp_dir:
+            tool_temp_path = Path(tmp_dir) / tools_dir_name / tool_name
+            copytree(tool_directory, tool_temp_path)
+            add_content_main(['-p', tmp_dir, 'tool-instance', tool_name, tool_version, subtool_name])
+        return
+
+
 
 # @skip('')
 class TestAddScriptMain(TestBase):
@@ -68,7 +84,7 @@ class TestAddScriptMain(TestBase):
             project_name = 'fake_project_1'
             script_version = '1.nope'
             file_name = "some_filename"
-            add_content_main(['-p', tmp_dir, 'common_script', group_name, project_name, script_version, file_name])
+            add_content_main(['-p', tmp_dir, 'common-script', group_name, project_name, script_version, file_name])
         return
 
     def test_add_script(self):

@@ -4,6 +4,7 @@ from pathlib import Path
 from urllib.parse import urlparse
 from copy import deepcopy
 from ruamel.yaml import YAML
+from ruamel.yaml.comments import CommentedMap
 from schema_salad.ref_resolver import file_uri, Loader
 from schema_salad.jsonld_context import salad_to_jsonld_context
 from schema_salad.schema import get_metaschema, validate_doc, collect_namespaces, make_avro, make_avro_schema_from_avro
@@ -313,3 +314,16 @@ class InputsSchema:
                                               strict_foreign_properties=strict_foreign_properties)
 
         return
+
+
+    def make_template(self):
+        """
+        Make a cwl job file template.
+        Inspired by cwl-tool --make-template (calls cwl-tool.main.generate_input_template https://github.com/common-workflow-language/cwltool/blob/main/cwltool/main.py)
+        :return:
+        """
+        template = CommentedMap()
+        for input in self.cwl_inputs:
+            pass
+        raise NotImplementedError
+

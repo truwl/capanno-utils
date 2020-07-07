@@ -141,4 +141,4 @@ class MetadataBase(ABC):
         with file_path.open('r') as blah:
             logging.debug(f"{file_path} contents: {blah.readlines()}")
             # print(f"{file_path} contents: {blah.readlines()}")
-        return
+        return file_path

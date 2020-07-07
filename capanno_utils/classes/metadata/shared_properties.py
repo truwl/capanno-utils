@@ -33,7 +33,7 @@ class AttributeBase(ABC):
     @staticmethod
     @abstractmethod
     def _attrs():
-        return frozenset([])
+        return tuple()
 
 
     @property
@@ -42,7 +42,7 @@ class AttributeBase(ABC):
 
 
 
-    def dump(self):  # dump a class into a Commented Map which can be written to a file as yaml.
+    def dump(self):  # dump a shared property class into a Commented Map which can be written to a file as yaml.
         map_object = CommentedMap()
         for attribute in self.attrs:
             attr_value = getattr(self, attribute)
@@ -97,7 +97,7 @@ class CodeRepository(AttributeBase):
 
     @staticmethod
     def _attrs():
-        return frozenset(['name', 'URL'])
+        return ('name', 'URL')
 
 
 class WebSite(AttributeBase):
@@ -141,7 +141,7 @@ class WebSite(AttributeBase):
 
     @staticmethod
     def _attrs():
-        return frozenset(['name', 'description', 'URL'])
+        return ('name', 'description', 'URL')
 
 
 class Publication(AttributeBase):
@@ -171,7 +171,7 @@ class Publication(AttributeBase):
 
     @staticmethod
     def _attrs():
-        return frozenset(['identifier', 'headline'])
+        return ('identifier', 'headline')
 
 
 class Person(AttributeBase):
@@ -208,7 +208,7 @@ class Person(AttributeBase):
 
     @staticmethod
     def _attrs():
-        return frozenset(['name', 'email', 'identifier'])
+        return ('name', 'email', 'identifier')
 
 
 class Keyword(AttributeBase):
@@ -260,7 +260,7 @@ class Keyword(AttributeBase):
 
     @staticmethod
     def _attrs():
-        return frozenset(['name', 'category', 'uri'])
+        return ('name', 'category', 'uri')
 
 
 class SoftwareVersion(AttributeBase):
@@ -293,7 +293,7 @@ class SoftwareVersion(AttributeBase):
 
     @staticmethod
     def _attrs():
-        return frozenset(['versionName', 'includedVersions'])
+        return ('versionName', 'includedVersions')
 
 
 class ParentScript(AttributeBase):
@@ -331,7 +331,7 @@ class ParentScript(AttributeBase):
 
     @staticmethod
     def _attrs():
-        return frozenset(['name','version', 'identifier'])
+        return ('name','version', 'identifier')
 
 
 class Tool(AttributeBase):
@@ -378,7 +378,7 @@ class Tool(AttributeBase):
 
     @staticmethod
     def _attrs():
-        return frozenset(['name', 'alternateName', 'version', 'identifier'])
+        return ('name', 'alternateName', 'version', 'identifier')
 
 
 class CallMap(AttributeBase):
@@ -407,7 +407,7 @@ class CallMap(AttributeBase):
 
     @staticmethod
     def _attrs():
-        return frozenset(['id', 'identifier'])
+        return ('id', 'identifier')
 
 
 class IOObject(AttributeBase):
@@ -447,7 +447,7 @@ class IOObject(AttributeBase):
 
     @staticmethod
     def _attrs():
-        return frozenset(['identifier', 'path', 'uri'])
+        return ('identifier', 'path', 'uri')
 
 class IOObjectItem(AttributeBase):
     """
@@ -494,7 +494,7 @@ class IOObjectItem(AttributeBase):
 
     @staticmethod
     def _attrs():
-        return frozenset(['id', 'io_object'])
+        return ('id', 'io_object')
 
     def dump(self):
         map_object = CommentedMap()

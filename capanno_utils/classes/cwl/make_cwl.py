@@ -60,7 +60,7 @@ def initialize_command_line_tool_file_tool(tool_name, version_name, subtool_name
             base_command = f"{tool_name} {subtool_name}" if subtool_name != main_tool_subtool_name else tool_name
             _initialize_command_line_tool_file_yaml(base_command, cwl_tool_path)
         else:
-            assert isinstance(init_cwl, str)
+            assert isinstance(init_cwl, str)  # expect this to be a url.
             _initialize_command_line_tool_from_url(init_cwl, cwl_tool_path)
     return
 
