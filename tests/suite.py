@@ -5,6 +5,7 @@ import argparse
 from unittest import defaultTestLoader, TestSuite
 from tests.test_add_content import TestAddToolMain, TestAddScriptMain
 from tests.test_add_tool import TestAddTool
+from tests.test_input_templates import TestMakeCommandLineToolInputsTemplate
 from tests.test_tool_instance_metadata import TestMakeToolInstanceMetadata
 from tests.test_tool_metadata import TestMakeParentToolMetadata, TestMakeSubtoolMetadata
 from tests.test_script_metadata import TestScriptMetadata
@@ -47,6 +48,10 @@ def suite_add_tool():
 
 def suite_content_maps():
     suite = defaultTestLoader.loadTestsFromTestCase(TestToolMaps)
+    return suite
+
+def suite_input_templates():
+    suite = defaultTestLoader.loadTestsFromTestCase(TestMakeCommandLineToolInputsTemplate)
     return suite
 
 
@@ -105,6 +110,7 @@ def suite_dict():
                   'add_tool': suite_add_tool(),
                   'content_maps': suite_content_maps(),
                   'full': suite_full(),
+                  'input_templates': suite_input_templates(),
                   'path_tools': suite_path_tools(),
                   'script_metadata': suite_script_metadata(),
                   'tool_instance_metadata': suite_tool_instance_metadata(),

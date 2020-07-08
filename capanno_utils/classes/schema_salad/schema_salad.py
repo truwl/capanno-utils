@@ -11,6 +11,8 @@ from schema_salad.schema import get_metaschema, validate_doc, collect_namespaces
 from capanno_utils.classes.cwl.command_line_tool import load_document
 from capanno_utils.helpers.string_tools import uri_name
 from capanno_utils.helpers.dict_tools import get_dict_from_list
+from capanno_utils.classes.cwl.command_line_tool_mixins import get_short_name
+
 
 
 
@@ -213,8 +215,7 @@ class InputsSchema:
                     }
 
     def __init__(self, cwl_path):
-        if not isinstance(cwl_path, Path):
-            cwl_path = Path(cwl_path)
+        cwl_path = Path(cwl_path)
         self.cwl_path = cwl_path
         cwl_document = load_document(str(self.cwl_path))
         self._cwl_inputs = cwl_document.inputs
@@ -229,9 +230,11 @@ class InputsSchema:
         return self._cwl_schema_def_requirement
 
     def validate_inputs(self, document_path):
-        metaschema_path = self._make_metaschema_base_file()
-        inputs_schema_path = self._make_temp_schema_file(metaschema_path)
-        self._schema_salad_validate(inputs_schema_path, document_path)
+        with tempfile.NamedTemporaryFile(prefix='metaschema_base', suffix='.yml') as tmp_meta_base:
+            self._make_metaschema_base_file(tmp_meta_base)
+            with tempfile.NamedTemporaryFile(prefix='inputs_schema', suffix='.yml') as tmp:
+                self._make_temp_schema_file(tmp_meta_base.name, tmp)
+                self._schema_salad_validate(tmp.name, document_path)
         return
 
     def _make_schema_dict(self):
@@ -244,27 +247,23 @@ class InputsSchema:
         schema_dict['$graph'][inputs_field_index]['fields'] = inputs_fields
         return  schema_dict
 
-    def _make_metaschema_base_file(self):
+    def _make_metaschema_base_file(self, out_file):
         yaml = YAML(pure=True)
         yaml.default_flow_style = False
         yaml.indent(mapping=2, sequence=4, offset=2)
-        metaschema_file = tempfile.NamedTemporaryFile(delete=False, prefix='metaschema_base', suffix='.yml')
-        with metaschema_file as tempf:
-            yaml.dump(SaladSchemaBase.metaschema_base, tempf)
-        return metaschema_file.name
+        yaml.dump(SaladSchemaBase.metaschema_base, out_file)
+        return
 
 
-    def _make_temp_schema_file(self, metaschema_path):
+    def _make_temp_schema_file(self, metaschema_path, out_file):
         schema_dict = self._make_schema_dict()
         import_dict, import_index = get_dict_from_list(schema_dict['$graph'], '$import', 'null')
         schema_dict['$graph'][import_index] = {'$import': metaschema_path}
         yaml = YAML(pure=True)
         yaml.default_flow_style = False
         yaml.indent(mapping=2, sequence=4, offset=2)
-        schema_file = tempfile.NamedTemporaryFile(delete=False, prefix='inputs_schema', suffix='.yml')
-        with schema_file as tempf:
-            yaml.dump(schema_dict, tempf)
-        return schema_file.name
+        yaml.dump(schema_dict, out_file)
+        return
 
     def _schema_salad_validate(self, schema_path, document_path):
         '''
@@ -315,6 +314,10 @@ class InputsSchema:
 
         return
 
+    @staticmethod
+    def _make_input_value_field(command_input_parameter):
+
+        raise NotImplementedError
 
     def make_template(self):
         """
@@ -324,6 +327,8 @@ class InputsSchema:
         """
         template = CommentedMap()
         for input in self.cwl_inputs:
-            pass
-        raise NotImplementedError
+            input_name = get_short_name(input.id)
+            value, comment = ('some_value', 'some_comment')
+            template.insert(0, input_name, value, comment)
+        return template
 

@@ -172,6 +172,13 @@ class CommandInputParameterMixin:
 
         return input_type
 
+    def make_input_value_field(self):
+        """
+        Make a key: value pair for the input to use in a job file.
+        :return:
+        """
+
+
     def get_ordered_input_map(self, schema_def_requirement):
         """
         Turn a CommandInputParameter into a CommentedMap with a consistent order.
