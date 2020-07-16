@@ -22,8 +22,11 @@ from xd_cwl_utils.helpers.get_paths import get_tool_common_dir, main_tool_subtoo
 from xd_cwl_utils.helpers.import_repo import bioCwl
 
 class TestImport(unittest.TestCase):
-    def test_import(self):
+    def test_import_noversion(self):
         mybio = bioCwl()
-        #mybio.getCwlInfos()
         lancetres=mybio.getCwlInfo('Lancet','Lancet.cwl')
         assert(lancetres['docker']=='sinaiiidgst/lancet:latest')
+
+    def test_import(self):
+        mybio = bioCwl()
+        allres=mybio.getCwlInfos()
