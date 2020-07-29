@@ -24,6 +24,7 @@ def suite_full():
     suite.addTest(suite_add_content())
     suite.addTest((suite_add_tool()))
     suite.addTest(suite_content_maps())
+    suite.addTest(suite_input_templates())
     suite.addTest(suite_script_metadata())
     suite.addTest(suite_tool_metadata())
     suite.addTest(suite_validate())

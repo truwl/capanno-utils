@@ -17,13 +17,13 @@ def get_short_name(url_string):
         short_name = url_parse.path.split('#')[-1]
     return short_name
 
-
+cwl_types = ('null', 'boolean', 'int', 'long', 'float', 'double', 'string', 'File', 'Directory')
 
 class CommandLineToolMixin:
     """Mixin methods for working with cwl_classes.CommandLineTool objects. These objects should be preprocessed and
     validated before using these methods"""
 
-    cwl_types = ('null', 'boolean', 'int', 'long', 'float', 'double', 'string', 'File', 'Directory')
+
 
     def get_schema_def_requirement(self):
         """
@@ -142,13 +142,15 @@ class CommandInputParameterMixin:
 
     def _handle_str_input_type(self, _type, schema_def_requirement):
         """
-        Should be the terminating function of walking CommandInputParameter.type fields. Return type if type is CWLType,
+        Should be the terminating function of walking CommandInputParameter.type fields.
+        The value of _type must be a string here.
+        Return type if type is CWLType,
         otherwise return type from SchemaDefRequirement dict.
         :param _type:
         :param schema_def_dict:
         :return:
         """
-        if _type in ('null', 'boolean', 'int', 'long', 'float', 'double', 'string', 'File', 'Directory'):
+        if _type in cwl_types:
             _type = _type
         else:
             schema_def_dict = schema_def_requirement._make_schema_def_dict()
@@ -156,7 +158,15 @@ class CommandInputParameterMixin:
             _type = schema_def_dict[schema_def_name]
         return _type
 
-    def _handle_input_type_field(self, type_field, schema_def_requirement):
+    def _handle_input_type_field(self, schema_def_requirement):
+        """
+        Returns the type, replacing any schema_def_requirement types with the actual type.
+        Does not handle records and enums yet.
+
+        :param schema_def_requirement:
+        :return:
+        """
+        type_field = self.type
         if isinstance(type_field, str):
             input_type = self._handle_str_input_type(type_field, schema_def_requirement)
 
@@ -172,11 +182,79 @@ class CommandInputParameterMixin:
 
         return input_type
 
-    def make_input_value_field(self):
+
+
+    @staticmethod
+    def _make_base_input_value_field(input_type, default_value, is_optional=False, comment=None):
+        """
+        Make a value for a single field in an input template. Terminating function for make_input_value_field.
+        :param input_type:
+        :param default_value:
+        :return:
+        """
+        defaults = {
+            'boolean': False,
+            'int': None,
+            'long': None,
+            'float': None,
+            'double': None,
+            'string': None,
+            'File': {'class': 'File', 'path': None, 'uri': None},
+            'Directory': {'class': 'File', 'path': None, 'uri': None}
+        }
+
+        if isinstance(input_type, list):
+            if 'null' in input_type:
+                is_optional = True
+                input_type.remove('null')
+            if len(input_type) == 1:
+                template_param_value, comment = CommandInputParameterMixin._make_base_input_value_field(input_type[0], default_value, is_optional=is_optional, comment=comment)
+            else: # Have an input that accepts multiple types. Have not seen this case yet.
+               for input_type_entry in input_type:
+                   raise NotImplementedError
+        elif isinstance(input_type, dict) and 'type' in input_type:  # includes arrays, enums, and records.
+            if input_type['type'] == 'array':
+                if input_type['items'] in cwl_types:
+                    comment = 'array'
+                    template_param_value, comment = CommandInputParameterMixin._make_base_input_value_field(input_type['items'], default_value, is_optional=is_optional, comment=comment)
+                    template_param_value = [template_param_value]  # Array should be a list.
+
+                else:
+                    raise NotImplementedError  # Have an array of records or enums or something.
+            elif input_type['type'] == 'enum':
+                raise NotImplementedError
+            elif input_type['type'] == 'record':
+                raise NotImplementedError
+            else:
+                raise NotImplementedError # type could be 'default' or who knows.
+
+        elif input_type in cwl_types:  # Terminating. Should always hit this eventually.
+            if not default_value:
+                default_value = defaults[input_type]
+            template_param_value = default_value
+            if is_optional:
+                comment = f"Optional {comment if comment else ''} {input_type}"
+            else:
+                comment = f"Required {comment if comment else ''}{input_type}"
+        else:
+            raise ValueError(f"Input type is not a cwl type, list, or dict.")
+
+
+
+
+        return template_param_value, comment
+
+    def make_input_value_field(self, schema_def_requirement):
         """
         Make a key: value pair for the input to use in a job file.
         :return:
         """
+
+        default_value = self.default
+        input_type = self._handle_input_type_field(schema_def_requirement)  # takes care of schema_def_requirment stuff.
+        template_param_value, comment = self._make_base_input_value_field(input_type, default_value)
+        return template_param_value, comment
+
 
 
     def get_ordered_input_map(self, schema_def_requirement):
@@ -187,7 +265,7 @@ class CommandInputParameterMixin:
         if self.label:
             input_map['label'] = self.label
         if self.type:  # type is not required for CommandInputParameter. Never seen this case, but...
-            input_map['type'] = self._handle_input_type_field(self.type, schema_def_requirement)
+            input_map['type'] = self._handle_input_type_field(schema_def_requirement)
         if self.default:
             input_map['default'] = self.default
         if self.inputBinding:

@@ -240,7 +240,7 @@ class InputsSchema:
     def _make_schema_dict(self):
         inputs_fields = {}
         for input in self.cwl_inputs:
-            inputs_fields[uri_name(input.id)] = {'type': input._handle_input_type_field(input.type, self.cwl_schema_def_requirement)}
+            inputs_fields[uri_name(input.id)] = {'type': input._handle_input_type_field(self.cwl_schema_def_requirement)}
 
         schema_dict = deepcopy(InputsSchema.template_dict)
         _, inputs_field_index = get_dict_from_list(schema_dict['$graph'], 'name', 'InputsField')
@@ -315,9 +315,9 @@ class InputsSchema:
         return
 
     @staticmethod
-    def _make_input_value_field(command_input_parameter):
-
-        raise NotImplementedError
+    def _make_input_value_field(command_input_parameter, schema_def_requirement):
+        template_param_value, comment = command_input_parameter.make_input_value_field(schema_def_requirement)
+        return template_param_value, comment
 
     def make_template(self):
         """
@@ -328,7 +328,6 @@ class InputsSchema:
         template = CommentedMap()
         for input in self.cwl_inputs:
             input_name = get_short_name(input.id)
-            value, comment = ('some_value', 'some_comment')
-            template.insert(0, input_name, value, comment)
+            template_param_value, comment = self._make_input_value_field(input, self._cwl_schema_def_requirement)
+            template.insert(0, input_name, template_param_value, comment)
         return template
-
