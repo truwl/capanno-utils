@@ -21,3 +21,12 @@ class TestMakeCommandLineToolInputsTemplate(TestBase):
             yaml.dump(template, tmp)
             assert True
         return
+
+    def test_make_clt_template_2(self):
+        cwl_tool = self.test_files_dir / 'cwl-misc' / 'test_command_line_tool.cwl'
+        inputs_schema = InputsSchema(cwl_tool)
+        template = inputs_schema.make_template()
+        yaml = YAML()
+        with NamedTemporaryFile(delete=False, prefix='test_template_', suffix='.yml') as tmp:
+            yaml.dump(template, tmp)
+        return

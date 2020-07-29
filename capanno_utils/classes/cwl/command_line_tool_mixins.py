@@ -199,8 +199,8 @@ class CommandInputParameterMixin:
             'float': None,
             'double': None,
             'string': None,
-            'File': {'class': 'File', 'path': None, 'uri': None},
-            'Directory': {'class': 'File', 'path': None, 'uri': None}
+            'File': {'class': 'File', 'path': None, 'location': None},
+            'Directory': {'class': 'File', 'path': None, 'location': None}
         }
 
         if isinstance(input_type, list):
@@ -217,7 +217,8 @@ class CommandInputParameterMixin:
                 if input_type['items'] in cwl_types:
                     comment = 'array'
                     template_param_value, comment = CommandInputParameterMixin._make_base_input_value_field(input_type['items'], default_value, is_optional=is_optional, comment=comment)
-                    template_param_value = [template_param_value]  # Array should be a list.
+                    if not isinstance(template_param_value, list):
+                        template_param_value = [template_param_value]  # Array should be a list.
 
                 else:
                     raise NotImplementedError  # Have an array of records or enums or something.
