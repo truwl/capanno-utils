@@ -16,10 +16,10 @@ from ruamel.yaml.compat import string_types, ordereddict
 import logging, sys
 import subprocess
 from typing import Optional
-from xd_cwl_utils.add.add_tools import add_tool, add_subtool
-from xd_cwl_utils.helpers.get_paths import get_tool_common_dir, main_tool_subtool_name, get_tool_metadata, get_tool_dir
+from capanno_utils.add.add_tools import add_tool, add_subtool
+from capanno_utils.helpers.get_paths import get_tool_common_dir, main_tool_subtool_name, get_tool_metadata, get_tool_dir
 
-from xd_cwl_utils.helpers.import_repo import bioCwl
+from capanno_utils.helpers.import_repo import bioCwl
 
 class TestImport(unittest.TestCase):
     def test_import_noversion(self):
