@@ -7,6 +7,7 @@ import copy
 import os
 import re
 import uuid as _uuid__  # pylint: disable=unused-import # noqa: F401
+from io import StringIO
 from typing import (
     Any,
     Dict,
@@ -19,31 +20,27 @@ from typing import (
     Type,
     Union,
 )
-
-from six import iteritems, string_types, text_type
-from six.moves import StringIO, urllib
-from typing_extensions import Text  # pylint: disable=unused-import
+from urllib.parse import quote, urlsplit, urlunsplit
+from urllib.request import pathname2url
 
 from ruamel import yaml
 from ruamel.yaml.comments import CommentedMap
-from schema_salad.ref_resolver import Fetcher
-from schema_salad.sourceline import SourceLine, add_lc_filename
 from schema_salad.exceptions import SchemaSaladException, ValidationException
+from schema_salad.fetcher import DefaultFetcher, Fetcher
+from schema_salad.sourceline import SourceLine, add_lc_filename
 
-# move to a regular typing import when Python 3.3-3.6 is no longer supported
-
-_vocab = {}  # type: Dict[Text, Text]
-_rvocab = {}  # type: Dict[Text, Text]
+_vocab = {}  # type: Dict[str, str]
+_rvocab = {}  # type: Dict[str, str]
 
 
 class Savable(object):
     @classmethod
     def fromDoc(cls, _doc, baseuri, loadingOptions, docRoot=None):
-        # type: (Any, Text, LoadingOptions, Optional[Text]) -> Savable
+        # type: (Any, str, LoadingOptions, Optional[str]) -> Savable
         pass
 
     def save(self, top=False, base_url="", relative_uris=True):
-        # type: (bool, Text, bool) -> Dict[Text, Text]
+        # type: (bool, str, bool) -> Dict[str, str]
         pass
 
 
@@ -51,14 +48,16 @@ class LoadingOptions(object):
     def __init__(
         self,
         fetcher=None,  # type: Optional[Fetcher]
-        namespaces=None,  # type: Optional[Dict[Text, Text]]
-        fileuri=None,  # type: Optional[Text]
+        namespaces=None,  # type: Optional[Dict[str, str]]
+        schemas=None,  # type: Optional[Dict[str, str]]
+        fileuri=None,  # type: Optional[str]
         copyfrom=None,  # type: Optional[LoadingOptions]
         original_doc=None,  # type: Optional[Any]
     ):  # type: (...) -> None
-        self.idx = {}  # type: Dict[Text, Dict[Text, Any]]
-        self.fileuri = fileuri  # type: Optional[Text]
+        self.idx = {}  # type: Dict[str, Dict[str, Any]]
+        self.fileuri = fileuri  # type: Optional[str]
         self.namespaces = namespaces
+        self.schemas = schemas
         self.original_doc = original_doc
         if copyfrom is not None:
             self.idx = copyfrom.idx
@@ -68,12 +67,13 @@ class LoadingOptions(object):
                 self.fileuri = copyfrom.fileuri
             if namespaces is None:
                 self.namespaces = copyfrom.namespaces
+            if schemas is None:
+                self.schemas = copyfrom.schemas
 
         if fetcher is None:
             import requests
             from cachecontrol.wrapper import CacheControl
             from cachecontrol.caches import FileCache
-            from schema_salad.ref_resolver import DefaultFetcher
 
             if "HOME" in os.environ:
                 session = CacheControl(
@@ -103,13 +103,13 @@ class LoadingOptions(object):
         if namespaces is not None:
             self.vocab = self.vocab.copy()
             self.rvocab = self.rvocab.copy()
-            for k, v in iteritems(namespaces):
+            for k, v in namespaces.items():
                 self.vocab[k] = v
                 self.rvocab[v] = k
 
 
 def load_field(val, fieldtype, baseuri, loadingOptions):
-    # type: (Union[Text, Dict[Text, Text]], _Loader, Text, LoadingOptions) -> Any
+    # type: (Union[str, Dict[str, str]], _Loader, str, LoadingOptions) -> Any
     if isinstance(val, MutableMapping):
         if "$import" in val:
             if loadingOptions.fileuri is None:
@@ -128,15 +128,13 @@ def load_field(val, fieldtype, baseuri, loadingOptions):
     return fieldtype.load(val, baseuri, loadingOptions)
 
 
-save_type = Union[
-    Dict[Text, Text], List[Union[Dict[Text, Text], List[Any], None]], None
-]
+save_type = Union[Dict[str, str], List[Union[Dict[str, str], List[Any], None]], None]
 
 
 def save(
     val,  # type: Optional[Union[Savable, MutableSequence[Savable]]]
     top=True,  # type: bool
-    base_url="",  # type: Text
+    base_url="",  # type: str
     relative_uris=True,  # type: bool
 ):  # type: (...) -> save_type
 
@@ -158,68 +156,64 @@ def save(
 
 
 def expand_url(
-    url,  # type: Union[str, Text]
-    base_url,  # type: Union[str, Text]
+    url,  # type: str
+    base_url,  # type: str
     loadingOptions,  # type: LoadingOptions
     scoped_id=False,  # type: bool
     vocab_term=False,  # type: bool
     scoped_ref=None,  # type: Optional[int]
 ):
-    # type: (...) -> Text
-    url = Text(url)
-
-    if url in (u"@id", u"@type"):
+    # type: (...) -> str
+    if url in ("@id", "@type"):
         return url
 
     if vocab_term and url in loadingOptions.vocab:
         return url
 
-    if bool(loadingOptions.vocab) and u":" in url:
-        prefix = url.split(u":")[0]
+    if bool(loadingOptions.vocab) and ":" in url:
+        prefix = url.split(":")[0]
         if prefix in loadingOptions.vocab:
             url = loadingOptions.vocab[prefix] + url[len(prefix) + 1 :]
 
-    split = urllib.parse.urlsplit(url)
+    split = urlsplit(url)
 
     if (
-        (bool(split.scheme) and split.scheme in [u"http", u"https", u"file"])
-        or url.startswith(u"$(")
-        or url.startswith(u"${")
+        (bool(split.scheme) and split.scheme in ["http", "https", "file"])
+        or url.startswith("$(")
+        or url.startswith("${")
     ):
         pass
     elif scoped_id and not bool(split.fragment):
-        splitbase = urllib.parse.urlsplit(base_url)
-        frg = u""
+        splitbase = urlsplit(base_url)
+        frg = ""
         if bool(splitbase.fragment):
-            frg = splitbase.fragment + u"/" + split.path
+            frg = splitbase.fragment + "/" + split.path
         else:
             frg = split.path
         pt = splitbase.path if splitbase.path != "" else "/"
-        url = urllib.parse.urlunsplit(
-            (splitbase.scheme, splitbase.netloc, pt, splitbase.query, frg)
-        )
+        url = urlunsplit((splitbase.scheme, splitbase.netloc, pt, splitbase.query, frg))
     elif scoped_ref is not None and not bool(split.fragment):
-        splitbase = urllib.parse.urlsplit(base_url)
-        sp = splitbase.fragment.split(u"/")
+        splitbase = urlsplit(base_url)
+        sp = splitbase.fragment.split("/")
         n = scoped_ref
         while n > 0 and len(sp) > 0:
             sp.pop()
             n -= 1
         sp.append(url)
-        url = urllib.parse.urlunsplit(
+        url = urlunsplit(
             (
                 splitbase.scheme,
                 splitbase.netloc,
                 splitbase.path,
                 splitbase.query,
-                u"/".join(sp),
+                "/".join(sp),
             )
         )
     else:
         url = loadingOptions.fetcher.urljoin(base_url, url)
 
     if vocab_term:
-        split = urllib.parse.urlsplit(url)
+        split = urlsplit(url)
         if bool(split.scheme):
             if url in loadingOptions.rvocab:
                 return loadingOptions.rvocab[url]
@@ -231,13 +225,13 @@ def expand_url(
 
 class _Loader(object):
     def load(self, doc, baseuri, loadingOptions, docRoot=None):
-        # type: (Any, Text, LoadingOptions, Optional[Text]) -> Any
+        # type: (Any, str, LoadingOptions, Optional[str]) -> Any
         pass
 
 
 class _AnyLoader(_Loader):
     def load(self, doc, baseuri, loadingOptions, docRoot=None):
-        # type: (Any, Text, LoadingOptions, Optional[Text]) -> Any
+        # type: (Any, str, LoadingOptions, Optional[str]) -> Any
         if doc is not None:
             return doc
         raise ValidationException("Expected non-null")
@@ -245,11 +239,11 @@ class _AnyLoader(_Loader):
 
 class _PrimitiveLoader(_Loader):
     def __init__(self, tp):
-        # type: (Union[type, Tuple[Type[Text], Type[Text]]]) -> None
+        # type: (Union[type, Tuple[Type[str], Type[str]]]) -> None
         self.tp = tp
 
     def load(self, doc, baseuri, loadingOptions, docRoot=None):
-        # type: (Any, Text, LoadingOptions, Optional[Text]) -> Any
+        # type: (Any, str, LoadingOptions, Optional[str]) -> Any
         if not isinstance(doc, self.tp):
             raise ValidationException(
                 "Expected a {} but got {}".format(
@@ -268,7 +262,7 @@ class _ArrayLoader(_Loader):
         self.items = items
 
     def load(self, doc, baseuri, loadingOptions, docRoot=None):
-        # type: (Any, Text, LoadingOptions, Optional[Text]) -> Any
+        # type: (Any, str, LoadingOptions, Optional[str]) -> Any
         if not isinstance(doc, MutableSequence):
             raise ValidationException("Expected a list")
         r = []  # type: List[Any]
@@ -294,11 +288,11 @@ class _ArrayLoader(_Loader):
 
 class _EnumLoader(_Loader):
     def __init__(self, symbols):
-        # type: (Sequence[Text]) -> None
+        # type: (Sequence[str]) -> None
         self.symbols = symbols
 
     def load(self, doc, baseuri, loadingOptions, docRoot=None):
-        # type: (Any, Text, LoadingOptions, Optional[Text]) -> Any
+        # type: (Any, str, LoadingOptions, Optional[str]) -> Any
         if doc in self.symbols:
             return doc
         else:
@@ -311,7 +305,7 @@ class _RecordLoader(_Loader):
         self.classtype = classtype
 
     def load(self, doc, baseuri, loadingOptions, docRoot=None):
-        # type: (Any, Text, LoadingOptions, Optional[Text]) -> Any
+        # type: (Any, str, LoadingOptions, Optional[str]) -> Any
         if not isinstance(doc, MutableMapping):
             raise ValidationException("Expected a dict")
         return self.classtype.fromDoc(doc, baseuri, loadingOptions, docRoot=docRoot)
@@ -326,7 +320,7 @@ class _UnionLoader(_Loader):
         self.alternates = alternates
 
     def load(self, doc, baseuri, loadingOptions, docRoot=None):
-        # type: (Any, Text, LoadingOptions, Optional[Text]) -> Any
+        # type: (Any, str, LoadingOptions, Optional[str]) -> Any
         errors = []
         for t in self.alternates:
             try:
@@ -334,10 +328,10 @@ class _UnionLoader(_Loader):
             except ValidationException as e:
                 errors.append(
                     ValidationException(
-                        u"tried {} but".format(t.__class__.__name__), None, [e]
+                        "tried {} but".format(t.__class__.__name__), None, [e]
                     )
                 )
-        raise ValidationException("", None, errors, u"-")
+        raise ValidationException("", None, errors, "-")
 
     def __repr__(self):  # type: () -> str
         return " | ".join(str(a) for a in self.alternates)
@@ -352,7 +346,7 @@ class _URILoader(_Loader):
         self.scoped_ref = scoped_ref
 
     def load(self, doc, baseuri, loadingOptions, docRoot=None):
-        # type: (Any, Text, LoadingOptions, Optional[Text]) -> Any
+        # type: (Any, str, LoadingOptions, Optional[str]) -> Any
         if isinstance(doc, MutableSequence):
             doc = [
                 expand_url(
@@ -365,7 +359,7 @@ class _URILoader(_Loader):
                 )
                 for i in doc
             ]
-        if isinstance(doc, string_types):
+        if isinstance(doc, str):
             doc = expand_url(
                 doc,
                 baseuri,
@@ -387,27 +381,29 @@ class _TypeDSLLoader(_Loader):
 
     def resolve(
         self,
-        doc,  # type: Text
-        baseuri,  # type: Text
+        doc,  # type: str
+        baseuri,  # type: str
         loadingOptions,  # type: LoadingOptions
     ):
-        # type: (...) -> Union[List[Union[Dict[Text, Text], Text]], Dict[Text, Text], Text]
+        # type: (...) -> Union[List[Union[Dict[str, str], str]], Dict[str, str], str]
         m = self.typeDSLregex.match(doc)
         if m:
+            group1 = m.group(1)
+            assert group1 is not None
             first = expand_url(
-                m.group(1), baseuri, loadingOptions, False, True, self.refScope
+                group1, baseuri, loadingOptions, False, True, self.refScope
             )
             second = third = None
             if bool(m.group(2)):
-                second = {u"type": u"array", u"items": first}
+                second = {"type": "array", "items": first}
                 # second = CommentedMap((("type", "array"),
                 #                       ("items", first)))
                 # second.lc.add_kv_line_col("type", lc)
                 # second.lc.add_kv_line_col("items", lc)
                 # second.lc.filename = filename
             if bool(m.group(3)):
-                third = [u"null", second or first]
-                # third = CommentedSeq([u"null", second or first])
+                third = ["null", second or first]
+                # third = CommentedSeq(["null", second or first])
                 # third.lc.add_kv_line_col(0, lc)
                 # third.lc.add_kv_line_col(1, lc)
                 # third.lc.filename = filename
@@ -415,11 +411,11 @@ class _TypeDSLLoader(_Loader):
         return doc
 
     def load(self, doc, baseuri, loadingOptions, docRoot=None):
-        # type: (Any, Text, LoadingOptions, Optional[Text]) -> Any
+        # type: (Any, str, LoadingOptions, Optional[str]) -> Any
         if isinstance(doc, MutableSequence):
             r = []  # type: List[Any]
             for d in doc:
-                if isinstance(d, string_types):
+                if isinstance(d, str):
                     resolved = self.resolve(d, baseuri, loadingOptions)
                     if isinstance(resolved, MutableSequence):
                         for i in resolved:
@@ -431,7 +427,7 @@ class _TypeDSLLoader(_Loader):
                 else:
                     r.append(d)
             doc = r
-        elif isinstance(doc, string_types):
+        elif isinstance(doc, str):
             doc = self.resolve(doc, baseuri, loadingOptions)
 
         return self.inner.load(doc, baseuri, loadingOptions)
@@ -439,13 +435,13 @@ class _TypeDSLLoader(_Loader):
 
 class _IdMapLoader(_Loader):
     def __init__(self, inner, mapSubject, mapPredicate):
-        # type: (_Loader, Text, Union[Text, None]) -> None
+        # type: (_Loader, str, Union[str, None]) -> None
         self.inner = inner
         self.mapSubject = mapSubject
         self.mapPredicate = mapPredicate
 
     def load(self, doc, baseuri, loadingOptions, docRoot=None):
-        # type: (Any, Text, LoadingOptions, Optional[Text]) -> Any
+        # type: (Any, str, LoadingOptions, Optional[str]) -> Any
         if isinstance(doc, MutableMapping):
             r = []  # type: List[Any]
             for k in sorted(doc.keys()):
@@ -472,18 +468,20 @@ class _IdMapLoader(_Loader):
 
 
 def _document_load(loader, doc, baseuri, loadingOptions):
-    # type: (_Loader, Any, Text, LoadingOptions) -> Any
-    if isinstance(doc, string_types):
+    # type: (_Loader, Any, str, LoadingOptions) -> Any
+    if isinstance(doc, str):
         return _document_load_by_url(
             loader, loadingOptions.fetcher.urljoin(baseuri, doc), loadingOptions
         )
 
     if isinstance(doc, MutableMapping):
-        if "$namespaces" in doc:
+        if "$namespaces" in doc or "$schemas" in doc:
             loadingOptions = LoadingOptions(
-                copyfrom=loadingOptions, namespaces=doc["$namespaces"]
+                copyfrom=loadingOptions,
+                namespaces=doc.get("$namespaces", None),
+                schemas=doc.get("$schemas", None),
             )
-            doc = {k: v for k, v in doc.items() if k != "$namespaces"}
+            doc = {k: v for k, v in doc.items() if k not in ["$namespaces", "$schemas"]}
 
         if "$base" in doc:
             baseuri = doc["$base"]
@@ -500,7 +498,7 @@ def _document_load(loader, doc, baseuri, loadingOptions):
 
 
 def _document_load_by_url(loader, url, loadingOptions):
-    # type: (_Loader, Text, LoadingOptions) -> Any
+    # type: (_Loader, str, LoadingOptions) -> Any
     if url in loadingOptions.idx:
         return _document_load(loader, loadingOptions.idx[url], url, loadingOptions)
 
@@ -510,7 +508,7 @@ def _document_load_by_url(loader, url, loadingOptions):
     else:
         textIO = StringIO(text)
     textIO.name = str(url)
-    result = yaml.round_trip_load(textIO, preserve_quotes=True)
+    result = yaml.main.round_trip_load(textIO, preserve_quotes=True)
     add_lc_filename(result, url)
 
     loadingOptions.idx[url] = result
@@ -525,10 +523,10 @@ def file_uri(path, split_frag=False):  # type: (str, bool) -> str
         return path
     if split_frag:
         pathsp = path.split("#", 2)
-        frag = "#" + urllib.parse.quote(str(pathsp[1])) if len(pathsp) == 2 else ""
-        urlpath = urllib.request.pathname2url(str(pathsp[0]))
+        frag = "#" + quote(str(pathsp[1])) if len(pathsp) == 2 else ""
+        urlpath = pathname2url(str(pathsp[0]))
     else:
-        urlpath = urllib.request.pathname2url(path)
+        urlpath = pathname2url(path)
         frag = ""
     if urlpath.startswith("//"):
         return "file:{}{}".format(urlpath, frag)
@@ -536,7 +534,7 @@ def file_uri(path, split_frag=False):  # type: (str, bool) -> str
         return "file://{}{}".format(urlpath, frag)
 
 
-def prefix_url(url, namespaces):  # type: (Text, Dict[Text, Text]) -> Text
+def prefix_url(url, namespaces):  # type: (str, Dict[str, str]) -> str
     for k, v in namespaces.items():
         if url.startswith(v):
             return k + ":" + url[len(v) :]
@@ -544,7 +542,7 @@ def prefix_url(url, namespaces):  # type: (Text, Dict[Text, Text]) -> Text
 
 
 def save_relative_uri(uri, base_url, scoped_id, ref_scope, relative_uris):
-    # type: (Text, Text, bool, Optional[int], bool) -> Union[Text, List[Text]]
+    # type: (str, str, bool, Optional[int], bool) -> Union[str, List[str]]
     if not relative_uris or uri == base_url:
         return uri
     if isinstance(uri, MutableSequence):
@@ -552,9 +550,9 @@ def save_relative_uri(uri, base_url, scoped_id, ref_scope, relative_uris):
             save_relative_uri(u, base_url, scoped_id, ref_scope, relative_uris)
             for u in uri
         ]
-    elif isinstance(uri, text_type):
-        urisplit = urllib.parse.urlsplit(uri)
-        basesplit = urllib.parse.urlsplit(base_url)
+    elif isinstance(uri, str):
+        urisplit = urlsplit(uri)
+        basesplit = urlsplit(base_url)
         if urisplit.scheme == basesplit.scheme and urisplit.netloc == basesplit.netloc:
             if urisplit.path != basesplit.path:
                 p = os.path.relpath(urisplit.path, os.path.dirname(basesplit.path))
@@ -587,9 +585,9 @@ A field of a record.
     def __init__(
         self,
         name,  # type: Any
-        doc,  # type: Any
         type,  # type: Any
-        extension_fields=None,  # type: Optional[Dict[Text, Any]]
+        doc=None,  # type: Any
+        extension_fields=None,  # type: Optional[Dict[str, Any]]
         loadingOptions=None  # type: Optional[LoadingOptions]
     ):  # type: (...) -> None
 
@@ -607,7 +605,7 @@ A field of a record.
 
     @classmethod
     def fromDoc(cls, doc, baseuri, loadingOptions, docRoot=None):
-        # type: (Any, Text, LoadingOptions, Optional[Text]) -> RecordField
+        # type: (Any, str, LoadingOptions, Optional[str]) -> RecordField
 
         _doc = copy.copy(doc)
         if hasattr(doc, 'lc'):
@@ -666,7 +664,7 @@ A field of a record.
             if k not in cls.attrs:
                 if ":" in k:
                     ex = expand_url(k,
-                                    u"",
+                                    "",
                                     loadingOptions,
                                     scoped_id=False,
                                     vocab_term=False)
@@ -684,11 +682,11 @@ A field of a record.
             raise ValidationException("Trying 'RecordField'", None, _errors__)
         loadingOptions = copy.deepcopy(loadingOptions)
         loadingOptions.original_doc = _doc
-        return cls(name, doc, type, extension_fields=extension_fields, loadingOptions=loadingOptions)
+        return cls(name=name, doc=doc, type=type, extension_fields=extension_fields, loadingOptions=loadingOptions)
 
     def save(self, top=False, base_url="", relative_uris=True):
-        # type: (bool, Text, bool) -> Dict[Text, Any]
-        r = yaml.comments.CommentedMap()  # type: Dict[Text, Any]
+        # type: (bool, str, bool) -> Dict[str, Any]
+        r = yaml.comments.CommentedMap()  # type: Dict[str, Any]
         for ef in self.extension_fields:
             r[prefix_url(ef, self.loadingOptions.vocab)] = self.extension_fields[ef]
 
@@ -716,9 +714,12 @@ A field of a record.
                 base_url=self.name,
                 relative_uris=relative_uris)
 
-        if top and self.loadingOptions.namespaces:
-            r["$namespaces"] = self.loadingOptions.namespaces
-
+        # top refers to the directory level
+        if top:
+            if self.loadingOptions.namespaces:
+                r["$namespaces"] = self.loadingOptions.namespaces
+            if self.loadingOptions.schemas:
+                r["$schemas"] = self.loadingOptions.schemas
         return r
 
     attrs = frozenset(['name', 'doc', 'type'])
@@ -727,9 +728,9 @@ A field of a record.
 class RecordSchema(Savable):
     def __init__(
         self,
-        fields,  # type: Any
         type,  # type: Any
-        extension_fields=None,  # type: Optional[Dict[Text, Any]]
+        fields=None,  # type: Any
+        extension_fields=None,  # type: Optional[Dict[str, Any]]
         loadingOptions=None  # type: Optional[LoadingOptions]
     ):  # type: (...) -> None
 
@@ -746,7 +747,7 @@ class RecordSchema(Savable):
 
     @classmethod
     def fromDoc(cls, doc, baseuri, loadingOptions, docRoot=None):
-        # type: (Any, Text, LoadingOptions, Optional[Text]) -> RecordSchema
+        # type: (Any, str, LoadingOptions, Optional[str]) -> RecordSchema
 
         _doc = copy.copy(doc)
         if hasattr(doc, 'lc'):
@@ -784,7 +785,7 @@ class RecordSchema(Savable):
             if k not in cls.attrs:
                 if ":" in k:
                     ex = expand_url(k,
-                                    u"",
+                                    "",
                                     loadingOptions,
                                     scoped_id=False,
                                     vocab_term=False)
@@ -802,11 +803,11 @@ class RecordSchema(Savable):
             raise ValidationException("Trying 'RecordSchema'", None, _errors__)
         loadingOptions = copy.deepcopy(loadingOptions)
         loadingOptions.original_doc = _doc
-        return cls(fields, type, extension_fields=extension_fields, loadingOptions=loadingOptions)
+        return cls(fields=fields, type=type, extension_fields=extension_fields, loadingOptions=loadingOptions)
 
     def save(self, top=False, base_url="", relative_uris=True):
-        # type: (bool, Text, bool) -> Dict[Text, Any]
-        r = yaml.comments.CommentedMap()  # type: Dict[Text, Any]
+        # type: (bool, str, bool) -> Dict[str, Any]
+        r = yaml.comments.CommentedMap()  # type: Dict[str, Any]
         for ef in self.extension_fields:
             r[prefix_url(ef, self.loadingOptions.vocab)] = self.extension_fields[ef]
 
@@ -824,9 +825,12 @@ class RecordSchema(Savable):
                 base_url=base_url,
                 relative_uris=relative_uris)
 
-        if top and self.loadingOptions.namespaces:
-            r["$namespaces"] = self.loadingOptions.namespaces
-
+        # top refers to the directory level
+        if top:
+            if self.loadingOptions.namespaces:
+                r["$namespaces"] = self.loadingOptions.namespaces
+            if self.loadingOptions.schemas:
+                r["$schemas"] = self.loadingOptions.schemas
         return r
 
     attrs = frozenset(['fields', 'type'])
@@ -841,7 +845,7 @@ Define an enumerated type.
         self,
         symbols,  # type: Any
         type,  # type: Any
-        extension_fields=None,  # type: Optional[Dict[Text, Any]]
+        extension_fields=None,  # type: Optional[Dict[str, Any]]
         loadingOptions=None  # type: Optional[LoadingOptions]
     ):  # type: (...) -> None
 
@@ -858,7 +862,7 @@ Define an enumerated type.
 
     @classmethod
     def fromDoc(cls, doc, baseuri, loadingOptions, docRoot=None):
-        # type: (Any, Text, LoadingOptions, Optional[Text]) -> EnumSchema
+        # type: (Any, str, LoadingOptions, Optional[str]) -> EnumSchema
 
         _doc = copy.copy(doc)
         if hasattr(doc, 'lc'):
@@ -893,7 +897,7 @@ Define an enumerated type.
             if k not in cls.attrs:
                 if ":" in k:
                     ex = expand_url(k,
-                                    u"",
+                                    "",
                                     loadingOptions,
                                     scoped_id=False,
                                     vocab_term=False)
@@ -911,11 +915,11 @@ Define an enumerated type.
             raise ValidationException("Trying 'EnumSchema'", None, _errors__)
         loadingOptions = copy.deepcopy(loadingOptions)
         loadingOptions.original_doc = _doc
-        return cls(symbols, type, extension_fields=extension_fields, loadingOptions=loadingOptions)
+        return cls(symbols=symbols, type=type, extension_fields=extension_fields, loadingOptions=loadingOptions)
 
     def save(self, top=False, base_url="", relative_uris=True):
-        # type: (bool, Text, bool) -> Dict[Text, Any]
-        r = yaml.comments.CommentedMap()  # type: Dict[Text, Any]
+        # type: (bool, str, bool) -> Dict[str, Any]
+        r = yaml.comments.CommentedMap()  # type: Dict[str, Any]
         for ef in self.extension_fields:
             r[prefix_url(ef, self.loadingOptions.vocab)] = self.extension_fields[ef]
 
@@ -936,9 +940,12 @@ Define an enumerated type.
                 base_url=base_url,
                 relative_uris=relative_uris)
 
-        if top and self.loadingOptions.namespaces:
-            r["$namespaces"] = self.loadingOptions.namespaces
-
+        # top refers to the directory level
+        if top:
+            if self.loadingOptions.namespaces:
+                r["$namespaces"] = self.loadingOptions.namespaces
+            if self.loadingOptions.schemas:
+                r["$schemas"] = self.loadingOptions.schemas
         return r
 
     attrs = frozenset(['symbols', 'type'])
@@ -949,7 +956,7 @@ class ArraySchema(Savable):
         self,
         items,  # type: Any
         type,  # type: Any
-        extension_fields=None,  # type: Optional[Dict[Text, Any]]
+        extension_fields=None,  # type: Optional[Dict[str, Any]]
         loadingOptions=None  # type: Optional[LoadingOptions]
     ):  # type: (...) -> None
 
@@ -966,7 +973,7 @@ class ArraySchema(Savable):
 
     @classmethod
     def fromDoc(cls, doc, baseuri, loadingOptions, docRoot=None):
-        # type: (Any, Text, LoadingOptions, Optional[Text]) -> ArraySchema
+        # type: (Any, str, LoadingOptions, Optional[str]) -> ArraySchema
 
         _doc = copy.copy(doc)
         if hasattr(doc, 'lc'):
@@ -1001,7 +1008,7 @@ class ArraySchema(Savable):
             if k not in cls.attrs:
                 if ":" in k:
                     ex = expand_url(k,
-                                    u"",
+                                    "",
                                     loadingOptions,
                                     scoped_id=False,
                                     vocab_term=False)
@@ -1019,11 +1026,11 @@ class ArraySchema(Savable):
             raise ValidationException("Trying 'ArraySchema'", None, _errors__)
         loadingOptions = copy.deepcopy(loadingOptions)
         loadingOptions.original_doc = _doc
-        return cls(items, type, extension_fields=extension_fields, loadingOptions=loadingOptions)
+        return cls(items=items, type=type, extension_fields=extension_fields, loadingOptions=loadingOptions)
 
     def save(self, top=False, base_url="", relative_uris=True):
-        # type: (bool, Text, bool) -> Dict[Text, Any]
-        r = yaml.comments.CommentedMap()  # type: Dict[Text, Any]
+        # type: (bool, str, bool) -> Dict[str, Any]
+        r = yaml.comments.CommentedMap()  # type: Dict[str, Any]
         for ef in self.extension_fields:
             r[prefix_url(ef, self.loadingOptions.vocab)] = self.extension_fields[ef]
 
@@ -1044,9 +1051,12 @@ class ArraySchema(Savable):
                 base_url=base_url,
                 relative_uris=relative_uris)
 
-        if top and self.loadingOptions.namespaces:
-            r["$namespaces"] = self.loadingOptions.namespaces
-
+        # top refers to the directory level
+        if top:
+            if self.loadingOptions.namespaces:
+                r["$namespaces"] = self.loadingOptions.namespaces
+            if self.loadingOptions.schemas:
+                r["$schemas"] = self.loadingOptions.schemas
         return r
 
     attrs = frozenset(['items', 'type'])
@@ -1124,18 +1134,18 @@ the same value for `location`.
     """
     def __init__(
         self,
-        location,  # type: Any
-        path,  # type: Any
-        basename,  # type: Any
-        dirname,  # type: Any
-        nameroot,  # type: Any
-        nameext,  # type: Any
-        checksum,  # type: Any
-        size,  # type: Any
-        secondaryFiles,  # type: Any
-        format,  # type: Any
-        contents,  # type: Any
-        extension_fields=None,  # type: Optional[Dict[Text, Any]]
+        location=None,  # type: Any
+        path=None,  # type: Any
+        basename=None,  # type: Any
+        dirname=None,  # type: Any
+        nameroot=None,  # type: Any
+        nameext=None,  # type: Any
+        checksum=None,  # type: Any
+        size=None,  # type: Any
+        secondaryFiles=None,  # type: Any
+        format=None,  # type: Any
+        contents=None,  # type: Any
+        extension_fields=None,  # type: Optional[Dict[str, Any]]
         loadingOptions=None  # type: Optional[LoadingOptions]
     ):  # type: (...) -> None
 
@@ -1162,7 +1172,7 @@ the same value for `location`.
 
     @classmethod
     def fromDoc(cls, doc, baseuri, loadingOptions, docRoot=None):
-        # type: (Any, Text, LoadingOptions, Optional[Text]) -> File
+        # type: (Any, str, LoadingOptions, Optional[str]) -> File
 
         _doc = copy.copy(doc)
         if hasattr(doc, 'lc'):
@@ -1333,7 +1343,7 @@ the same value for `location`.
             if k not in cls.attrs:
                 if ":" in k:
                     ex = expand_url(k,
-                                    u"",
+                                    "",
                                     loadingOptions,
                                     scoped_id=False,
                                     vocab_term=False)
@@ -1351,11 +1361,11 @@ the same value for `location`.
             raise ValidationException("Trying 'File'", None, _errors__)
         loadingOptions = copy.deepcopy(loadingOptions)
         loadingOptions.original_doc = _doc
-        return cls(location, path, basename, dirname, nameroot, nameext, checksum, size, secondaryFiles, format, contents, extension_fields=extension_fields, loadingOptions=loadingOptions)
+        return cls(location=location, path=path, basename=basename, dirname=dirname, nameroot=nameroot, nameext=nameext, checksum=checksum, size=size, secondaryFiles=secondaryFiles, format=format, contents=contents, extension_fields=extension_fields, loadingOptions=loadingOptions)
 
     def save(self, top=False, base_url="", relative_uris=True):
-        # type: (bool, Text, bool) -> Dict[Text, Any]
-        r = yaml.comments.CommentedMap()  # type: Dict[Text, Any]
+        # type: (bool, str, bool) -> Dict[str, Any]
+        r = yaml.comments.CommentedMap()  # type: Dict[str, Any]
         for ef in self.extension_fields:
             r[prefix_url(ef, self.loadingOptions.vocab)] = self.extension_fields[ef]
 
@@ -1447,9 +1457,12 @@ the same value for `location`.
                 base_url=base_url,
                 relative_uris=relative_uris)
 
-        if top and self.loadingOptions.namespaces:
-            r["$namespaces"] = self.loadingOptions.namespaces
-
+        # top refers to the directory level
+        if top:
+            if self.loadingOptions.namespaces:
+                r["$namespaces"] = self.loadingOptions.namespaces
+            if self.loadingOptions.schemas:
+                r["$schemas"] = self.loadingOptions.schemas
         return r
 
     attrs = frozenset(['class', 'location', 'path', 'basename', 'dirname', 'nameroot', 'nameext', 'checksum', 'size', 'secondaryFiles', 'format', 'contents'])
@@ -1504,11 +1517,11 @@ or in any entry in `secondaryFiles` in the listing) is a fatal error.
     """
     def __init__(
         self,
-        location,  # type: Any
-        path,  # type: Any
-        basename,  # type: Any
-        listing,  # type: Any
-        extension_fields=None,  # type: Optional[Dict[Text, Any]]
+        location=None,  # type: Any
+        path=None,  # type: Any
+        basename=None,  # type: Any
+        listing=None,  # type: Any
+        extension_fields=None,  # type: Optional[Dict[str, Any]]
         loadingOptions=None  # type: Optional[LoadingOptions]
     ):  # type: (...) -> None
 
@@ -1528,7 +1541,7 @@ or in any entry in `secondaryFiles` in the listing) is a fatal error.
 
     @classmethod
     def fromDoc(cls, doc, baseuri, loadingOptions, docRoot=None):
-        # type: (Any, Text, LoadingOptions, Optional[Text]) -> Directory
+        # type: (Any, str, LoadingOptions, Optional[str]) -> Directory
 
         _doc = copy.copy(doc)
         if hasattr(doc, 'lc'):
@@ -1601,7 +1614,7 @@ or in any entry in `secondaryFiles` in the listing) is a fatal error.
             if k not in cls.attrs:
                 if ":" in k:
                     ex = expand_url(k,
-                                    u"",
+                                    "",
                                     loadingOptions,
                                     scoped_id=False,
                                     vocab_term=False)
@@ -1619,11 +1632,11 @@ or in any entry in `secondaryFiles` in the listing) is a fatal error.
             raise ValidationException("Trying 'Directory'", None, _errors__)
         loadingOptions = copy.deepcopy(loadingOptions)
         loadingOptions.original_doc = _doc
-        return cls(location, path, basename, listing, extension_fields=extension_fields, loadingOptions=loadingOptions)
+        return cls(location=location, path=path, basename=basename, listing=listing, extension_fields=extension_fields, loadingOptions=loadingOptions)
 
     def save(self, top=False, base_url="", relative_uris=True):
-        # type: (bool, Text, bool) -> Dict[Text, Any]
-        r = yaml.comments.CommentedMap()  # type: Dict[Text, Any]
+        # type: (bool, str, bool) -> Dict[str, Any]
+        r = yaml.comments.CommentedMap()  # type: Dict[str, Any]
         for ef in self.extension_fields:
             r[prefix_url(ef, self.loadingOptions.vocab)] = self.extension_fields[ef]
 
@@ -1663,9 +1676,12 @@ or in any entry in `secondaryFiles` in the listing) is a fatal error.
                 base_url=base_url,
                 relative_uris=relative_uris)
 
-        if top and self.loadingOptions.namespaces:
-            r["$namespaces"] = self.loadingOptions.namespaces
-
+        # top refers to the directory level
+        if top:
+            if self.loadingOptions.namespaces:
+                r["$namespaces"] = self.loadingOptions.namespaces
+            if self.loadingOptions.schemas:
+                r["$schemas"] = self.loadingOptions.schemas
         return r
 
     attrs = frozenset(['class', 'location', 'path', 'basename', 'listing'])
@@ -1703,11 +1719,11 @@ class InputRecordField(RecordField):
     def __init__(
         self,
         name,  # type: Any
-        doc,  # type: Any
         type,  # type: Any
-        inputBinding,  # type: Any
-        label,  # type: Any
-        extension_fields=None,  # type: Optional[Dict[Text, Any]]
+        doc=None,  # type: Any
+        inputBinding=None,  # type: Any
+        label=None,  # type: Any
+        extension_fields=None,  # type: Optional[Dict[str, Any]]
         loadingOptions=None  # type: Optional[LoadingOptions]
     ):  # type: (...) -> None
 
@@ -1727,7 +1743,7 @@ class InputRecordField(RecordField):
 
     @classmethod
     def fromDoc(cls, doc, baseuri, loadingOptions, docRoot=None):
-        # type: (Any, Text, LoadingOptions, Optional[Text]) -> InputRecordField
+        # type: (Any, str, LoadingOptions, Optional[str]) -> InputRecordField
 
         _doc = copy.copy(doc)
         if hasattr(doc, 'lc'):
@@ -1814,7 +1830,7 @@ class InputRecordField(RecordField):
             if k not in cls.attrs:
                 if ":" in k:
                     ex = expand_url(k,
-                                    u"",
+                                    "",
                                     loadingOptions,
                                     scoped_id=False,
                                     vocab_term=False)
@@ -1832,11 +1848,11 @@ class InputRecordField(RecordField):
             raise ValidationException("Trying 'InputRecordField'", None, _errors__)
         loadingOptions = copy.deepcopy(loadingOptions)
         loadingOptions.original_doc = _doc
-        return cls(name, doc, type, inputBinding, label, extension_fields=extension_fields, loadingOptions=loadingOptions)
+        return cls(name=name, doc=doc, type=type, inputBinding=inputBinding, label=label, extension_fields=extension_fields, loadingOptions=loadingOptions)
 
     def save(self, top=False, base_url="", relative_uris=True):
-        # type: (bool, Text, bool) -> Dict[Text, Any]
-        r = yaml.comments.CommentedMap()  # type: Dict[Text, Any]
+        # type: (bool, str, bool) -> Dict[str, Any]
+        r = yaml.comments.CommentedMap()  # type: Dict[str, Any]
         for ef in self.extension_fields:
             r[prefix_url(ef, self.loadingOptions.vocab)] = self.extension_fields[ef]
 
@@ -1878,9 +1894,12 @@ class InputRecordField(RecordField):
                 base_url=self.name,
                 relative_uris=relative_uris)
 
-        if top and self.loadingOptions.namespaces:
-            r["$namespaces"] = self.loadingOptions.namespaces
-
+        # top refers to the directory level
+        if top:
+            if self.loadingOptions.namespaces:
+                r["$namespaces"] = self.loadingOptions.namespaces
+            if self.loadingOptions.schemas:
+                r["$schemas"] = self.loadingOptions.schemas
         return r
 
     attrs = frozenset(['name', 'doc', 'type', 'inputBinding', 'label'])
@@ -1889,11 +1908,11 @@ class InputRecordField(RecordField):
 class InputRecordSchema(RecordSchema, InputSchema):
     def __init__(
         self,
-        fields,  # type: Any
         type,  # type: Any
-        label,  # type: Any
-        name,  # type: Any
-        extension_fields=None,  # type: Optional[Dict[Text, Any]]
+        fields=None,  # type: Any
+        label=None,  # type: Any
+        name=None,  # type: Any
+        extension_fields=None,  # type: Optional[Dict[str, Any]]
         loadingOptions=None  # type: Optional[LoadingOptions]
     ):  # type: (...) -> None
 
@@ -1912,7 +1931,7 @@ class InputRecordSchema(RecordSchema, InputSchema):
 
     @classmethod
     def fromDoc(cls, doc, baseuri, loadingOptions, docRoot=None):
-        # type: (Any, Text, LoadingOptions, Optional[Text]) -> InputRecordSchema
+        # type: (Any, str, LoadingOptions, Optional[str]) -> InputRecordSchema
 
         _doc = copy.copy(doc)
         if hasattr(doc, 'lc'):
@@ -1985,7 +2004,7 @@ class InputRecordSchema(RecordSchema, InputSchema):
             if k not in cls.attrs:
                 if ":" in k:
                     ex = expand_url(k,
-                                    u"",
+                                    "",
                                     loadingOptions,
                                     scoped_id=False,
                                     vocab_term=False)
@@ -2003,11 +2022,11 @@ class InputRecordSchema(RecordSchema, InputSchema):
             raise ValidationException("Trying 'InputRecordSchema'", None, _errors__)
         loadingOptions = copy.deepcopy(loadingOptions)
         loadingOptions.original_doc = _doc
-        return cls(fields, type, label, name, extension_fields=extension_fields, loadingOptions=loadingOptions)
+        return cls(fields=fields, type=type, label=label, name=name, extension_fields=extension_fields, loadingOptions=loadingOptions)
 
     def save(self, top=False, base_url="", relative_uris=True):
-        # type: (bool, Text, bool) -> Dict[Text, Any]
-        r = yaml.comments.CommentedMap()  # type: Dict[Text, Any]
+        # type: (bool, str, bool) -> Dict[str, Any]
+        r = yaml.comments.CommentedMap()  # type: Dict[str, Any]
         for ef in self.extension_fields:
             r[prefix_url(ef, self.loadingOptions.vocab)] = self.extension_fields[ef]
 
@@ -2042,9 +2061,12 @@ class InputRecordSchema(RecordSchema, InputSchema):
                 base_url=self.name,
                 relative_uris=relative_uris)
 
-        if top and self.loadingOptions.namespaces:
-            r["$namespaces"] = self.loadingOptions.namespaces
-
+        # top refers to the directory level
+        if top:
+            if self.loadingOptions.namespaces:
+                r["$namespaces"] = self.loadingOptions.namespaces
+            if self.loadingOptions.schemas:
+                r["$schemas"] = self.loadingOptions.schemas
         return r
 
     attrs = frozenset(['fields', 'type', 'label', 'name'])
@@ -2055,10 +2077,10 @@ class InputEnumSchema(EnumSchema, InputSchema):
         self,
         symbols,  # type: Any
         type,  # type: Any
-        label,  # type: Any
-        name,  # type: Any
-        inputBinding,  # type: Any
-        extension_fields=None,  # type: Optional[Dict[Text, Any]]
+        label=None,  # type: Any
+        name=None,  # type: Any
+        inputBinding=None,  # type: Any
+        extension_fields=None,  # type: Optional[Dict[str, Any]]
         loadingOptions=None  # type: Optional[LoadingOptions]
     ):  # type: (...) -> None
 
@@ -2078,7 +2100,7 @@ class InputEnumSchema(EnumSchema, InputSchema):
 
     @classmethod
     def fromDoc(cls, doc, baseuri, loadingOptions, docRoot=None):
-        # type: (Any, Text, LoadingOptions, Optional[Text]) -> InputEnumSchema
+        # type: (Any, str, LoadingOptions, Optional[str]) -> InputEnumSchema
 
         _doc = copy.copy(doc)
         if hasattr(doc, 'lc'):
@@ -2162,7 +2184,7 @@ class InputEnumSchema(EnumSchema, InputSchema):
             if k not in cls.attrs:
                 if ":" in k:
                     ex = expand_url(k,
-                                    u"",
+                                    "",
                                     loadingOptions,
                                     scoped_id=False,
                                     vocab_term=False)
@@ -2180,11 +2202,11 @@ class InputEnumSchema(EnumSchema, InputSchema):
             raise ValidationException("Trying 'InputEnumSchema'", None, _errors__)
         loadingOptions = copy.deepcopy(loadingOptions)
         loadingOptions.original_doc = _doc
-        return cls(symbols, type, label, name, inputBinding, extension_fields=extension_fields, loadingOptions=loadingOptions)
+        return cls(symbols=symbols, type=type, label=label, name=name, inputBinding=inputBinding, extension_fields=extension_fields, loadingOptions=loadingOptions)
 
     def save(self, top=False, base_url="", relative_uris=True):
-        # type: (bool, Text, bool) -> Dict[Text, Any]
-        r = yaml.comments.CommentedMap()  # type: Dict[Text, Any]
+        # type: (bool, str, bool) -> Dict[str, Any]
+        r = yaml.comments.CommentedMap()  # type: Dict[str, Any]
         for ef in self.extension_fields:
             r[prefix_url(ef, self.loadingOptions.vocab)] = self.extension_fields[ef]
 
@@ -2229,9 +2251,12 @@ class InputEnumSchema(EnumSchema, InputSchema):
                 base_url=self.name,
                 relative_uris=relative_uris)
 
-        if top and self.loadingOptions.namespaces:
-            r["$namespaces"] = self.loadingOptions.namespaces
-
+        # top refers to the directory level
+        if top:
+            if self.loadingOptions.namespaces:
+                r["$namespaces"] = self.loadingOptions.namespaces
+            if self.loadingOptions.schemas:
+                r["$schemas"] = self.loadingOptions.schemas
         return r
 
     attrs = frozenset(['symbols', 'type', 'label', 'name', 'inputBinding'])
@@ -2242,9 +2267,9 @@ class InputArraySchema(ArraySchema, InputSchema):
         self,
         items,  # type: Any
         type,  # type: Any
-        label,  # type: Any
-        inputBinding,  # type: Any
-        extension_fields=None,  # type: Optional[Dict[Text, Any]]
+        label=None,  # type: Any
+        inputBinding=None,  # type: Any
+        extension_fields=None,  # type: Optional[Dict[str, Any]]
         loadingOptions=None  # type: Optional[LoadingOptions]
     ):  # type: (...) -> None
 
@@ -2263,7 +2288,7 @@ class InputArraySchema(ArraySchema, InputSchema):
 
     @classmethod
     def fromDoc(cls, doc, baseuri, loadingOptions, docRoot=None):
-        # type: (Any, Text, LoadingOptions, Optional[Text]) -> InputArraySchema
+        # type: (Any, str, LoadingOptions, Optional[str]) -> InputArraySchema
 
         _doc = copy.copy(doc)
         if hasattr(doc, 'lc'):
@@ -2326,7 +2351,7 @@ class InputArraySchema(ArraySchema, InputSchema):
             if k not in cls.attrs:
                 if ":" in k:
                     ex = expand_url(k,
-                                    u"",
+                                    "",
                                     loadingOptions,
                                     scoped_id=False,
                                     vocab_term=False)
@@ -2344,11 +2369,11 @@ class InputArraySchema(ArraySchema, InputSchema):
             raise ValidationException("Trying 'InputArraySchema'", None, _errors__)
         loadingOptions = copy.deepcopy(loadingOptions)
         loadingOptions.original_doc = _doc
-        return cls(items, type, label, inputBinding, extension_fields=extension_fields, loadingOptions=loadingOptions)
+        return cls(items=items, type=type, label=label, inputBinding=inputBinding, extension_fields=extension_fields, loadingOptions=loadingOptions)
 
     def save(self, top=False, base_url="", relative_uris=True):
-        # type: (bool, Text, bool) -> Dict[Text, Any]
-        r = yaml.comments.CommentedMap()  # type: Dict[Text, Any]
+        # type: (bool, str, bool) -> Dict[str, Any]
+        r = yaml.comments.CommentedMap()  # type: Dict[str, Any]
         for ef in self.extension_fields:
             r[prefix_url(ef, self.loadingOptions.vocab)] = self.extension_fields[ef]
 
@@ -2383,9 +2408,12 @@ class InputArraySchema(ArraySchema, InputSchema):
                 base_url=base_url,
                 relative_uris=relative_uris)
 
-        if top and self.loadingOptions.namespaces:
-            r["$namespaces"] = self.loadingOptions.namespaces
-
+        # top refers to the directory level
+        if top:
+            if self.loadingOptions.namespaces:
+                r["$namespaces"] = self.loadingOptions.namespaces
+            if self.loadingOptions.schemas:
+                r["$schemas"] = self.loadingOptions.schemas
         return r
 
     attrs = frozenset(['items', 'type', 'label', 'inputBinding'])
@@ -2395,10 +2423,10 @@ class OutputRecordField(RecordField):
     def __init__(
         self,
         name,  # type: Any
-        doc,  # type: Any
         type,  # type: Any
-        outputBinding,  # type: Any
-        extension_fields=None,  # type: Optional[Dict[Text, Any]]
+        doc=None,  # type: Any
+        outputBinding=None,  # type: Any
+        extension_fields=None,  # type: Optional[Dict[str, Any]]
         loadingOptions=None  # type: Optional[LoadingOptions]
     ):  # type: (...) -> None
 
@@ -2417,7 +2445,7 @@ class OutputRecordField(RecordField):
 
     @classmethod
     def fromDoc(cls, doc, baseuri, loadingOptions, docRoot=None):
-        # type: (Any, Text, LoadingOptions, Optional[Text]) -> OutputRecordField
+        # type: (Any, str, LoadingOptions, Optional[str]) -> OutputRecordField
 
         _doc = copy.copy(doc)
         if hasattr(doc, 'lc'):
@@ -2490,7 +2518,7 @@ class OutputRecordField(RecordField):
             if k not in cls.attrs:
                 if ":" in k:
                     ex = expand_url(k,
-                                    u"",
+                                    "",
                                     loadingOptions,
                                     scoped_id=False,
                                     vocab_term=False)
@@ -2508,11 +2536,11 @@ class OutputRecordField(RecordField):
             raise ValidationException("Trying 'OutputRecordField'", None, _errors__)
         loadingOptions = copy.deepcopy(loadingOptions)
         loadingOptions.original_doc = _doc
-        return cls(name, doc, type, outputBinding, extension_fields=extension_fields, loadingOptions=loadingOptions)
+        return cls(name=name, doc=doc, type=type, outputBinding=outputBinding, extension_fields=extension_fields, loadingOptions=loadingOptions)
 
     def save(self, top=False, base_url="", relative_uris=True):
-        # type: (bool, Text, bool) -> Dict[Text, Any]
-        r = yaml.comments.CommentedMap()  # type: Dict[Text, Any]
+        # type: (bool, str, bool) -> Dict[str, Any]
+        r = yaml.comments.CommentedMap()  # type: Dict[str, Any]
         for ef in self.extension_fields:
             r[prefix_url(ef, self.loadingOptions.vocab)] = self.extension_fields[ef]
 
@@ -2547,9 +2575,12 @@ class OutputRecordField(RecordField):
                 base_url=self.name,
                 relative_uris=relative_uris)
 
-        if top and self.loadingOptions.namespaces:
-            r["$namespaces"] = self.loadingOptions.namespaces
-
+        # top refers to the directory level
+        if top:
+            if self.loadingOptions.namespaces:
+                r["$namespaces"] = self.loadingOptions.namespaces
+            if self.loadingOptions.schemas:
+                r["$schemas"] = self.loadingOptions.schemas
         return r
 
     attrs = frozenset(['name', 'doc', 'type', 'outputBinding'])
@@ -2558,10 +2589,10 @@ class OutputRecordField(RecordField):
 class OutputRecordSchema(RecordSchema, OutputSchema):
     def __init__(
         self,
-        fields,  # type: Any
         type,  # type: Any
-        label,  # type: Any
-        extension_fields=None,  # type: Optional[Dict[Text, Any]]
+        fields=None,  # type: Any
+        label=None,  # type: Any
+        extension_fields=None,  # type: Optional[Dict[str, Any]]
         loadingOptions=None  # type: Optional[LoadingOptions]
     ):  # type: (...) -> None
 
@@ -2579,7 +2610,7 @@ class OutputRecordSchema(RecordSchema, OutputSchema):
 
     @classmethod
     def fromDoc(cls, doc, baseuri, loadingOptions, docRoot=None):
-        # type: (Any, Text, LoadingOptions, Optional[Text]) -> OutputRecordSchema
+        # type: (Any, str, LoadingOptions, Optional[str]) -> OutputRecordSchema
 
         _doc = copy.copy(doc)
         if hasattr(doc, 'lc'):
@@ -2631,7 +2662,7 @@ class OutputRecordSchema(RecordSchema, OutputSchema):
             if k not in cls.attrs:
                 if ":" in k:
                     ex = expand_url(k,
-                                    u"",
+                                    "",
                                     loadingOptions,
                                     scoped_id=False,
                                     vocab_term=False)
@@ -2649,11 +2680,11 @@ class OutputRecordSchema(RecordSchema, OutputSchema):
             raise ValidationException("Trying 'OutputRecordSchema'", None, _errors__)
         loadingOptions = copy.deepcopy(loadingOptions)
         loadingOptions.original_doc = _doc
-        return cls(fields, type, label, extension_fields=extension_fields, loadingOptions=loadingOptions)
+        return cls(fields=fields, type=type, label=label, extension_fields=extension_fields, loadingOptions=loadingOptions)
 
     def save(self, top=False, base_url="", relative_uris=True):
-        # type: (bool, Text, bool) -> Dict[Text, Any]
-        r = yaml.comments.CommentedMap()  # type: Dict[Text, Any]
+        # type: (bool, str, bool) -> Dict[str, Any]
+        r = yaml.comments.CommentedMap()  # type: Dict[str, Any]
         for ef in self.extension_fields:
             r[prefix_url(ef, self.loadingOptions.vocab)] = self.extension_fields[ef]
 
@@ -2678,9 +2709,12 @@ class OutputRecordSchema(RecordSchema, OutputSchema):
                 base_url=base_url,
                 relative_uris=relative_uris)
 
-        if top and self.loadingOptions.namespaces:
-            r["$namespaces"] = self.loadingOptions.namespaces
-
+        # top refers to the directory level
+        if top:
+            if self.loadingOptions.namespaces:
+                r["$namespaces"] = self.loadingOptions.namespaces
+            if self.loadingOptions.schemas:
+                r["$schemas"] = self.loadingOptions.schemas
         return r
 
     attrs = frozenset(['fields', 'type', 'label'])
@@ -2691,9 +2725,9 @@ class OutputEnumSchema(EnumSchema, OutputSchema):
         self,
         symbols,  # type: Any
         type,  # type: Any
-        label,  # type: Any
-        outputBinding,  # type: Any
-        extension_fields=None,  # type: Optional[Dict[Text, Any]]
+        label=None,  # type: Any
+        outputBinding=None,  # type: Any
+        extension_fields=None,  # type: Optional[Dict[str, Any]]
         loadingOptions=None  # type: Optional[LoadingOptions]
     ):  # type: (...) -> None
 
@@ -2712,7 +2746,7 @@ class OutputEnumSchema(EnumSchema, OutputSchema):
 
     @classmethod
     def fromDoc(cls, doc, baseuri, loadingOptions, docRoot=None):
-        # type: (Any, Text, LoadingOptions, Optional[Text]) -> OutputEnumSchema
+        # type: (Any, str, LoadingOptions, Optional[str]) -> OutputEnumSchema
 
         _doc = copy.copy(doc)
         if hasattr(doc, 'lc'):
@@ -2775,7 +2809,7 @@ class OutputEnumSchema(EnumSchema, OutputSchema):
             if k not in cls.attrs:
                 if ":" in k:
                     ex = expand_url(k,
-                                    u"",
+                                    "",
                                     loadingOptions,
                                     scoped_id=False,
                                     vocab_term=False)
@@ -2793,11 +2827,11 @@ class OutputEnumSchema(EnumSchema, OutputSchema):
             raise ValidationException("Trying 'OutputEnumSchema'", None, _errors__)
         loadingOptions = copy.deepcopy(loadingOptions)
         loadingOptions.original_doc = _doc
-        return cls(symbols, type, label, outputBinding, extension_fields=extension_fields, loadingOptions=loadingOptions)
+        return cls(symbols=symbols, type=type, label=label, outputBinding=outputBinding, extension_fields=extension_fields, loadingOptions=loadingOptions)
 
     def save(self, top=False, base_url="", relative_uris=True):
-        # type: (bool, Text, bool) -> Dict[Text, Any]
-        r = yaml.comments.CommentedMap()  # type: Dict[Text, Any]
+        # type: (bool, str, bool) -> Dict[str, Any]
+        r = yaml.comments.CommentedMap()  # type: Dict[str, Any]
         for ef in self.extension_fields:
             r[prefix_url(ef, self.loadingOptions.vocab)] = self.extension_fields[ef]
 
@@ -2832,9 +2866,12 @@ class OutputEnumSchema(EnumSchema, OutputSchema):
                 base_url=base_url,
                 relative_uris=relative_uris)
 
-        if top and self.loadingOptions.namespaces:
-            r["$namespaces"] = self.loadingOptions.namespaces
-
+        # top refers to the directory level
+        if top:
+            if self.loadingOptions.namespaces:
+                r["$namespaces"] = self.loadingOptions.namespaces
+            if self.loadingOptions.schemas:
+                r["$schemas"] = self.loadingOptions.schemas
         return r
 
     attrs = frozenset(['symbols', 'type', 'label', 'outputBinding'])
@@ -2845,9 +2882,9 @@ class OutputArraySchema(ArraySchema, OutputSchema):
         self,
         items,  # type: Any
         type,  # type: Any
-        label,  # type: Any
-        outputBinding,  # type: Any
-        extension_fields=None,  # type: Optional[Dict[Text, Any]]
+        label=None,  # type: Any
+        outputBinding=None,  # type: Any
+        extension_fields=None,  # type: Optional[Dict[str, Any]]
         loadingOptions=None  # type: Optional[LoadingOptions]
     ):  # type: (...) -> None
 
@@ -2866,7 +2903,7 @@ class OutputArraySchema(ArraySchema, OutputSchema):
 
     @classmethod
     def fromDoc(cls, doc, baseuri, loadingOptions, docRoot=None):
-        # type: (Any, Text, LoadingOptions, Optional[Text]) -> OutputArraySchema
+        # type: (Any, str, LoadingOptions, Optional[str]) -> OutputArraySchema
 
         _doc = copy.copy(doc)
         if hasattr(doc, 'lc'):
@@ -2929,7 +2966,7 @@ class OutputArraySchema(ArraySchema, OutputSchema):
             if k not in cls.attrs:
                 if ":" in k:
                     ex = expand_url(k,
-                                    u"",
+                                    "",
                                     loadingOptions,
                                     scoped_id=False,
                                     vocab_term=False)
@@ -2947,11 +2984,11 @@ class OutputArraySchema(ArraySchema, OutputSchema):
             raise ValidationException("Trying 'OutputArraySchema'", None, _errors__)
         loadingOptions = copy.deepcopy(loadingOptions)
         loadingOptions.original_doc = _doc
-        return cls(items, type, label, outputBinding, extension_fields=extension_fields, loadingOptions=loadingOptions)
+        return cls(items=items, type=type, label=label, outputBinding=outputBinding, extension_fields=extension_fields, loadingOptions=loadingOptions)
 
     def save(self, top=False, base_url="", relative_uris=True):
-        # type: (bool, Text, bool) -> Dict[Text, Any]
-        r = yaml.comments.CommentedMap()  # type: Dict[Text, Any]
+        # type: (bool, str, bool) -> Dict[str, Any]
+        r = yaml.comments.CommentedMap()  # type: Dict[str, Any]
         for ef in self.extension_fields:
             r[prefix_url(ef, self.loadingOptions.vocab)] = self.extension_fields[ef]
 
@@ -2986,9 +3023,12 @@ class OutputArraySchema(ArraySchema, OutputSchema):
                 base_url=base_url,
                 relative_uris=relative_uris)
 
-        if top and self.loadingOptions.namespaces:
-            r["$namespaces"] = self.loadingOptions.namespaces
-
+        # top refers to the directory level
+        if top:
+            if self.loadingOptions.namespaces:
+                r["$namespaces"] = self.loadingOptions.namespaces
+            if self.loadingOptions.schemas:
+                r["$schemas"] = self.loadingOptions.schemas
         return r
 
     attrs = frozenset(['items', 'type', 'label', 'outputBinding'])
@@ -2997,16 +3037,16 @@ class OutputArraySchema(ArraySchema, OutputSchema):
 class InputParameter(Parameter):
     def __init__(
         self,
-        label,  # type: Any
-        secondaryFiles,  # type: Any
-        streamable,  # type: Any
-        doc,  # type: Any
         id,  # type: Any
-        format,  # type: Any
-        inputBinding,  # type: Any
-        default,  # type: Any
-        type,  # type: Any
-        extension_fields=None,  # type: Optional[Dict[Text, Any]]
+        label=None,  # type: Any
+        secondaryFiles=None,  # type: Any
+        streamable=None,  # type: Any
+        doc=None,  # type: Any
+        format=None,  # type: Any
+        inputBinding=None,  # type: Any
+        default=None,  # type: Any
+        type=None,  # type: Any
+        extension_fields=None,  # type: Optional[Dict[str, Any]]
         loadingOptions=None  # type: Optional[LoadingOptions]
     ):  # type: (...) -> None
 
@@ -3030,7 +3070,7 @@ class InputParameter(Parameter):
 
     @classmethod
     def fromDoc(cls, doc, baseuri, loadingOptions, docRoot=None):
-        # type: (Any, Text, LoadingOptions, Optional[Text]) -> InputParameter
+        # type: (Any, str, LoadingOptions, Optional[str]) -> InputParameter
 
         _doc = copy.copy(doc)
         if hasattr(doc, 'lc'):
@@ -3176,7 +3216,7 @@ class InputParameter(Parameter):
             if k not in cls.attrs:
                 if ":" in k:
                     ex = expand_url(k,
-                                    u"",
+                                    "",
                                     loadingOptions,
                                     scoped_id=False,
                                     vocab_term=False)
@@ -3194,11 +3234,11 @@ class InputParameter(Parameter):
             raise ValidationException("Trying 'InputParameter'", None, _errors__)
         loadingOptions = copy.deepcopy(loadingOptions)
         loadingOptions.original_doc = _doc
-        return cls(label, secondaryFiles, streamable, doc, id, format, inputBinding, default, type, extension_fields=extension_fields, loadingOptions=loadingOptions)
+        return cls(label=label, secondaryFiles=secondaryFiles, streamable=streamable, doc=doc, id=id, format=format, inputBinding=inputBinding, default=default, type=type, extension_fields=extension_fields, loadingOptions=loadingOptions)
 
     def save(self, top=False, base_url="", relative_uris=True):
-        # type: (bool, Text, bool) -> Dict[Text, Any]
-        r = yaml.comments.CommentedMap()  # type: Dict[Text, Any]
+        # type: (bool, str, bool) -> Dict[str, Any]
+        r = yaml.comments.CommentedMap()  # type: Dict[str, Any]
         for ef in self.extension_fields:
             r[prefix_url(ef, self.loadingOptions.vocab)] = self.extension_fields[ef]
 
@@ -3271,9 +3311,12 @@ class InputParameter(Parameter):
                 base_url=self.id,
                 relative_uris=relative_uris)
 
-        if top and self.loadingOptions.namespaces:
-            r["$namespaces"] = self.loadingOptions.namespaces
-
+        # top refers to the directory level
+        if top:
+            if self.loadingOptions.namespaces:
+                r["$namespaces"] = self.loadingOptions.namespaces
+            if self.loadingOptions.schemas:
+                r["$schemas"] = self.loadingOptions.schemas
         return r
 
     attrs = frozenset(['label', 'secondaryFiles', 'streamable', 'doc', 'id', 'format', 'inputBinding', 'default', 'type'])
@@ -3282,14 +3325,14 @@ class InputParameter(Parameter):
 class OutputParameter(Parameter):
     def __init__(
         self,
-        label,  # type: Any
-        secondaryFiles,  # type: Any
-        streamable,  # type: Any
-        doc,  # type: Any
         id,  # type: Any
-        outputBinding,  # type: Any
-        format,  # type: Any
-        extension_fields=None,  # type: Optional[Dict[Text, Any]]
+        label=None,  # type: Any
+        secondaryFiles=None,  # type: Any
+        streamable=None,  # type: Any
+        doc=None,  # type: Any
+        outputBinding=None,  # type: Any
+        format=None,  # type: Any
+        extension_fields=None,  # type: Optional[Dict[str, Any]]
         loadingOptions=None  # type: Optional[LoadingOptions]
     ):  # type: (...) -> None
 
@@ -3311,7 +3354,7 @@ class OutputParameter(Parameter):
 
     @classmethod
     def fromDoc(cls, doc, baseuri, loadingOptions, docRoot=None):
-        # type: (Any, Text, LoadingOptions, Optional[Text]) -> OutputParameter
+        # type: (Any, str, LoadingOptions, Optional[str]) -> OutputParameter
 
         _doc = copy.copy(doc)
         if hasattr(doc, 'lc'):
@@ -3429,7 +3472,7 @@ class OutputParameter(Parameter):
             if k not in cls.attrs:
                 if ":" in k:
                     ex = expand_url(k,
-                                    u"",
+                                    "",
                                     loadingOptions,
                                     scoped_id=False,
                                     vocab_term=False)
@@ -3447,11 +3490,11 @@ class OutputParameter(Parameter):
             raise ValidationException("Trying 'OutputParameter'", None, _errors__)
         loadingOptions = copy.deepcopy(loadingOptions)
         loadingOptions.original_doc = _doc
-        return cls(label, secondaryFiles, streamable, doc, id, outputBinding, format, extension_fields=extension_fields, loadingOptions=loadingOptions)
+        return cls(label=label, secondaryFiles=secondaryFiles, streamable=streamable, doc=doc, id=id, outputBinding=outputBinding, format=format, extension_fields=extension_fields, loadingOptions=loadingOptions)
 
     def save(self, top=False, base_url="", relative_uris=True):
-        # type: (bool, Text, bool) -> Dict[Text, Any]
-        r = yaml.comments.CommentedMap()  # type: Dict[Text, Any]
+        # type: (bool, str, bool) -> Dict[str, Any]
+        r = yaml.comments.CommentedMap()  # type: Dict[str, Any]
         for ef in self.extension_fields:
             r[prefix_url(ef, self.loadingOptions.vocab)] = self.extension_fields[ef]
 
@@ -3510,9 +3553,12 @@ class OutputParameter(Parameter):
             if u:
                 r['format'] = u
 
-        if top and self.loadingOptions.namespaces:
-            r["$namespaces"] = self.loadingOptions.namespaces
-
+        # top refers to the directory level
+        if top:
+            if self.loadingOptions.namespaces:
+                r["$namespaces"] = self.loadingOptions.namespaces
+            if self.loadingOptions.schemas:
+                r["$schemas"] = self.loadingOptions.schemas
         return r
 
     attrs = frozenset(['label', 'secondaryFiles', 'streamable', 'doc', 'id', 'outputBinding', 'format'])
@@ -3551,8 +3597,8 @@ interpolatation.
     """
     def __init__(
         self,
-        expressionLib,  # type: Any
-        extension_fields=None,  # type: Optional[Dict[Text, Any]]
+        expressionLib=None,  # type: Any
+        extension_fields=None,  # type: Optional[Dict[str, Any]]
         loadingOptions=None  # type: Optional[LoadingOptions]
     ):  # type: (...) -> None
 
@@ -3569,7 +3615,7 @@ interpolatation.
 
     @classmethod
     def fromDoc(cls, doc, baseuri, loadingOptions, docRoot=None):
-        # type: (Any, Text, LoadingOptions, Optional[Text]) -> InlineJavascriptRequirement
+        # type: (Any, str, LoadingOptions, Optional[str]) -> InlineJavascriptRequirement
 
         _doc = copy.copy(doc)
         if hasattr(doc, 'lc'):
@@ -3600,7 +3646,7 @@ interpolatation.
             if k not in cls.attrs:
                 if ":" in k:
                     ex = expand_url(k,
-                                    u"",
+                                    "",
                                     loadingOptions,
                                     scoped_id=False,
                                     vocab_term=False)
@@ -3618,11 +3664,11 @@ interpolatation.
             raise ValidationException("Trying 'InlineJavascriptRequirement'", None, _errors__)
         loadingOptions = copy.deepcopy(loadingOptions)
         loadingOptions.original_doc = _doc
-        return cls(expressionLib, extension_fields=extension_fields, loadingOptions=loadingOptions)
+        return cls(expressionLib=expressionLib, extension_fields=extension_fields, loadingOptions=loadingOptions)
 
     def save(self, top=False, base_url="", relative_uris=True):
-        # type: (bool, Text, bool) -> Dict[Text, Any]
-        r = yaml.comments.CommentedMap()  # type: Dict[Text, Any]
+        # type: (bool, str, bool) -> Dict[str, Any]
+        r = yaml.comments.CommentedMap()  # type: Dict[str, Any]
         for ef in self.extension_fields:
             r[prefix_url(ef, self.loadingOptions.vocab)] = self.extension_fields[ef]
 
@@ -3635,9 +3681,12 @@ interpolatation.
                 base_url=base_url,
                 relative_uris=relative_uris)
 
-        if top and self.loadingOptions.namespaces:
-            r["$namespaces"] = self.loadingOptions.namespaces
-
+        # top refers to the directory level
+        if top:
+            if self.loadingOptions.namespaces:
+                r["$namespaces"] = self.loadingOptions.namespaces
+            if self.loadingOptions.schemas:
+                r["$schemas"] = self.loadingOptions.schemas
         return r
 
     attrs = frozenset(['class', 'expressionLib'])
@@ -3657,7 +3706,7 @@ to earlier schema definitions.
     def __init__(
         self,
         types,  # type: Any
-        extension_fields=None,  # type: Optional[Dict[Text, Any]]
+        extension_fields=None,  # type: Optional[Dict[str, Any]]
         loadingOptions=None  # type: Optional[LoadingOptions]
     ):  # type: (...) -> None
 
@@ -3674,7 +3723,7 @@ to earlier schema definitions.
 
     @classmethod
     def fromDoc(cls, doc, baseuri, loadingOptions, docRoot=None):
-        # type: (Any, Text, LoadingOptions, Optional[Text]) -> SchemaDefRequirement
+        # type: (Any, str, LoadingOptions, Optional[str]) -> SchemaDefRequirement
 
         _doc = copy.copy(doc)
         if hasattr(doc, 'lc'):
@@ -3702,7 +3751,7 @@ to earlier schema definitions.
             if k not in cls.attrs:
                 if ":" in k:
                     ex = expand_url(k,
-                                    u"",
+                                    "",
                                     loadingOptions,
                                     scoped_id=False,
                                     vocab_term=False)
@@ -3720,11 +3769,11 @@ to earlier schema definitions.
             raise ValidationException("Trying 'SchemaDefRequirement'", None, _errors__)
         loadingOptions = copy.deepcopy(loadingOptions)
         loadingOptions.original_doc = _doc
-        return cls(types, extension_fields=extension_fields, loadingOptions=loadingOptions)
+        return cls(types=types, extension_fields=extension_fields, loadingOptions=loadingOptions)
 
     def save(self, top=False, base_url="", relative_uris=True):
-        # type: (bool, Text, bool) -> Dict[Text, Any]
-        r = yaml.comments.CommentedMap()  # type: Dict[Text, Any]
+        # type: (bool, str, bool) -> Dict[str, Any]
+        r = yaml.comments.CommentedMap()  # type: Dict[str, Any]
         for ef in self.extension_fields:
             r[prefix_url(ef, self.loadingOptions.vocab)] = self.extension_fields[ef]
 
@@ -3737,9 +3786,12 @@ to earlier schema definitions.
                 base_url=base_url,
                 relative_uris=relative_uris)
 
-        if top and self.loadingOptions.namespaces:
-            r["$namespaces"] = self.loadingOptions.namespaces
-
+        # top refers to the directory level
+        if top:
+            if self.loadingOptions.namespaces:
+                r["$namespaces"] = self.loadingOptions.namespaces
+            if self.loadingOptions.schemas:
+                r["$schemas"] = self.loadingOptions.schemas
         return r
 
     attrs = frozenset(['class', 'types'])
@@ -3756,7 +3808,7 @@ result of executing an expression, such as getting a parameter from input.
         self,
         envName,  # type: Any
         envValue,  # type: Any
-        extension_fields=None,  # type: Optional[Dict[Text, Any]]
+        extension_fields=None,  # type: Optional[Dict[str, Any]]
         loadingOptions=None  # type: Optional[LoadingOptions]
     ):  # type: (...) -> None
 
@@ -3773,7 +3825,7 @@ result of executing an expression, such as getting a parameter from input.
 
     @classmethod
     def fromDoc(cls, doc, baseuri, loadingOptions, docRoot=None):
-        # type: (Any, Text, LoadingOptions, Optional[Text]) -> EnvironmentDef
+        # type: (Any, str, LoadingOptions, Optional[str]) -> EnvironmentDef
 
         _doc = copy.copy(doc)
         if hasattr(doc, 'lc'):
@@ -3808,7 +3860,7 @@ result of executing an expression, such as getting a parameter from input.
             if k not in cls.attrs:
                 if ":" in k:
                     ex = expand_url(k,
-                                    u"",
+                                    "",
                                     loadingOptions,
                                     scoped_id=False,
                                     vocab_term=False)
@@ -3826,11 +3878,11 @@ result of executing an expression, such as getting a parameter from input.
             raise ValidationException("Trying 'EnvironmentDef'", None, _errors__)
         loadingOptions = copy.deepcopy(loadingOptions)
         loadingOptions.original_doc = _doc
-        return cls(envName, envValue, extension_fields=extension_fields, loadingOptions=loadingOptions)
+        return cls(envName=envName, envValue=envValue, extension_fields=extension_fields, loadingOptions=loadingOptions)
 
     def save(self, top=False, base_url="", relative_uris=True):
-        # type: (bool, Text, bool) -> Dict[Text, Any]
-        r = yaml.comments.CommentedMap()  # type: Dict[Text, Any]
+        # type: (bool, str, bool) -> Dict[str, Any]
+        r = yaml.comments.CommentedMap()  # type: Dict[str, Any]
         for ef in self.extension_fields:
             r[prefix_url(ef, self.loadingOptions.vocab)] = self.extension_fields[ef]
 
@@ -3848,9 +3900,12 @@ result of executing an expression, such as getting a parameter from input.
                 base_url=base_url,
                 relative_uris=relative_uris)
 
-        if top and self.loadingOptions.namespaces:
-            r["$namespaces"] = self.loadingOptions.namespaces
-
+        # top refers to the directory level
+        if top:
+            if self.loadingOptions.namespaces:
+                r["$namespaces"] = self.loadingOptions.namespaces
+            if self.loadingOptions.schemas:
+                r["$schemas"] = self.loadingOptions.schemas
         return r
 
     attrs = frozenset(['envName', 'envValue'])
@@ -3897,14 +3952,14 @@ effective value.
     """
     def __init__(
         self,
-        loadContents,  # type: Any
-        position,  # type: Any
-        prefix,  # type: Any
-        separate,  # type: Any
-        itemSeparator,  # type: Any
-        valueFrom,  # type: Any
-        shellQuote,  # type: Any
-        extension_fields=None,  # type: Optional[Dict[Text, Any]]
+        loadContents=None,  # type: Any
+        position=None,  # type: Any
+        prefix=None,  # type: Any
+        separate=None,  # type: Any
+        itemSeparator=None,  # type: Any
+        valueFrom=None,  # type: Any
+        shellQuote=None,  # type: Any
+        extension_fields=None,  # type: Optional[Dict[str, Any]]
         loadingOptions=None  # type: Optional[LoadingOptions]
     ):  # type: (...) -> None
 
@@ -3926,7 +3981,7 @@ effective value.
 
     @classmethod
     def fromDoc(cls, doc, baseuri, loadingOptions, docRoot=None):
-        # type: (Any, Text, LoadingOptions, Optional[Text]) -> CommandLineBinding
+        # type: (Any, str, LoadingOptions, Optional[str]) -> CommandLineBinding
 
         _doc = copy.copy(doc)
         if hasattr(doc, 'lc'):
@@ -4037,7 +4092,7 @@ effective value.
             if k not in cls.attrs:
                 if ":" in k:
                     ex = expand_url(k,
-                                    u"",
+                                    "",
                                     loadingOptions,
                                     scoped_id=False,
                                     vocab_term=False)
@@ -4055,11 +4110,11 @@ effective value.
             raise ValidationException("Trying 'CommandLineBinding'", None, _errors__)
         loadingOptions = copy.deepcopy(loadingOptions)
         loadingOptions.original_doc = _doc
-        return cls(loadContents, position, prefix, separate, itemSeparator, valueFrom, shellQuote, extension_fields=extension_fields, loadingOptions=loadingOptions)
+        return cls(loadContents=loadContents, position=position, prefix=prefix, separate=separate, itemSeparator=itemSeparator, valueFrom=valueFrom, shellQuote=shellQuote, extension_fields=extension_fields, loadingOptions=loadingOptions)
 
     def save(self, top=False, base_url="", relative_uris=True):
-        # type: (bool, Text, bool) -> Dict[Text, Any]
-        r = yaml.comments.CommentedMap()  # type: Dict[Text, Any]
+        # type: (bool, str, bool) -> Dict[str, Any]
+        r = yaml.comments.CommentedMap()  # type: Dict[str, Any]
         for ef in self.extension_fields:
             r[prefix_url(ef, self.loadingOptions.vocab)] = self.extension_fields[ef]
 
@@ -4112,9 +4167,12 @@ effective value.
                 base_url=base_url,
                 relative_uris=relative_uris)
 
-        if top and self.loadingOptions.namespaces:
-            r["$namespaces"] = self.loadingOptions.namespaces
-
+        # top refers to the directory level
+        if top:
+            if self.loadingOptions.namespaces:
+                r["$namespaces"] = self.loadingOptions.namespaces
+            if self.loadingOptions.schemas:
+                r["$schemas"] = self.loadingOptions.schemas
         return r
 
     attrs = frozenset(['loadContents', 'position', 'prefix', 'separate', 'itemSeparator', 'valueFrom', 'shellQuote'])
@@ -4136,10 +4194,10 @@ following order:
     """
     def __init__(
         self,
-        glob,  # type: Any
-        loadContents,  # type: Any
-        outputEval,  # type: Any
-        extension_fields=None,  # type: Optional[Dict[Text, Any]]
+        glob=None,  # type: Any
+        loadContents=None,  # type: Any
+        outputEval=None,  # type: Any
+        extension_fields=None,  # type: Optional[Dict[str, Any]]
         loadingOptions=None  # type: Optional[LoadingOptions]
     ):  # type: (...) -> None
 
@@ -4157,7 +4215,7 @@ following order:
 
     @classmethod
     def fromDoc(cls, doc, baseuri, loadingOptions, docRoot=None):
-        # type: (Any, Text, LoadingOptions, Optional[Text]) -> CommandOutputBinding
+        # type: (Any, str, LoadingOptions, Optional[str]) -> CommandOutputBinding
 
         _doc = copy.copy(doc)
         if hasattr(doc, 'lc'):
@@ -4212,7 +4270,7 @@ following order:
             if k not in cls.attrs:
                 if ":" in k:
                     ex = expand_url(k,
-                                    u"",
+                                    "",
                                     loadingOptions,
                                     scoped_id=False,
                                     vocab_term=False)
@@ -4230,11 +4288,11 @@ following order:
             raise ValidationException("Trying 'CommandOutputBinding'", None, _errors__)
         loadingOptions = copy.deepcopy(loadingOptions)
         loadingOptions.original_doc = _doc
-        return cls(glob, loadContents, outputEval, extension_fields=extension_fields, loadingOptions=loadingOptions)
+        return cls(glob=glob, loadContents=loadContents, outputEval=outputEval, extension_fields=extension_fields, loadingOptions=loadingOptions)
 
     def save(self, top=False, base_url="", relative_uris=True):
-        # type: (bool, Text, bool) -> Dict[Text, Any]
-        r = yaml.comments.CommentedMap()  # type: Dict[Text, Any]
+        # type: (bool, str, bool) -> Dict[str, Any]
+        r = yaml.comments.CommentedMap()  # type: Dict[str, Any]
         for ef in self.extension_fields:
             r[prefix_url(ef, self.loadingOptions.vocab)] = self.extension_fields[ef]
 
@@ -4259,9 +4317,12 @@ following order:
                 base_url=base_url,
                 relative_uris=relative_uris)
 
-        if top and self.loadingOptions.namespaces:
-            r["$namespaces"] = self.loadingOptions.namespaces
-
+        # top refers to the directory level
+        if top:
+            if self.loadingOptions.namespaces:
+                r["$namespaces"] = self.loadingOptions.namespaces
+            if self.loadingOptions.schemas:
+                r["$schemas"] = self.loadingOptions.schemas
         return r
 
     attrs = frozenset(['glob', 'loadContents', 'outputEval'])
@@ -4271,11 +4332,11 @@ class CommandInputRecordField(InputRecordField):
     def __init__(
         self,
         name,  # type: Any
-        doc,  # type: Any
         type,  # type: Any
-        inputBinding,  # type: Any
-        label,  # type: Any
-        extension_fields=None,  # type: Optional[Dict[Text, Any]]
+        doc=None,  # type: Any
+        inputBinding=None,  # type: Any
+        label=None,  # type: Any
+        extension_fields=None,  # type: Optional[Dict[str, Any]]
         loadingOptions=None  # type: Optional[LoadingOptions]
     ):  # type: (...) -> None
 
@@ -4295,7 +4356,7 @@ class CommandInputRecordField(InputRecordField):
 
     @classmethod
     def fromDoc(cls, doc, baseuri, loadingOptions, docRoot=None):
-        # type: (Any, Text, LoadingOptions, Optional[Text]) -> CommandInputRecordField
+        # type: (Any, str, LoadingOptions, Optional[str]) -> CommandInputRecordField
 
         _doc = copy.copy(doc)
         if hasattr(doc, 'lc'):
@@ -4382,7 +4443,7 @@ class CommandInputRecordField(InputRecordField):
             if k not in cls.attrs:
                 if ":" in k:
                     ex = expand_url(k,
-                                    u"",
+                                    "",
                                     loadingOptions,
                                     scoped_id=False,
                                     vocab_term=False)
@@ -4400,11 +4461,11 @@ class CommandInputRecordField(InputRecordField):
             raise ValidationException("Trying 'CommandInputRecordField'", None, _errors__)
         loadingOptions = copy.deepcopy(loadingOptions)
         loadingOptions.original_doc = _doc
-        return cls(name, doc, type, inputBinding, label, extension_fields=extension_fields, loadingOptions=loadingOptions)
+        return cls(name=name, doc=doc, type=type, inputBinding=inputBinding, label=label, extension_fields=extension_fields, loadingOptions=loadingOptions)
 
     def save(self, top=False, base_url="", relative_uris=True):
-        # type: (bool, Text, bool) -> Dict[Text, Any]
-        r = yaml.comments.CommentedMap()  # type: Dict[Text, Any]
+        # type: (bool, str, bool) -> Dict[str, Any]
+        r = yaml.comments.CommentedMap()  # type: Dict[str, Any]
         for ef in self.extension_fields:
             r[prefix_url(ef, self.loadingOptions.vocab)] = self.extension_fields[ef]
 
@@ -4446,9 +4507,12 @@ class CommandInputRecordField(InputRecordField):
                 base_url=self.name,
                 relative_uris=relative_uris)
 
-        if top and self.loadingOptions.namespaces:
-            r["$namespaces"] = self.loadingOptions.namespaces
-
+        # top refers to the directory level
+        if top:
+            if self.loadingOptions.namespaces:
+                r["$namespaces"] = self.loadingOptions.namespaces
+            if self.loadingOptions.schemas:
+                r["$schemas"] = self.loadingOptions.schemas
         return r
 
     attrs = frozenset(['name', 'doc', 'type', 'inputBinding', 'label'])
@@ -4457,11 +4521,11 @@ class CommandInputRecordField(InputRecordField):
 class CommandInputRecordSchema(InputRecordSchema):
     def __init__(
         self,
-        fields,  # type: Any
         type,  # type: Any
-        label,  # type: Any
-        name,  # type: Any
-        extension_fields=None,  # type: Optional[Dict[Text, Any]]
+        fields=None,  # type: Any
+        label=None,  # type: Any
+        name=None,  # type: Any
+        extension_fields=None,  # type: Optional[Dict[str, Any]]
         loadingOptions=None  # type: Optional[LoadingOptions]
     ):  # type: (...) -> None
 
@@ -4480,7 +4544,7 @@ class CommandInputRecordSchema(InputRecordSchema):
 
     @classmethod
     def fromDoc(cls, doc, baseuri, loadingOptions, docRoot=None):
-        # type: (Any, Text, LoadingOptions, Optional[Text]) -> CommandInputRecordSchema
+        # type: (Any, str, LoadingOptions, Optional[str]) -> CommandInputRecordSchema
 
         _doc = copy.copy(doc)
         if hasattr(doc, 'lc'):
@@ -4553,7 +4617,7 @@ class CommandInputRecordSchema(InputRecordSchema):
             if k not in cls.attrs:
                 if ":" in k:
                     ex = expand_url(k,
-                                    u"",
+                                    "",
                                     loadingOptions,
                                     scoped_id=False,
                                     vocab_term=False)
@@ -4571,11 +4635,11 @@ class CommandInputRecordSchema(InputRecordSchema):
             raise ValidationException("Trying 'CommandInputRecordSchema'", None, _errors__)
         loadingOptions = copy.deepcopy(loadingOptions)
         loadingOptions.original_doc = _doc
-        return cls(fields, type, label, name, extension_fields=extension_fields, loadingOptions=loadingOptions)
+        return cls(fields=fields, type=type, label=label, name=name, extension_fields=extension_fields, loadingOptions=loadingOptions)
 
     def save(self, top=False, base_url="", relative_uris=True):
-        # type: (bool, Text, bool) -> Dict[Text, Any]
-        r = yaml.comments.CommentedMap()  # type: Dict[Text, Any]
+        # type: (bool, str, bool) -> Dict[str, Any]
+        r = yaml.comments.CommentedMap()  # type: Dict[str, Any]
         for ef in self.extension_fields:
             r[prefix_url(ef, self.loadingOptions.vocab)] = self.extension_fields[ef]
 
@@ -4610,9 +4674,12 @@ class CommandInputRecordSchema(InputRecordSchema):
                 base_url=self.name,
                 relative_uris=relative_uris)
 
-        if top and self.loadingOptions.namespaces:
-            r["$namespaces"] = self.loadingOptions.namespaces
-
+        # top refers to the directory level
+        if top:
+            if self.loadingOptions.namespaces:
+                r["$namespaces"] = self.loadingOptions.namespaces
+            if self.loadingOptions.schemas:
+                r["$schemas"] = self.loadingOptions.schemas
         return r
 
     attrs = frozenset(['fields', 'type', 'label', 'name'])
@@ -4623,10 +4690,10 @@ class CommandInputEnumSchema(InputEnumSchema):
         self,
         symbols,  # type: Any
         type,  # type: Any
-        label,  # type: Any
-        name,  # type: Any
-        inputBinding,  # type: Any
-        extension_fields=None,  # type: Optional[Dict[Text, Any]]
+        label=None,  # type: Any
+        name=None,  # type: Any
+        inputBinding=None,  # type: Any
+        extension_fields=None,  # type: Optional[Dict[str, Any]]
         loadingOptions=None  # type: Optional[LoadingOptions]
     ):  # type: (...) -> None
 
@@ -4646,7 +4713,7 @@ class CommandInputEnumSchema(InputEnumSchema):
 
     @classmethod
     def fromDoc(cls, doc, baseuri, loadingOptions, docRoot=None):
-        # type: (Any, Text, LoadingOptions, Optional[Text]) -> CommandInputEnumSchema
+        # type: (Any, str, LoadingOptions, Optional[str]) -> CommandInputEnumSchema
 
         _doc = copy.copy(doc)
         if hasattr(doc, 'lc'):
@@ -4730,7 +4797,7 @@ class CommandInputEnumSchema(InputEnumSchema):
             if k not in cls.attrs:
                 if ":" in k:
                     ex = expand_url(k,
-                                    u"",
+                                    "",
                                     loadingOptions,
                                     scoped_id=False,
                                     vocab_term=False)
@@ -4748,11 +4815,11 @@ class CommandInputEnumSchema(InputEnumSchema):
             raise ValidationException("Trying 'CommandInputEnumSchema'", None, _errors__)
         loadingOptions = copy.deepcopy(loadingOptions)
         loadingOptions.original_doc = _doc
-        return cls(symbols, type, label, name, inputBinding, extension_fields=extension_fields, loadingOptions=loadingOptions)
+        return cls(symbols=symbols, type=type, label=label, name=name, inputBinding=inputBinding, extension_fields=extension_fields, loadingOptions=loadingOptions)
 
     def save(self, top=False, base_url="", relative_uris=True):
-        # type: (bool, Text, bool) -> Dict[Text, Any]
-        r = yaml.comments.CommentedMap()  # type: Dict[Text, Any]
+        # type: (bool, str, bool) -> Dict[str, Any]
+        r = yaml.comments.CommentedMap()  # type: Dict[str, Any]
         for ef in self.extension_fields:
             r[prefix_url(ef, self.loadingOptions.vocab)] = self.extension_fields[ef]
 
@@ -4797,9 +4864,12 @@ class CommandInputEnumSchema(InputEnumSchema):
                 base_url=self.name,
                 relative_uris=relative_uris)
 
-        if top and self.loadingOptions.namespaces:
-            r["$namespaces"] = self.loadingOptions.namespaces
-
+        # top refers to the directory level
+        if top:
+            if self.loadingOptions.namespaces:
+                r["$namespaces"] = self.loadingOptions.namespaces
+            if self.loadingOptions.schemas:
+                r["$schemas"] = self.loadingOptions.schemas
         return r
 
     attrs = frozenset(['symbols', 'type', 'label', 'name', 'inputBinding'])
@@ -4810,9 +4880,9 @@ class CommandInputArraySchema(InputArraySchema):
         self,
         items,  # type: Any
         type,  # type: Any
-        label,  # type: Any
-        inputBinding,  # type: Any
-        extension_fields=None,  # type: Optional[Dict[Text, Any]]
+        label=None,  # type: Any
+        inputBinding=None,  # type: Any
+        extension_fields=None,  # type: Optional[Dict[str, Any]]
         loadingOptions=None  # type: Optional[LoadingOptions]
     ):  # type: (...) -> None
 
@@ -4831,7 +4901,7 @@ class CommandInputArraySchema(InputArraySchema):
 
     @classmethod
     def fromDoc(cls, doc, baseuri, loadingOptions, docRoot=None):
-        # type: (Any, Text, LoadingOptions, Optional[Text]) -> CommandInputArraySchema
+        # type: (Any, str, LoadingOptions, Optional[str]) -> CommandInputArraySchema
 
         _doc = copy.copy(doc)
         if hasattr(doc, 'lc'):
@@ -4894,7 +4964,7 @@ class CommandInputArraySchema(InputArraySchema):
             if k not in cls.attrs:
                 if ":" in k:
                     ex = expand_url(k,
-                                    u"",
+                                    "",
                                     loadingOptions,
                                     scoped_id=False,
                                     vocab_term=False)
@@ -4912,11 +4982,11 @@ class CommandInputArraySchema(InputArraySchema):
             raise ValidationException("Trying 'CommandInputArraySchema'", None, _errors__)
         loadingOptions = copy.deepcopy(loadingOptions)
         loadingOptions.original_doc = _doc
-        return cls(items, type, label, inputBinding, extension_fields=extension_fields, loadingOptions=loadingOptions)
+        return cls(items=items, type=type, label=label, inputBinding=inputBinding, extension_fields=extension_fields, loadingOptions=loadingOptions)
 
     def save(self, top=False, base_url="", relative_uris=True):
-        # type: (bool, Text, bool) -> Dict[Text, Any]
-        r = yaml.comments.CommentedMap()  # type: Dict[Text, Any]
+        # type: (bool, str, bool) -> Dict[str, Any]
+        r = yaml.comments.CommentedMap()  # type: Dict[str, Any]
         for ef in self.extension_fields:
             r[prefix_url(ef, self.loadingOptions.vocab)] = self.extension_fields[ef]
 
@@ -4951,9 +5021,12 @@ class CommandInputArraySchema(InputArraySchema):
                 base_url=base_url,
                 relative_uris=relative_uris)
 
-        if top and self.loadingOptions.namespaces:
-            r["$namespaces"] = self.loadingOptions.namespaces
-
+        # top refers to the directory level
+        if top:
+            if self.loadingOptions.namespaces:
+                r["$namespaces"] = self.loadingOptions.namespaces
+            if self.loadingOptions.schemas:
+                r["$schemas"] = self.loadingOptions.schemas
         return r
 
     attrs = frozenset(['items', 'type', 'label', 'inputBinding'])
@@ -4963,10 +5036,10 @@ class CommandOutputRecordField(OutputRecordField):
     def __init__(
         self,
         name,  # type: Any
-        doc,  # type: Any
         type,  # type: Any
-        outputBinding,  # type: Any
-        extension_fields=None,  # type: Optional[Dict[Text, Any]]
+        doc=None,  # type: Any
+        outputBinding=None,  # type: Any
+        extension_fields=None,  # type: Optional[Dict[str, Any]]
         loadingOptions=None  # type: Optional[LoadingOptions]
     ):  # type: (...) -> None
 
@@ -4985,7 +5058,7 @@ class CommandOutputRecordField(OutputRecordField):
 
     @classmethod
     def fromDoc(cls, doc, baseuri, loadingOptions, docRoot=None):
-        # type: (Any, Text, LoadingOptions, Optional[Text]) -> CommandOutputRecordField
+        # type: (Any, str, LoadingOptions, Optional[str]) -> CommandOutputRecordField
 
         _doc = copy.copy(doc)
         if hasattr(doc, 'lc'):
@@ -5058,7 +5131,7 @@ class CommandOutputRecordField(OutputRecordField):
             if k not in cls.attrs:
                 if ":" in k:
                     ex = expand_url(k,
-                                    u"",
+                                    "",
                                     loadingOptions,
                                     scoped_id=False,
                                     vocab_term=False)
@@ -5076,11 +5149,11 @@ class CommandOutputRecordField(OutputRecordField):
             raise ValidationException("Trying 'CommandOutputRecordField'", None, _errors__)
         loadingOptions = copy.deepcopy(loadingOptions)
         loadingOptions.original_doc = _doc
-        return cls(name, doc, type, outputBinding, extension_fields=extension_fields, loadingOptions=loadingOptions)
+        return cls(name=name, doc=doc, type=type, outputBinding=outputBinding, extension_fields=extension_fields, loadingOptions=loadingOptions)
 
     def save(self, top=False, base_url="", relative_uris=True):
-        # type: (bool, Text, bool) -> Dict[Text, Any]
-        r = yaml.comments.CommentedMap()  # type: Dict[Text, Any]
+        # type: (bool, str, bool) -> Dict[str, Any]
+        r = yaml.comments.CommentedMap()  # type: Dict[str, Any]
         for ef in self.extension_fields:
             r[prefix_url(ef, self.loadingOptions.vocab)] = self.extension_fields[ef]
 
@@ -5115,9 +5188,12 @@ class CommandOutputRecordField(OutputRecordField):
                 base_url=self.name,
                 relative_uris=relative_uris)
 
-        if top and self.loadingOptions.namespaces:
-            r["$namespaces"] = self.loadingOptions.namespaces
-
+        # top refers to the directory level
+        if top:
+            if self.loadingOptions.namespaces:
+                r["$namespaces"] = self.loadingOptions.namespaces
+            if self.loadingOptions.schemas:
+                r["$schemas"] = self.loadingOptions.schemas
         return r
 
     attrs = frozenset(['name', 'doc', 'type', 'outputBinding'])
@@ -5126,11 +5202,11 @@ class CommandOutputRecordField(OutputRecordField):
 class CommandOutputRecordSchema(OutputRecordSchema):
     def __init__(
         self,
-        fields,  # type: Any
         type,  # type: Any
-        label,  # type: Any
-        name,  # type: Any
-        extension_fields=None,  # type: Optional[Dict[Text, Any]]
+        fields=None,  # type: Any
+        label=None,  # type: Any
+        name=None,  # type: Any
+        extension_fields=None,  # type: Optional[Dict[str, Any]]
         loadingOptions=None  # type: Optional[LoadingOptions]
     ):  # type: (...) -> None
 
@@ -5149,7 +5225,7 @@ class CommandOutputRecordSchema(OutputRecordSchema):
 
     @classmethod
     def fromDoc(cls, doc, baseuri, loadingOptions, docRoot=None):
-        # type: (Any, Text, LoadingOptions, Optional[Text]) -> CommandOutputRecordSchema
+        # type: (Any, str, LoadingOptions, Optional[str]) -> CommandOutputRecordSchema
 
         _doc = copy.copy(doc)
         if hasattr(doc, 'lc'):
@@ -5222,7 +5298,7 @@ class CommandOutputRecordSchema(OutputRecordSchema):
             if k not in cls.attrs:
                 if ":" in k:
                     ex = expand_url(k,
-                                    u"",
+                                    "",
                                     loadingOptions,
                                     scoped_id=False,
                                     vocab_term=False)
@@ -5240,11 +5316,11 @@ class CommandOutputRecordSchema(OutputRecordSchema):
             raise ValidationException("Trying 'CommandOutputRecordSchema'", None, _errors__)
         loadingOptions = copy.deepcopy(loadingOptions)
         loadingOptions.original_doc = _doc
-        return cls(fields, type, label, name, extension_fields=extension_fields, loadingOptions=loadingOptions)
+        return cls(fields=fields, type=type, label=label, name=name, extension_fields=extension_fields, loadingOptions=loadingOptions)
 
     def save(self, top=False, base_url="", relative_uris=True):
-        # type: (bool, Text, bool) -> Dict[Text, Any]
-        r = yaml.comments.CommentedMap()  # type: Dict[Text, Any]
+        # type: (bool, str, bool) -> Dict[str, Any]
+        r = yaml.comments.CommentedMap()  # type: Dict[str, Any]
         for ef in self.extension_fields:
             r[prefix_url(ef, self.loadingOptions.vocab)] = self.extension_fields[ef]
 
@@ -5279,9 +5355,12 @@ class CommandOutputRecordSchema(OutputRecordSchema):
                 base_url=self.name,
                 relative_uris=relative_uris)
 
-        if top and self.loadingOptions.namespaces:
-            r["$namespaces"] = self.loadingOptions.namespaces
-
+        # top refers to the directory level
+        if top:
+            if self.loadingOptions.namespaces:
+                r["$namespaces"] = self.loadingOptions.namespaces
+            if self.loadingOptions.schemas:
+                r["$schemas"] = self.loadingOptions.schemas
         return r
 
     attrs = frozenset(['fields', 'type', 'label', 'name'])
@@ -5292,9 +5371,9 @@ class CommandOutputEnumSchema(OutputEnumSchema):
         self,
         symbols,  # type: Any
         type,  # type: Any
-        label,  # type: Any
-        outputBinding,  # type: Any
-        extension_fields=None,  # type: Optional[Dict[Text, Any]]
+        label=None,  # type: Any
+        outputBinding=None,  # type: Any
+        extension_fields=None,  # type: Optional[Dict[str, Any]]
         loadingOptions=None  # type: Optional[LoadingOptions]
     ):  # type: (...) -> None
 
@@ -5313,7 +5392,7 @@ class CommandOutputEnumSchema(OutputEnumSchema):
 
     @classmethod
     def fromDoc(cls, doc, baseuri, loadingOptions, docRoot=None):
-        # type: (Any, Text, LoadingOptions, Optional[Text]) -> CommandOutputEnumSchema
+        # type: (Any, str, LoadingOptions, Optional[str]) -> CommandOutputEnumSchema
 
         _doc = copy.copy(doc)
         if hasattr(doc, 'lc'):
@@ -5376,7 +5455,7 @@ class CommandOutputEnumSchema(OutputEnumSchema):
             if k not in cls.attrs:
                 if ":" in k:
                     ex = expand_url(k,
-                                    u"",
+                                    "",
                                     loadingOptions,
                                     scoped_id=False,
                                     vocab_term=False)
@@ -5394,11 +5473,11 @@ class CommandOutputEnumSchema(OutputEnumSchema):
             raise ValidationException("Trying 'CommandOutputEnumSchema'", None, _errors__)
         loadingOptions = copy.deepcopy(loadingOptions)
         loadingOptions.original_doc = _doc
-        return cls(symbols, type, label, outputBinding, extension_fields=extension_fields, loadingOptions=loadingOptions)
+        return cls(symbols=symbols, type=type, label=label, outputBinding=outputBinding, extension_fields=extension_fields, loadingOptions=loadingOptions)
 
     def save(self, top=False, base_url="", relative_uris=True):
-        # type: (bool, Text, bool) -> Dict[Text, Any]
-        r = yaml.comments.CommentedMap()  # type: Dict[Text, Any]
+        # type: (bool, str, bool) -> Dict[str, Any]
+        r = yaml.comments.CommentedMap()  # type: Dict[str, Any]
         for ef in self.extension_fields:
             r[prefix_url(ef, self.loadingOptions.vocab)] = self.extension_fields[ef]
 
@@ -5433,9 +5512,12 @@ class CommandOutputEnumSchema(OutputEnumSchema):
                 base_url=base_url,
                 relative_uris=relative_uris)
 
-        if top and self.loadingOptions.namespaces:
-            r["$namespaces"] = self.loadingOptions.namespaces
-
+        # top refers to the directory level
+        if top:
+            if self.loadingOptions.namespaces:
+                r["$namespaces"] = self.loadingOptions.namespaces
+            if self.loadingOptions.schemas:
+                r["$schemas"] = self.loadingOptions.schemas
         return r
 
     attrs = frozenset(['symbols', 'type', 'label', 'outputBinding'])
@@ -5446,9 +5528,9 @@ class CommandOutputArraySchema(OutputArraySchema):
         self,
         items,  # type: Any
         type,  # type: Any
-        label,  # type: Any
-        outputBinding,  # type: Any
-        extension_fields=None,  # type: Optional[Dict[Text, Any]]
+        label=None,  # type: Any
+        outputBinding=None,  # type: Any
+        extension_fields=None,  # type: Optional[Dict[str, Any]]
         loadingOptions=None  # type: Optional[LoadingOptions]
     ):  # type: (...) -> None
 
@@ -5467,7 +5549,7 @@ class CommandOutputArraySchema(OutputArraySchema):
 
     @classmethod
     def fromDoc(cls, doc, baseuri, loadingOptions, docRoot=None):
-        # type: (Any, Text, LoadingOptions, Optional[Text]) -> CommandOutputArraySchema
+        # type: (Any, str, LoadingOptions, Optional[str]) -> CommandOutputArraySchema
 
         _doc = copy.copy(doc)
         if hasattr(doc, 'lc'):
@@ -5530,7 +5612,7 @@ class CommandOutputArraySchema(OutputArraySchema):
             if k not in cls.attrs:
                 if ":" in k:
                     ex = expand_url(k,
-                                    u"",
+                                    "",
                                     loadingOptions,
                                     scoped_id=False,
                                     vocab_term=False)
@@ -5548,11 +5630,11 @@ class CommandOutputArraySchema(OutputArraySchema):
             raise ValidationException("Trying 'CommandOutputArraySchema'", None, _errors__)
         loadingOptions = copy.deepcopy(loadingOptions)
         loadingOptions.original_doc = _doc
-        return cls(items, type, label, outputBinding, extension_fields=extension_fields, loadingOptions=loadingOptions)
+        return cls(items=items, type=type, label=label, outputBinding=outputBinding, extension_fields=extension_fields, loadingOptions=loadingOptions)
 
     def save(self, top=False, base_url="", relative_uris=True):
-        # type: (bool, Text, bool) -> Dict[Text, Any]
-        r = yaml.comments.CommentedMap()  # type: Dict[Text, Any]
+        # type: (bool, str, bool) -> Dict[str, Any]
+        r = yaml.comments.CommentedMap()  # type: Dict[str, Any]
         for ef in self.extension_fields:
             r[prefix_url(ef, self.loadingOptions.vocab)] = self.extension_fields[ef]
 
@@ -5587,9 +5669,12 @@ class CommandOutputArraySchema(OutputArraySchema):
                 base_url=base_url,
                 relative_uris=relative_uris)
 
-        if top and self.loadingOptions.namespaces:
-            r["$namespaces"] = self.loadingOptions.namespaces
-
+        # top refers to the directory level
+        if top:
+            if self.loadingOptions.namespaces:
+                r["$namespaces"] = self.loadingOptions.namespaces
+            if self.loadingOptions.schemas:
+                r["$schemas"] = self.loadingOptions.schemas
         return r
 
     attrs = frozenset(['items', 'type', 'label', 'outputBinding'])
@@ -5601,16 +5686,16 @@ An input parameter for a CommandLineTool.
     """
     def __init__(
         self,
-        label,  # type: Any
-        secondaryFiles,  # type: Any
-        streamable,  # type: Any
-        doc,  # type: Any
         id,  # type: Any
-        format,  # type: Any
-        inputBinding,  # type: Any
-        default,  # type: Any
-        type,  # type: Any
-        extension_fields=None,  # type: Optional[Dict[Text, Any]]
+        label=None,  # type: Any
+        secondaryFiles=None,  # type: Any
+        streamable=None,  # type: Any
+        doc=None,  # type: Any
+        format=None,  # type: Any
+        inputBinding=None,  # type: Any
+        default=None,  # type: Any
+        type=None,  # type: Any
+        extension_fields=None,  # type: Optional[Dict[str, Any]]
         loadingOptions=None  # type: Optional[LoadingOptions]
     ):  # type: (...) -> None
 
@@ -5634,7 +5719,7 @@ An input parameter for a CommandLineTool.
 
     @classmethod
     def fromDoc(cls, doc, baseuri, loadingOptions, docRoot=None):
-        # type: (Any, Text, LoadingOptions, Optional[Text]) -> CommandInputParameter
+        # type: (Any, str, LoadingOptions, Optional[str]) -> CommandInputParameter
 
         _doc = copy.copy(doc)
         if hasattr(doc, 'lc'):
@@ -5780,7 +5865,7 @@ An input parameter for a CommandLineTool.
             if k not in cls.attrs:
                 if ":" in k:
                     ex = expand_url(k,
-                                    u"",
+                                    "",
                                     loadingOptions,
                                     scoped_id=False,
                                     vocab_term=False)
@@ -5798,11 +5883,11 @@ An input parameter for a CommandLineTool.
             raise ValidationException("Trying 'CommandInputParameter'", None, _errors__)
         loadingOptions = copy.deepcopy(loadingOptions)
         loadingOptions.original_doc = _doc
-        return cls(label, secondaryFiles, streamable, doc, id, format, inputBinding, default, type, extension_fields=extension_fields, loadingOptions=loadingOptions)
+        return cls(label=label, secondaryFiles=secondaryFiles, streamable=streamable, doc=doc, id=id, format=format, inputBinding=inputBinding, default=default, type=type, extension_fields=extension_fields, loadingOptions=loadingOptions)
 
     def save(self, top=False, base_url="", relative_uris=True):
-        # type: (bool, Text, bool) -> Dict[Text, Any]
-        r = yaml.comments.CommentedMap()  # type: Dict[Text, Any]
+        # type: (bool, str, bool) -> Dict[str, Any]
+        r = yaml.comments.CommentedMap()  # type: Dict[str, Any]
         for ef in self.extension_fields:
             r[prefix_url(ef, self.loadingOptions.vocab)] = self.extension_fields[ef]
 
@@ -5875,9 +5960,12 @@ An input parameter for a CommandLineTool.
                 base_url=self.id,
                 relative_uris=relative_uris)
 
-        if top and self.loadingOptions.namespaces:
-            r["$namespaces"] = self.loadingOptions.namespaces
-
+        # top refers to the directory level
+        if top:
+            if self.loadingOptions.namespaces:
+                r["$namespaces"] = self.loadingOptions.namespaces
+            if self.loadingOptions.schemas:
+                r["$schemas"] = self.loadingOptions.schemas
         return r
 
     attrs = frozenset(['label', 'secondaryFiles', 'streamable', 'doc', 'id', 'format', 'inputBinding', 'default', 'type'])
@@ -5889,15 +5977,15 @@ An output parameter for a CommandLineTool.
     """
     def __init__(
         self,
-        label,  # type: Any
-        secondaryFiles,  # type: Any
-        streamable,  # type: Any
-        doc,  # type: Any
         id,  # type: Any
-        outputBinding,  # type: Any
-        format,  # type: Any
-        type,  # type: Any
-        extension_fields=None,  # type: Optional[Dict[Text, Any]]
+        label=None,  # type: Any
+        secondaryFiles=None,  # type: Any
+        streamable=None,  # type: Any
+        doc=None,  # type: Any
+        outputBinding=None,  # type: Any
+        format=None,  # type: Any
+        type=None,  # type: Any
+        extension_fields=None,  # type: Optional[Dict[str, Any]]
         loadingOptions=None  # type: Optional[LoadingOptions]
     ):  # type: (...) -> None
 
@@ -5920,7 +6008,7 @@ An output parameter for a CommandLineTool.
 
     @classmethod
     def fromDoc(cls, doc, baseuri, loadingOptions, docRoot=None):
-        # type: (Any, Text, LoadingOptions, Optional[Text]) -> CommandOutputParameter
+        # type: (Any, str, LoadingOptions, Optional[str]) -> CommandOutputParameter
 
         _doc = copy.copy(doc)
         if hasattr(doc, 'lc'):
@@ -6052,7 +6140,7 @@ An output parameter for a CommandLineTool.
             if k not in cls.attrs:
                 if ":" in k:
                     ex = expand_url(k,
-                                    u"",
+                                    "",
                                     loadingOptions,
                                     scoped_id=False,
                                     vocab_term=False)
@@ -6070,11 +6158,11 @@ An output parameter for a CommandLineTool.
             raise ValidationException("Trying 'CommandOutputParameter'", None, _errors__)
         loadingOptions = copy.deepcopy(loadingOptions)
         loadingOptions.original_doc = _doc
-        return cls(label, secondaryFiles, streamable, doc, id, outputBinding, format, type, extension_fields=extension_fields, loadingOptions=loadingOptions)
+        return cls(label=label, secondaryFiles=secondaryFiles, streamable=streamable, doc=doc, id=id, outputBinding=outputBinding, format=format, type=type, extension_fields=extension_fields, loadingOptions=loadingOptions)
 
     def save(self, top=False, base_url="", relative_uris=True):
-        # type: (bool, Text, bool) -> Dict[Text, Any]
-        r = yaml.comments.CommentedMap()  # type: Dict[Text, Any]
+        # type: (bool, str, bool) -> Dict[str, Any]
+        r = yaml.comments.CommentedMap()  # type: Dict[str, Any]
         for ef in self.extension_fields:
             r[prefix_url(ef, self.loadingOptions.vocab)] = self.extension_fields[ef]
 
@@ -6140,9 +6228,12 @@ An output parameter for a CommandLineTool.
                 base_url=self.id,
                 relative_uris=relative_uris)
 
-        if top and self.loadingOptions.namespaces:
-            r["$namespaces"] = self.loadingOptions.namespaces
-
+        # top refers to the directory level
+        if top:
+            if self.loadingOptions.namespaces:
+                r["$namespaces"] = self.loadingOptions.namespaces
+            if self.loadingOptions.schemas:
+                r["$schemas"] = self.loadingOptions.schemas
         return r
 
     attrs = frozenset(['label', 'secondaryFiles', 'streamable', 'doc', 'id', 'outputBinding', 'format', 'type'])
@@ -6155,23 +6246,23 @@ This defines the schema of the CWL Command Line Tool Description document.
     """
     def __init__(
         self,
-        id,  # type: Any
         inputs,  # type: Any
         outputs,  # type: Any
-        requirements,  # type: Any
-        hints,  # type: Any
-        label,  # type: Any
-        doc,  # type: Any
-        cwlVersion,  # type: Any
-        baseCommand,  # type: Any
-        arguments,  # type: Any
-        stdin,  # type: Any
-        stderr,  # type: Any
-        stdout,  # type: Any
-        successCodes,  # type: Any
-        temporaryFailCodes,  # type: Any
-        permanentFailCodes,  # type: Any
-        extension_fields=None,  # type: Optional[Dict[Text, Any]]
+        id=None,  # type: Any
+        requirements=None,  # type: Any
+        hints=None,  # type: Any
+        label=None,  # type: Any
+        doc=None,  # type: Any
+        cwlVersion=None,  # type: Any
+        baseCommand=None,  # type: Any
+        arguments=None,  # type: Any
+        stdin=None,  # type: Any
+        stderr=None,  # type: Any
+        stdout=None,  # type: Any
+        successCodes=None,  # type: Any
+        temporaryFailCodes=None,  # type: Any
+        permanentFailCodes=None,  # type: Any
+        extension_fields=None,  # type: Optional[Dict[str, Any]]
         loadingOptions=None  # type: Optional[LoadingOptions]
     ):  # type: (...) -> None
 
@@ -6203,7 +6294,7 @@ This defines the schema of the CWL Command Line Tool Description document.
 
     @classmethod
     def fromDoc(cls, doc, baseuri, loadingOptions, docRoot=None):
-        # type: (Any, Text, LoadingOptions, Optional[Text]) -> CommandLineTool
+        # type: (Any, str, LoadingOptions, Optional[str]) -> CommandLineTool
 
         _doc = copy.copy(doc)
         if hasattr(doc, 'lc'):
@@ -6445,7 +6536,7 @@ This defines the schema of the CWL Command Line Tool Description document.
             if k not in cls.attrs:
                 if ":" in k:
                     ex = expand_url(k,
-                                    u"",
+                                    "",
                                     loadingOptions,
                                     scoped_id=False,
                                     vocab_term=False)
@@ -6463,11 +6554,11 @@ This defines the schema of the CWL Command Line Tool Description document.
             raise ValidationException("Trying 'CommandLineTool'", None, _errors__)
         loadingOptions = copy.deepcopy(loadingOptions)
         loadingOptions.original_doc = _doc
-        return cls(id, inputs, outputs, requirements, hints, label, doc, cwlVersion, baseCommand, arguments, stdin, stderr, stdout, successCodes, temporaryFailCodes, permanentFailCodes, extension_fields=extension_fields, loadingOptions=loadingOptions)
+        return cls(id=id, inputs=inputs, outputs=outputs, requirements=requirements, hints=hints, label=label, doc=doc, cwlVersion=cwlVersion, baseCommand=baseCommand, arguments=arguments, stdin=stdin, stderr=stderr, stdout=stdout, successCodes=successCodes, temporaryFailCodes=temporaryFailCodes, permanentFailCodes=permanentFailCodes, extension_fields=extension_fields, loadingOptions=loadingOptions)
 
     def save(self, top=False, base_url="", relative_uris=True):
-        # type: (bool, Text, bool) -> Dict[Text, Any]
-        r = yaml.comments.CommentedMap()  # type: Dict[Text, Any]
+        # type: (bool, str, bool) -> Dict[str, Any]
+        r = yaml.comments.CommentedMap()  # type: Dict[str, Any]
         for ef in self.extension_fields:
             r[prefix_url(ef, self.loadingOptions.vocab)] = self.extension_fields[ef]
 
@@ -6591,9 +6682,12 @@ This defines the schema of the CWL Command Line Tool Description document.
                 base_url=self.id,
                 relative_uris=relative_uris)
 
-        if top and self.loadingOptions.namespaces:
-            r["$namespaces"] = self.loadingOptions.namespaces
-
+        # top refers to the directory level
+        if top:
+            if self.loadingOptions.namespaces:
+                r["$namespaces"] = self.loadingOptions.namespaces
+            if self.loadingOptions.schemas:
+                r["$schemas"] = self.loadingOptions.schemas
         return r
 
     attrs = frozenset(['id', 'inputs', 'outputs', 'requirements', 'hints', 'label', 'doc', 'cwlVersion', 'class', 'baseCommand', 'arguments', 'stdin', 'stderr', 'stdout', 'successCodes', 'temporaryFailCodes', 'permanentFailCodes'])
@@ -6638,13 +6732,13 @@ environment as defined by Docker.
     """
     def __init__(
         self,
-        dockerPull,  # type: Any
-        dockerLoad,  # type: Any
-        dockerFile,  # type: Any
-        dockerImport,  # type: Any
-        dockerImageId,  # type: Any
-        dockerOutputDirectory,  # type: Any
-        extension_fields=None,  # type: Optional[Dict[Text, Any]]
+        dockerPull=None,  # type: Any
+        dockerLoad=None,  # type: Any
+        dockerFile=None,  # type: Any
+        dockerImport=None,  # type: Any
+        dockerImageId=None,  # type: Any
+        dockerOutputDirectory=None,  # type: Any
+        extension_fields=None,  # type: Optional[Dict[str, Any]]
         loadingOptions=None  # type: Optional[LoadingOptions]
     ):  # type: (...) -> None
 
@@ -6666,7 +6760,7 @@ environment as defined by Docker.
 
     @classmethod
     def fromDoc(cls, doc, baseuri, loadingOptions, docRoot=None):
-        # type: (Any, Text, LoadingOptions, Optional[Text]) -> DockerRequirement
+        # type: (Any, str, LoadingOptions, Optional[str]) -> DockerRequirement
 
         _doc = copy.copy(doc)
         if hasattr(doc, 'lc'):
@@ -6767,7 +6861,7 @@ environment as defined by Docker.
             if k not in cls.attrs:
                 if ":" in k:
                     ex = expand_url(k,
-                                    u"",
+                                    "",
                                     loadingOptions,
                                     scoped_id=False,
                                     vocab_term=False)
@@ -6785,11 +6879,11 @@ environment as defined by Docker.
             raise ValidationException("Trying 'DockerRequirement'", None, _errors__)
         loadingOptions = copy.deepcopy(loadingOptions)
         loadingOptions.original_doc = _doc
-        return cls(dockerPull, dockerLoad, dockerFile, dockerImport, dockerImageId, dockerOutputDirectory, extension_fields=extension_fields, loadingOptions=loadingOptions)
+        return cls(dockerPull=dockerPull, dockerLoad=dockerLoad, dockerFile=dockerFile, dockerImport=dockerImport, dockerImageId=dockerImageId, dockerOutputDirectory=dockerOutputDirectory, extension_fields=extension_fields, loadingOptions=loadingOptions)
 
     def save(self, top=False, base_url="", relative_uris=True):
-        # type: (bool, Text, bool) -> Dict[Text, Any]
-        r = yaml.comments.CommentedMap()  # type: Dict[Text, Any]
+        # type: (bool, str, bool) -> Dict[str, Any]
+        r = yaml.comments.CommentedMap()  # type: Dict[str, Any]
         for ef in self.extension_fields:
             r[prefix_url(ef, self.loadingOptions.vocab)] = self.extension_fields[ef]
 
@@ -6837,9 +6931,12 @@ environment as defined by Docker.
                 base_url=base_url,
                 relative_uris=relative_uris)
 
-        if top and self.loadingOptions.namespaces:
-            r["$namespaces"] = self.loadingOptions.namespaces
-
+        # top refers to the directory level
+        if top:
+            if self.loadingOptions.namespaces:
+                r["$namespaces"] = self.loadingOptions.namespaces
+            if self.loadingOptions.schemas:
+                r["$schemas"] = self.loadingOptions.schemas
         return r
 
     attrs = frozenset(['class', 'dockerPull', 'dockerLoad', 'dockerFile', 'dockerImport', 'dockerImageId', 'dockerOutputDirectory'])
@@ -6854,7 +6951,7 @@ the defined process.
     def __init__(
         self,
         packages,  # type: Any
-        extension_fields=None,  # type: Optional[Dict[Text, Any]]
+        extension_fields=None,  # type: Optional[Dict[str, Any]]
         loadingOptions=None  # type: Optional[LoadingOptions]
     ):  # type: (...) -> None
 
@@ -6871,7 +6968,7 @@ the defined process.
 
     @classmethod
     def fromDoc(cls, doc, baseuri, loadingOptions, docRoot=None):
-        # type: (Any, Text, LoadingOptions, Optional[Text]) -> SoftwareRequirement
+        # type: (Any, str, LoadingOptions, Optional[str]) -> SoftwareRequirement
 
         _doc = copy.copy(doc)
         if hasattr(doc, 'lc'):
@@ -6899,7 +6996,7 @@ the defined process.
             if k not in cls.attrs:
                 if ":" in k:
                     ex = expand_url(k,
-                                    u"",
+                                    "",
                                     loadingOptions,
                                     scoped_id=False,
                                     vocab_term=False)
@@ -6917,11 +7014,11 @@ the defined process.
             raise ValidationException("Trying 'SoftwareRequirement'", None, _errors__)
         loadingOptions = copy.deepcopy(loadingOptions)
         loadingOptions.original_doc = _doc
-        return cls(packages, extension_fields=extension_fields, loadingOptions=loadingOptions)
+        return cls(packages=packages, extension_fields=extension_fields, loadingOptions=loadingOptions)
 
     def save(self, top=False, base_url="", relative_uris=True):
-        # type: (bool, Text, bool) -> Dict[Text, Any]
-        r = yaml.comments.CommentedMap()  # type: Dict[Text, Any]
+        # type: (bool, str, bool) -> Dict[str, Any]
+        r = yaml.comments.CommentedMap()  # type: Dict[str, Any]
         for ef in self.extension_fields:
             r[prefix_url(ef, self.loadingOptions.vocab)] = self.extension_fields[ef]
 
@@ -6934,9 +7031,12 @@ the defined process.
                 base_url=base_url,
                 relative_uris=relative_uris)
 
-        if top and self.loadingOptions.namespaces:
-            r["$namespaces"] = self.loadingOptions.namespaces
-
+        # top refers to the directory level
+        if top:
+            if self.loadingOptions.namespaces:
+                r["$namespaces"] = self.loadingOptions.namespaces
+            if self.loadingOptions.schemas:
+                r["$schemas"] = self.loadingOptions.schemas
         return r
 
     attrs = frozenset(['class', 'packages'])
@@ -6946,9 +7046,9 @@ class SoftwarePackage(Savable):
     def __init__(
         self,
         package,  # type: Any
-        version,  # type: Any
-        specs,  # type: Any
-        extension_fields=None,  # type: Optional[Dict[Text, Any]]
+        version=None,  # type: Any
+        specs=None,  # type: Any
+        extension_fields=None,  # type: Optional[Dict[str, Any]]
         loadingOptions=None  # type: Optional[LoadingOptions]
     ):  # type: (...) -> None
 
@@ -6966,7 +7066,7 @@ class SoftwarePackage(Savable):
 
     @classmethod
     def fromDoc(cls, doc, baseuri, loadingOptions, docRoot=None):
-        # type: (Any, Text, LoadingOptions, Optional[Text]) -> SoftwarePackage
+        # type: (Any, str, LoadingOptions, Optional[str]) -> SoftwarePackage
 
         _doc = copy.copy(doc)
         if hasattr(doc, 'lc'):
@@ -7018,7 +7118,7 @@ class SoftwarePackage(Savable):
             if k not in cls.attrs:
                 if ":" in k:
                     ex = expand_url(k,
-                                    u"",
+                                    "",
                                     loadingOptions,
                                     scoped_id=False,
                                     vocab_term=False)
@@ -7036,11 +7136,11 @@ class SoftwarePackage(Savable):
             raise ValidationException("Trying 'SoftwarePackage'", None, _errors__)
         loadingOptions = copy.deepcopy(loadingOptions)
         loadingOptions.original_doc = _doc
-        return cls(package, version, specs, extension_fields=extension_fields, loadingOptions=loadingOptions)
+        return cls(package=package, version=version, specs=specs, extension_fields=extension_fields, loadingOptions=loadingOptions)
 
     def save(self, top=False, base_url="", relative_uris=True):
-        # type: (bool, Text, bool) -> Dict[Text, Any]
-        r = yaml.comments.CommentedMap()  # type: Dict[Text, Any]
+        # type: (bool, str, bool) -> Dict[str, Any]
+        r = yaml.comments.CommentedMap()  # type: Dict[str, Any]
         for ef in self.extension_fields:
             r[prefix_url(ef, self.loadingOptions.vocab)] = self.extension_fields[ef]
 
@@ -7065,9 +7165,12 @@ class SoftwarePackage(Savable):
                 base_url=base_url,
                 relative_uris=relative_uris)
 
-        if top and self.loadingOptions.namespaces:
-            r["$namespaces"] = self.loadingOptions.namespaces
-
+        # top refers to the directory level
+        if top:
+            if self.loadingOptions.namespaces:
+                r["$namespaces"] = self.loadingOptions.namespaces
+            if self.loadingOptions.schemas:
+                r["$schemas"] = self.loadingOptions.schemas
         return r
 
     attrs = frozenset(['package', 'version', 'specs'])
@@ -7083,10 +7186,10 @@ template.
     """
     def __init__(
         self,
-        entryname,  # type: Any
         entry,  # type: Any
-        writable,  # type: Any
-        extension_fields=None,  # type: Optional[Dict[Text, Any]]
+        entryname=None,  # type: Any
+        writable=None,  # type: Any
+        extension_fields=None,  # type: Optional[Dict[str, Any]]
         loadingOptions=None  # type: Optional[LoadingOptions]
     ):  # type: (...) -> None
 
@@ -7104,7 +7207,7 @@ template.
 
     @classmethod
     def fromDoc(cls, doc, baseuri, loadingOptions, docRoot=None):
-        # type: (Any, Text, LoadingOptions, Optional[Text]) -> Dirent
+        # type: (Any, str, LoadingOptions, Optional[str]) -> Dirent
 
         _doc = copy.copy(doc)
         if hasattr(doc, 'lc'):
@@ -7156,7 +7259,7 @@ template.
             if k not in cls.attrs:
                 if ":" in k:
                     ex = expand_url(k,
-                                    u"",
+                                    "",
                                     loadingOptions,
                                     scoped_id=False,
                                     vocab_term=False)
@@ -7174,11 +7277,11 @@ template.
             raise ValidationException("Trying 'Dirent'", None, _errors__)
         loadingOptions = copy.deepcopy(loadingOptions)
         loadingOptions.original_doc = _doc
-        return cls(entryname, entry, writable, extension_fields=extension_fields, loadingOptions=loadingOptions)
+        return cls(entryname=entryname, entry=entry, writable=writable, extension_fields=extension_fields, loadingOptions=loadingOptions)
 
     def save(self, top=False, base_url="", relative_uris=True):
-        # type: (bool, Text, bool) -> Dict[Text, Any]
-        r = yaml.comments.CommentedMap()  # type: Dict[Text, Any]
+        # type: (bool, str, bool) -> Dict[str, Any]
+        r = yaml.comments.CommentedMap()  # type: Dict[str, Any]
         for ef in self.extension_fields:
             r[prefix_url(ef, self.loadingOptions.vocab)] = self.extension_fields[ef]
 
@@ -7203,9 +7306,12 @@ template.
                 base_url=base_url,
                 relative_uris=relative_uris)
 
-        if top and self.loadingOptions.namespaces:
-            r["$namespaces"] = self.loadingOptions.namespaces
-
+        # top refers to the directory level
+        if top:
+            if self.loadingOptions.namespaces:
+                r["$namespaces"] = self.loadingOptions.namespaces
+            if self.loadingOptions.schemas:
+                r["$schemas"] = self.loadingOptions.schemas
         return r
 
     attrs = frozenset(['entryname', 'entry', 'writable'])
@@ -7218,7 +7324,7 @@ Define a list of files and subdirectories that must be created by the workflow p
     def __init__(
         self,
         listing,  # type: Any
-        extension_fields=None,  # type: Optional[Dict[Text, Any]]
+        extension_fields=None,  # type: Optional[Dict[str, Any]]
         loadingOptions=None  # type: Optional[LoadingOptions]
     ):  # type: (...) -> None
 
@@ -7235,7 +7341,7 @@ Define a list of files and subdirectories that must be created by the workflow p
 
     @classmethod
     def fromDoc(cls, doc, baseuri, loadingOptions, docRoot=None):
-        # type: (Any, Text, LoadingOptions, Optional[Text]) -> InitialWorkDirRequirement
+        # type: (Any, str, LoadingOptions, Optional[str]) -> InitialWorkDirRequirement
 
         _doc = copy.copy(doc)
         if hasattr(doc, 'lc'):
@@ -7263,7 +7369,7 @@ Define a list of files and subdirectories that must be created by the workflow p
             if k not in cls.attrs:
                 if ":" in k:
                     ex = expand_url(k,
-                                    u"",
+                                    "",
                                     loadingOptions,
                                     scoped_id=False,
                                     vocab_term=False)
@@ -7281,11 +7387,11 @@ Define a list of files and subdirectories that must be created by the workflow p
             raise ValidationException("Trying 'InitialWorkDirRequirement'", None, _errors__)
         loadingOptions = copy.deepcopy(loadingOptions)
         loadingOptions.original_doc = _doc
-        return cls(listing, extension_fields=extension_fields, loadingOptions=loadingOptions)
+        return cls(listing=listing, extension_fields=extension_fields, loadingOptions=loadingOptions)
 
     def save(self, top=False, base_url="", relative_uris=True):
-        # type: (bool, Text, bool) -> Dict[Text, Any]
-        r = yaml.comments.CommentedMap()  # type: Dict[Text, Any]
+        # type: (bool, str, bool) -> Dict[str, Any]
+        r = yaml.comments.CommentedMap()  # type: Dict[str, Any]
         for ef in self.extension_fields:
             r[prefix_url(ef, self.loadingOptions.vocab)] = self.extension_fields[ef]
 
@@ -7298,9 +7404,12 @@ Define a list of files and subdirectories that must be created by the workflow p
                 base_url=base_url,
                 relative_uris=relative_uris)
 
-        if top and self.loadingOptions.namespaces:
-            r["$namespaces"] = self.loadingOptions.namespaces
-
+        # top refers to the directory level
+        if top:
+            if self.loadingOptions.namespaces:
+                r["$namespaces"] = self.loadingOptions.namespaces
+            if self.loadingOptions.schemas:
+                r["$schemas"] = self.loadingOptions.schemas
         return r
 
     attrs = frozenset(['class', 'listing'])
@@ -7315,7 +7424,7 @@ execution environment of the tool.  See `EnvironmentDef` for details.
     def __init__(
         self,
         envDef,  # type: Any
-        extension_fields=None,  # type: Optional[Dict[Text, Any]]
+        extension_fields=None,  # type: Optional[Dict[str, Any]]
         loadingOptions=None  # type: Optional[LoadingOptions]
     ):  # type: (...) -> None
 
@@ -7332,7 +7441,7 @@ execution environment of the tool.  See `EnvironmentDef` for details.
 
     @classmethod
     def fromDoc(cls, doc, baseuri, loadingOptions, docRoot=None):
-        # type: (Any, Text, LoadingOptions, Optional[Text]) -> EnvVarRequirement
+        # type: (Any, str, LoadingOptions, Optional[str]) -> EnvVarRequirement
 
         _doc = copy.copy(doc)
         if hasattr(doc, 'lc'):
@@ -7360,7 +7469,7 @@ execution environment of the tool.  See `EnvironmentDef` for details.
             if k not in cls.attrs:
                 if ":" in k:
                     ex = expand_url(k,
-                                    u"",
+                                    "",
                                     loadingOptions,
                                     scoped_id=False,
                                     vocab_term=False)
@@ -7378,11 +7487,11 @@ execution environment of the tool.  See `EnvironmentDef` for details.
             raise ValidationException("Trying 'EnvVarRequirement'", None, _errors__)
         loadingOptions = copy.deepcopy(loadingOptions)
         loadingOptions.original_doc = _doc
-        return cls(envDef, extension_fields=extension_fields, loadingOptions=loadingOptions)
+        return cls(envDef=envDef, extension_fields=extension_fields, loadingOptions=loadingOptions)
 
     def save(self, top=False, base_url="", relative_uris=True):
-        # type: (bool, Text, bool) -> Dict[Text, Any]
-        r = yaml.comments.CommentedMap()  # type: Dict[Text, Any]
+        # type: (bool, str, bool) -> Dict[str, Any]
+        r = yaml.comments.CommentedMap()  # type: Dict[str, Any]
         for ef in self.extension_fields:
             r[prefix_url(ef, self.loadingOptions.vocab)] = self.extension_fields[ef]
 
@@ -7395,9 +7504,12 @@ execution environment of the tool.  See `EnvironmentDef` for details.
                 base_url=base_url,
                 relative_uris=relative_uris)
 
-        if top and self.loadingOptions.namespaces:
-            r["$namespaces"] = self.loadingOptions.namespaces
-
+        # top refers to the directory level
+        if top:
+            if self.loadingOptions.namespaces:
+                r["$namespaces"] = self.loadingOptions.namespaces
+            if self.loadingOptions.schemas:
+                r["$schemas"] = self.loadingOptions.schemas
         return r
 
     attrs = frozenset(['class', 'envDef'])
@@ -7416,7 +7528,7 @@ the use of shell metacharacters such as `|` for pipes.
     """
     def __init__(
         self,
-        extension_fields=None,  # type: Optional[Dict[Text, Any]]
+        extension_fields=None,  # type: Optional[Dict[str, Any]]
         loadingOptions=None  # type: Optional[LoadingOptions]
     ):  # type: (...) -> None
 
@@ -7432,7 +7544,7 @@ the use of shell metacharacters such as `|` for pipes.
 
     @classmethod
     def fromDoc(cls, doc, baseuri, loadingOptions, docRoot=None):
-        # type: (Any, Text, LoadingOptions, Optional[Text]) -> ShellCommandRequirement
+        # type: (Any, str, LoadingOptions, Optional[str]) -> ShellCommandRequirement
 
         _doc = copy.copy(doc)
         if hasattr(doc, 'lc'):
@@ -7449,7 +7561,7 @@ the use of shell metacharacters such as `|` for pipes.
             if k not in cls.attrs:
                 if ":" in k:
                     ex = expand_url(k,
-                                    u"",
+                                    "",
                                     loadingOptions,
                                     scoped_id=False,
                                     vocab_term=False)
@@ -7470,16 +7582,19 @@ the use of shell metacharacters such as `|` for pipes.
         return cls(extension_fields=extension_fields, loadingOptions=loadingOptions)
 
     def save(self, top=False, base_url="", relative_uris=True):
-        # type: (bool, Text, bool) -> Dict[Text, Any]
-        r = yaml.comments.CommentedMap()  # type: Dict[Text, Any]
+        # type: (bool, str, bool) -> Dict[str, Any]
+        r = yaml.comments.CommentedMap()  # type: Dict[str, Any]
         for ef in self.extension_fields:
             r[prefix_url(ef, self.loadingOptions.vocab)] = self.extension_fields[ef]
 
         r['class'] = 'ShellCommandRequirement'
 
-        if top and self.loadingOptions.namespaces:
-            r["$namespaces"] = self.loadingOptions.namespaces
-
+        # top refers to the directory level
+        if top:
+            if self.loadingOptions.namespaces:
+                r["$namespaces"] = self.loadingOptions.namespaces
+            if self.loadingOptions.schemas:
+                r["$schemas"] = self.loadingOptions.schemas
         return r
 
     attrs = frozenset(['class'])
@@ -7511,15 +7626,15 @@ If neither "min" nor "max" is specified for a resource, an implementation may pr
     """
     def __init__(
         self,
-        coresMin,  # type: Any
-        coresMax,  # type: Any
-        ramMin,  # type: Any
-        ramMax,  # type: Any
-        tmpdirMin,  # type: Any
-        tmpdirMax,  # type: Any
-        outdirMin,  # type: Any
-        outdirMax,  # type: Any
-        extension_fields=None,  # type: Optional[Dict[Text, Any]]
+        coresMin=None,  # type: Any
+        coresMax=None,  # type: Any
+        ramMin=None,  # type: Any
+        ramMax=None,  # type: Any
+        tmpdirMin=None,  # type: Any
+        tmpdirMax=None,  # type: Any
+        outdirMin=None,  # type: Any
+        outdirMax=None,  # type: Any
+        extension_fields=None,  # type: Optional[Dict[str, Any]]
         loadingOptions=None  # type: Optional[LoadingOptions]
     ):  # type: (...) -> None
 
@@ -7543,7 +7658,7 @@ If neither "min" nor "max" is specified for a resource, an implementation may pr
 
     @classmethod
     def fromDoc(cls, doc, baseuri, loadingOptions, docRoot=None):
-        # type: (Any, Text, LoadingOptions, Optional[Text]) -> ResourceRequirement
+        # type: (Any, str, LoadingOptions, Optional[str]) -> ResourceRequirement
 
         _doc = copy.copy(doc)
         if hasattr(doc, 'lc'):
@@ -7672,7 +7787,7 @@ If neither "min" nor "max" is specified for a resource, an implementation may pr
             if k not in cls.attrs:
                 if ":" in k:
                     ex = expand_url(k,
-                                    u"",
+                                    "",
                                     loadingOptions,
                                     scoped_id=False,
                                     vocab_term=False)
@@ -7690,11 +7805,11 @@ If neither "min" nor "max" is specified for a resource, an implementation may pr
             raise ValidationException("Trying 'ResourceRequirement'", None, _errors__)
         loadingOptions = copy.deepcopy(loadingOptions)
         loadingOptions.original_doc = _doc
-        return cls(coresMin, coresMax, ramMin, ramMax, tmpdirMin, tmpdirMax, outdirMin, outdirMax, extension_fields=extension_fields, loadingOptions=loadingOptions)
+        return cls(coresMin=coresMin, coresMax=coresMax, ramMin=ramMin, ramMax=ramMax, tmpdirMin=tmpdirMin, tmpdirMax=tmpdirMax, outdirMin=outdirMin, outdirMax=outdirMax, extension_fields=extension_fields, loadingOptions=loadingOptions)
 
     def save(self, top=False, base_url="", relative_uris=True):
-        # type: (bool, Text, bool) -> Dict[Text, Any]
-        r = yaml.comments.CommentedMap()  # type: Dict[Text, Any]
+        # type: (bool, str, bool) -> Dict[str, Any]
+        r = yaml.comments.CommentedMap()  # type: Dict[str, Any]
         for ef in self.extension_fields:
             r[prefix_url(ef, self.loadingOptions.vocab)] = self.extension_fields[ef]
 
@@ -7756,9 +7871,12 @@ If neither "min" nor "max" is specified for a resource, an implementation may pr
                 base_url=base_url,
                 relative_uris=relative_uris)
 
-        if top and self.loadingOptions.namespaces:
-            r["$namespaces"] = self.loadingOptions.namespaces
-
+        # top refers to the directory level
+        if top:
+            if self.loadingOptions.namespaces:
+                r["$namespaces"] = self.loadingOptions.namespaces
+            if self.loadingOptions.schemas:
+                r["$schemas"] = self.loadingOptions.schemas
         return r
 
     attrs = frozenset(['class', 'coresMin', 'coresMax', 'ramMin', 'ramMax', 'tmpdirMin', 'tmpdirMax', 'outdirMin', 'outdirMax'])
@@ -7767,15 +7885,15 @@ If neither "min" nor "max" is specified for a resource, an implementation may pr
 class ExpressionToolOutputParameter(OutputParameter):
     def __init__(
         self,
-        label,  # type: Any
-        secondaryFiles,  # type: Any
-        streamable,  # type: Any
-        doc,  # type: Any
         id,  # type: Any
-        outputBinding,  # type: Any
-        format,  # type: Any
-        type,  # type: Any
-        extension_fields=None,  # type: Optional[Dict[Text, Any]]
+        label=None,  # type: Any
+        secondaryFiles=None,  # type: Any
+        streamable=None,  # type: Any
+        doc=None,  # type: Any
+        outputBinding=None,  # type: Any
+        format=None,  # type: Any
+        type=None,  # type: Any
+        extension_fields=None,  # type: Optional[Dict[str, Any]]
         loadingOptions=None  # type: Optional[LoadingOptions]
     ):  # type: (...) -> None
 
@@ -7798,7 +7916,7 @@ class ExpressionToolOutputParameter(OutputParameter):
 
     @classmethod
     def fromDoc(cls, doc, baseuri, loadingOptions, docRoot=None):
-        # type: (Any, Text, LoadingOptions, Optional[Text]) -> ExpressionToolOutputParameter
+        # type: (Any, str, LoadingOptions, Optional[str]) -> ExpressionToolOutputParameter
 
         _doc = copy.copy(doc)
         if hasattr(doc, 'lc'):
@@ -7930,7 +8048,7 @@ class ExpressionToolOutputParameter(OutputParameter):
             if k not in cls.attrs:
                 if ":" in k:
                     ex = expand_url(k,
-                                    u"",
+                                    "",
                                     loadingOptions,
                                     scoped_id=False,
                                     vocab_term=False)
@@ -7948,11 +8066,11 @@ class ExpressionToolOutputParameter(OutputParameter):
             raise ValidationException("Trying 'ExpressionToolOutputParameter'", None, _errors__)
         loadingOptions = copy.deepcopy(loadingOptions)
         loadingOptions.original_doc = _doc
-        return cls(label, secondaryFiles, streamable, doc, id, outputBinding, format, type, extension_fields=extension_fields, loadingOptions=loadingOptions)
+        return cls(label=label, secondaryFiles=secondaryFiles, streamable=streamable, doc=doc, id=id, outputBinding=outputBinding, format=format, type=type, extension_fields=extension_fields, loadingOptions=loadingOptions)
 
     def save(self, top=False, base_url="", relative_uris=True):
-        # type: (bool, Text, bool) -> Dict[Text, Any]
-        r = yaml.comments.CommentedMap()  # type: Dict[Text, Any]
+        # type: (bool, str, bool) -> Dict[str, Any]
+        r = yaml.comments.CommentedMap()  # type: Dict[str, Any]
         for ef in self.extension_fields:
             r[prefix_url(ef, self.loadingOptions.vocab)] = self.extension_fields[ef]
 
@@ -8018,9 +8136,12 @@ class ExpressionToolOutputParameter(OutputParameter):
                 base_url=self.id,
                 relative_uris=relative_uris)
 
-        if top and self.loadingOptions.namespaces:
-            r["$namespaces"] = self.loadingOptions.namespaces
-
+        # top refers to the directory level
+        if top:
+            if self.loadingOptions.namespaces:
+                r["$namespaces"] = self.loadingOptions.namespaces
+            if self.loadingOptions.schemas:
+                r["$schemas"] = self.loadingOptions.schemas
         return r
 
     attrs = frozenset(['label', 'secondaryFiles', 'streamable', 'doc', 'id', 'outputBinding', 'format', 'type'])
@@ -8033,16 +8154,16 @@ Execute an expression as a Workflow step.
     """
     def __init__(
         self,
-        id,  # type: Any
         inputs,  # type: Any
         outputs,  # type: Any
-        requirements,  # type: Any
-        hints,  # type: Any
-        label,  # type: Any
-        doc,  # type: Any
-        cwlVersion,  # type: Any
         expression,  # type: Any
-        extension_fields=None,  # type: Optional[Dict[Text, Any]]
+        id=None,  # type: Any
+        requirements=None,  # type: Any
+        hints=None,  # type: Any
+        label=None,  # type: Any
+        doc=None,  # type: Any
+        cwlVersion=None,  # type: Any
+        extension_fields=None,  # type: Optional[Dict[str, Any]]
         loadingOptions=None  # type: Optional[LoadingOptions]
     ):  # type: (...) -> None
 
@@ -8067,7 +8188,7 @@ Execute an expression as a Workflow step.
 
     @classmethod
     def fromDoc(cls, doc, baseuri, loadingOptions, docRoot=None):
-        # type: (Any, Text, LoadingOptions, Optional[Text]) -> ExpressionTool
+        # type: (Any, str, LoadingOptions, Optional[str]) -> ExpressionTool
 
         _doc = copy.copy(doc)
         if hasattr(doc, 'lc'):
@@ -8208,7 +8329,7 @@ Execute an expression as a Workflow step.
             if k not in cls.attrs:
                 if ":" in k:
                     ex = expand_url(k,
-                                    u"",
+                                    "",
                                     loadingOptions,
                                     scoped_id=False,
                                     vocab_term=False)
@@ -8226,11 +8347,11 @@ Execute an expression as a Workflow step.
             raise ValidationException("Trying 'ExpressionTool'", None, _errors__)
         loadingOptions = copy.deepcopy(loadingOptions)
         loadingOptions.original_doc = _doc
-        return cls(id, inputs, outputs, requirements, hints, label, doc, cwlVersion, expression, extension_fields=extension_fields, loadingOptions=loadingOptions)
+        return cls(id=id, inputs=inputs, outputs=outputs, requirements=requirements, hints=hints, label=label, doc=doc, cwlVersion=cwlVersion, expression=expression, extension_fields=extension_fields, loadingOptions=loadingOptions)
 
     def save(self, top=False, base_url="", relative_uris=True):
-        # type: (bool, Text, bool) -> Dict[Text, Any]
-        r = yaml.comments.CommentedMap()  # type: Dict[Text, Any]
+        # type: (bool, str, bool) -> Dict[str, Any]
+        r = yaml.comments.CommentedMap()  # type: Dict[str, Any]
         for ef in self.extension_fields:
             r[prefix_url(ef, self.loadingOptions.vocab)] = self.extension_fields[ef]
 
@@ -8305,9 +8426,12 @@ Execute an expression as a Workflow step.
                 base_url=self.id,
                 relative_uris=relative_uris)
 
-        if top and self.loadingOptions.namespaces:
-            r["$namespaces"] = self.loadingOptions.namespaces
-
+        # top refers to the directory level
+        if top:
+            if self.loadingOptions.namespaces:
+                r["$namespaces"] = self.loadingOptions.namespaces
+            if self.loadingOptions.schemas:
+                r["$schemas"] = self.loadingOptions.schemas
         return r
 
     attrs = frozenset(['id', 'inputs', 'outputs', 'requirements', 'hints', 'label', 'doc', 'cwlVersion', 'class', 'expression'])
@@ -8322,17 +8446,17 @@ provide the value of the output parameter.
     """
     def __init__(
         self,
-        label,  # type: Any
-        secondaryFiles,  # type: Any
-        streamable,  # type: Any
-        doc,  # type: Any
         id,  # type: Any
-        outputBinding,  # type: Any
-        format,  # type: Any
-        outputSource,  # type: Any
-        linkMerge,  # type: Any
-        type,  # type: Any
-        extension_fields=None,  # type: Optional[Dict[Text, Any]]
+        label=None,  # type: Any
+        secondaryFiles=None,  # type: Any
+        streamable=None,  # type: Any
+        doc=None,  # type: Any
+        outputBinding=None,  # type: Any
+        format=None,  # type: Any
+        outputSource=None,  # type: Any
+        linkMerge=None,  # type: Any
+        type=None,  # type: Any
+        extension_fields=None,  # type: Optional[Dict[str, Any]]
         loadingOptions=None  # type: Optional[LoadingOptions]
     ):  # type: (...) -> None
 
@@ -8357,7 +8481,7 @@ provide the value of the output parameter.
 
     @classmethod
     def fromDoc(cls, doc, baseuri, loadingOptions, docRoot=None):
-        # type: (Any, Text, LoadingOptions, Optional[Text]) -> WorkflowOutputParameter
+        # type: (Any, str, LoadingOptions, Optional[str]) -> WorkflowOutputParameter
 
         _doc = copy.copy(doc)
         if hasattr(doc, 'lc'):
@@ -8517,7 +8641,7 @@ provide the value of the output parameter.
             if k not in cls.attrs:
                 if ":" in k:
                     ex = expand_url(k,
-                                    u"",
+                                    "",
                                     loadingOptions,
                                     scoped_id=False,
                                     vocab_term=False)
@@ -8535,11 +8659,11 @@ provide the value of the output parameter.
             raise ValidationException("Trying 'WorkflowOutputParameter'", None, _errors__)
         loadingOptions = copy.deepcopy(loadingOptions)
         loadingOptions.original_doc = _doc
-        return cls(label, secondaryFiles, streamable, doc, id, outputBinding, format, outputSource, linkMerge, type, extension_fields=extension_fields, loadingOptions=loadingOptions)
+        return cls(label=label, secondaryFiles=secondaryFiles, streamable=streamable, doc=doc, id=id, outputBinding=outputBinding, format=format, outputSource=outputSource, linkMerge=linkMerge, type=type, extension_fields=extension_fields, loadingOptions=loadingOptions)
 
     def save(self, top=False, base_url="", relative_uris=True):
-        # type: (bool, Text, bool) -> Dict[Text, Any]
-        r = yaml.comments.CommentedMap()  # type: Dict[Text, Any]
+        # type: (bool, str, bool) -> Dict[str, Any]
+        r = yaml.comments.CommentedMap()  # type: Dict[str, Any]
         for ef in self.extension_fields:
             r[prefix_url(ef, self.loadingOptions.vocab)] = self.extension_fields[ef]
 
@@ -8622,9 +8746,12 @@ provide the value of the output parameter.
                 base_url=self.id,
                 relative_uris=relative_uris)
 
-        if top and self.loadingOptions.namespaces:
-            r["$namespaces"] = self.loadingOptions.namespaces
-
+        # top refers to the directory level
+        if top:
+            if self.loadingOptions.namespaces:
+                r["$namespaces"] = self.loadingOptions.namespaces
+            if self.loadingOptions.schemas:
+                r["$schemas"] = self.loadingOptions.schemas
         return r
 
     attrs = frozenset(['label', 'secondaryFiles', 'streamable', 'doc', 'id', 'outputBinding', 'format', 'outputSource', 'linkMerge', 'type'])
@@ -8679,12 +8806,12 @@ specified, the default method is "merge_nested".
     """
     def __init__(
         self,
-        source,  # type: Any
-        linkMerge,  # type: Any
         id,  # type: Any
-        default,  # type: Any
-        valueFrom,  # type: Any
-        extension_fields=None,  # type: Optional[Dict[Text, Any]]
+        source=None,  # type: Any
+        linkMerge=None,  # type: Any
+        default=None,  # type: Any
+        valueFrom=None,  # type: Any
+        extension_fields=None,  # type: Optional[Dict[str, Any]]
         loadingOptions=None  # type: Optional[LoadingOptions]
     ):  # type: (...) -> None
 
@@ -8704,7 +8831,7 @@ specified, the default method is "merge_nested".
 
     @classmethod
     def fromDoc(cls, doc, baseuri, loadingOptions, docRoot=None):
-        # type: (Any, Text, LoadingOptions, Optional[Text]) -> WorkflowStepInput
+        # type: (Any, str, LoadingOptions, Optional[str]) -> WorkflowStepInput
 
         _doc = copy.copy(doc)
         if hasattr(doc, 'lc'):
@@ -8794,7 +8921,7 @@ specified, the default method is "merge_nested".
             if k not in cls.attrs:
                 if ":" in k:
                     ex = expand_url(k,
-                                    u"",
+                                    "",
                                     loadingOptions,
                                     scoped_id=False,
                                     vocab_term=False)
@@ -8812,11 +8939,11 @@ specified, the default method is "merge_nested".
             raise ValidationException("Trying 'WorkflowStepInput'", None, _errors__)
         loadingOptions = copy.deepcopy(loadingOptions)
         loadingOptions.original_doc = _doc
-        return cls(source, linkMerge, id, default, valueFrom, extension_fields=extension_fields, loadingOptions=loadingOptions)
+        return cls(source=source, linkMerge=linkMerge, id=id, default=default, valueFrom=valueFrom, extension_fields=extension_fields, loadingOptions=loadingOptions)
 
     def save(self, top=False, base_url="", relative_uris=True):
-        # type: (bool, Text, bool) -> Dict[Text, Any]
-        r = yaml.comments.CommentedMap()  # type: Dict[Text, Any]
+        # type: (bool, str, bool) -> Dict[str, Any]
+        r = yaml.comments.CommentedMap()  # type: Dict[str, Any]
         for ef in self.extension_fields:
             r[prefix_url(ef, self.loadingOptions.vocab)] = self.extension_fields[ef]
 
@@ -8861,9 +8988,12 @@ specified, the default method is "merge_nested".
                 base_url=self.id,
                 relative_uris=relative_uris)
 
-        if top and self.loadingOptions.namespaces:
-            r["$namespaces"] = self.loadingOptions.namespaces
-
+        # top refers to the directory level
+        if top:
+            if self.loadingOptions.namespaces:
+                r["$namespaces"] = self.loadingOptions.namespaces
+            if self.loadingOptions.schemas:
+                r["$schemas"] = self.loadingOptions.schemas
         return r
 
     attrs = frozenset(['source', 'linkMerge', 'id', 'default', 'valueFrom'])
@@ -8880,7 +9010,7 @@ with an output parameter of the process.
     def __init__(
         self,
         id,  # type: Any
-        extension_fields=None,  # type: Optional[Dict[Text, Any]]
+        extension_fields=None,  # type: Optional[Dict[str, Any]]
         loadingOptions=None  # type: Optional[LoadingOptions]
     ):  # type: (...) -> None
 
@@ -8896,7 +9026,7 @@ with an output parameter of the process.
 
     @classmethod
     def fromDoc(cls, doc, baseuri, loadingOptions, docRoot=None):
-        # type: (Any, Text, LoadingOptions, Optional[Text]) -> WorkflowStepOutput
+        # type: (Any, str, LoadingOptions, Optional[str]) -> WorkflowStepOutput
 
         _doc = copy.copy(doc)
         if hasattr(doc, 'lc'):
@@ -8930,7 +9060,7 @@ with an output parameter of the process.
             if k not in cls.attrs:
                 if ":" in k:
                     ex = expand_url(k,
-                                    u"",
+                                    "",
                                     loadingOptions,
                                     scoped_id=False,
                                     vocab_term=False)
@@ -8948,11 +9078,11 @@ with an output parameter of the process.
             raise ValidationException("Trying 'WorkflowStepOutput'", None, _errors__)
         loadingOptions = copy.deepcopy(loadingOptions)
         loadingOptions.original_doc = _doc
-        return cls(id, extension_fields=extension_fields, loadingOptions=loadingOptions)
+        return cls(id=id, extension_fields=extension_fields, loadingOptions=loadingOptions)
 
     def save(self, top=False, base_url="", relative_uris=True):
-        # type: (bool, Text, bool) -> Dict[Text, Any]
-        r = yaml.comments.CommentedMap()  # type: Dict[Text, Any]
+        # type: (bool, str, bool) -> Dict[str, Any]
+        r = yaml.comments.CommentedMap()  # type: Dict[str, Any]
         for ef in self.extension_fields:
             r[prefix_url(ef, self.loadingOptions.vocab)] = self.extension_fields[ef]
 
@@ -8966,9 +9096,12 @@ with an output parameter of the process.
             if u:
                 r['id'] = u
 
-        if top and self.loadingOptions.namespaces:
-            r["$namespaces"] = self.loadingOptions.namespaces
-
+        # top refers to the directory level
+        if top:
+            if self.loadingOptions.namespaces:
+                r["$namespaces"] = self.loadingOptions.namespaces
+            if self.loadingOptions.schemas:
+                r["$schemas"] = self.loadingOptions.schemas
         return r
 
     attrs = frozenset(['id'])
@@ -9038,14 +9171,14 @@ a subworkflow (recursive workflows are not allowed).
         id,  # type: Any
         in_,  # type: Any
         out,  # type: Any
-        requirements,  # type: Any
-        hints,  # type: Any
-        label,  # type: Any
-        doc,  # type: Any
         run,  # type: Any
-        scatter,  # type: Any
-        scatterMethod,  # type: Any
-        extension_fields=None,  # type: Optional[Dict[Text, Any]]
+        requirements=None,  # type: Any
+        hints=None,  # type: Any
+        label=None,  # type: Any
+        doc=None,  # type: Any
+        scatter=None,  # type: Any
+        scatterMethod=None,  # type: Any
+        extension_fields=None,  # type: Optional[Dict[str, Any]]
         loadingOptions=None  # type: Optional[LoadingOptions]
     ):  # type: (...) -> None
 
@@ -9070,7 +9203,7 @@ a subworkflow (recursive workflows are not allowed).
 
     @classmethod
     def fromDoc(cls, doc, baseuri, loadingOptions, docRoot=None):
-        # type: (Any, Text, LoadingOptions, Optional[Text]) -> WorkflowStep
+        # type: (Any, str, LoadingOptions, Optional[str]) -> WorkflowStep
 
         _doc = copy.copy(doc)
         if hasattr(doc, 'lc'):
@@ -9221,7 +9354,7 @@ a subworkflow (recursive workflows are not allowed).
             if k not in cls.attrs:
                 if ":" in k:
                     ex = expand_url(k,
-                                    u"",
+                                    "",
                                     loadingOptions,
                                     scoped_id=False,
                                     vocab_term=False)
@@ -9239,11 +9372,11 @@ a subworkflow (recursive workflows are not allowed).
             raise ValidationException("Trying 'WorkflowStep'", None, _errors__)
         loadingOptions = copy.deepcopy(loadingOptions)
         loadingOptions.original_doc = _doc
-        return cls(id, in_, out, requirements, hints, label, doc, run, scatter, scatterMethod, extension_fields=extension_fields, loadingOptions=loadingOptions)
+        return cls(id=id, in_=in_, out=out, requirements=requirements, hints=hints, label=label, doc=doc, run=run, scatter=scatter, scatterMethod=scatterMethod, extension_fields=extension_fields, loadingOptions=loadingOptions)
 
     def save(self, top=False, base_url="", relative_uris=True):
-        # type: (bool, Text, bool) -> Dict[Text, Any]
-        r = yaml.comments.CommentedMap()  # type: Dict[Text, Any]
+        # type: (bool, str, bool) -> Dict[str, Any]
+        r = yaml.comments.CommentedMap()  # type: Dict[str, Any]
         for ef in self.extension_fields:
             r[prefix_url(ef, self.loadingOptions.vocab)] = self.extension_fields[ef]
 
@@ -9332,9 +9465,12 @@ a subworkflow (recursive workflows are not allowed).
             if u:
                 r['scatterMethod'] = u
 
-        if top and self.loadingOptions.namespaces:
-            r["$namespaces"] = self.loadingOptions.namespaces
-
+        # top refers to the directory level
+        if top:
+            if self.loadingOptions.namespaces:
+                r["$namespaces"] = self.loadingOptions.namespaces
+            if self.loadingOptions.schemas:
+                r["$schemas"] = self.loadingOptions.schemas
         return r
 
     attrs = frozenset(['id', 'in', 'out', 'requirements', 'hints', 'label', 'doc', 'run', 'scatter', 'scatterMethod'])
@@ -9391,16 +9527,16 @@ workflow semantics.
     """
     def __init__(
         self,
-        id,  # type: Any
         inputs,  # type: Any
         outputs,  # type: Any
-        requirements,  # type: Any
-        hints,  # type: Any
-        label,  # type: Any
-        doc,  # type: Any
-        cwlVersion,  # type: Any
         steps,  # type: Any
-        extension_fields=None,  # type: Optional[Dict[Text, Any]]
+        id=None,  # type: Any
+        requirements=None,  # type: Any
+        hints=None,  # type: Any
+        label=None,  # type: Any
+        doc=None,  # type: Any
+        cwlVersion=None,  # type: Any
+        extension_fields=None,  # type: Optional[Dict[str, Any]]
         loadingOptions=None  # type: Optional[LoadingOptions]
     ):  # type: (...) -> None
 
@@ -9425,7 +9561,7 @@ workflow semantics.
 
     @classmethod
     def fromDoc(cls, doc, baseuri, loadingOptions, docRoot=None):
-        # type: (Any, Text, LoadingOptions, Optional[Text]) -> Workflow
+        # type: (Any, str, LoadingOptions, Optional[str]) -> Workflow
 
         _doc = copy.copy(doc)
         if hasattr(doc, 'lc'):
@@ -9566,7 +9702,7 @@ workflow semantics.
             if k not in cls.attrs:
                 if ":" in k:
                     ex = expand_url(k,
-                                    u"",
+                                    "",
                                     loadingOptions,
                                     scoped_id=False,
                                     vocab_term=False)
@@ -9584,11 +9720,11 @@ workflow semantics.
             raise ValidationException("Trying 'Workflow'", None, _errors__)
         loadingOptions = copy.deepcopy(loadingOptions)
         loadingOptions.original_doc = _doc
-        return cls(id, inputs, outputs, requirements, hints, label, doc, cwlVersion, steps, extension_fields=extension_fields, loadingOptions=loadingOptions)
+        return cls(id=id, inputs=inputs, outputs=outputs, requirements=requirements, hints=hints, label=label, doc=doc, cwlVersion=cwlVersion, steps=steps, extension_fields=extension_fields, loadingOptions=loadingOptions)
 
     def save(self, top=False, base_url="", relative_uris=True):
-        # type: (bool, Text, bool) -> Dict[Text, Any]
-        r = yaml.comments.CommentedMap()  # type: Dict[Text, Any]
+        # type: (bool, str, bool) -> Dict[str, Any]
+        r = yaml.comments.CommentedMap()  # type: Dict[str, Any]
         for ef in self.extension_fields:
             r[prefix_url(ef, self.loadingOptions.vocab)] = self.extension_fields[ef]
 
@@ -9663,9 +9799,12 @@ workflow semantics.
                 base_url=self.id,
                 relative_uris=relative_uris)
 
-        if top and self.loadingOptions.namespaces:
-            r["$namespaces"] = self.loadingOptions.namespaces
-
+        # top refers to the directory level
+        if top:
+            if self.loadingOptions.namespaces:
+                r["$namespaces"] = self.loadingOptions.namespaces
+            if self.loadingOptions.schemas:
+                r["$schemas"] = self.loadingOptions.schemas
         return r
 
     attrs = frozenset(['id', 'inputs', 'outputs', 'requirements', 'hints', 'label', 'doc', 'cwlVersion', 'class', 'steps'])
@@ -9679,7 +9818,7 @@ the `run` field of [WorkflowStep](#WorkflowStep).
     """
     def __init__(
         self,
-        extension_fields=None,  # type: Optional[Dict[Text, Any]]
+        extension_fields=None,  # type: Optional[Dict[str, Any]]
         loadingOptions=None  # type: Optional[LoadingOptions]
     ):  # type: (...) -> None
 
@@ -9695,7 +9834,7 @@ the `run` field of [WorkflowStep](#WorkflowStep).
 
     @classmethod
     def fromDoc(cls, doc, baseuri, loadingOptions, docRoot=None):
-        # type: (Any, Text, LoadingOptions, Optional[Text]) -> SubworkflowFeatureRequirement
+        # type: (Any, str, LoadingOptions, Optional[str]) -> SubworkflowFeatureRequirement
 
         _doc = copy.copy(doc)
         if hasattr(doc, 'lc'):
@@ -9712,7 +9851,7 @@ the `run` field of [WorkflowStep](#WorkflowStep).
             if k not in cls.attrs:
                 if ":" in k:
                     ex = expand_url(k,
-                                    u"",
+                                    "",
                                     loadingOptions,
                                     scoped_id=False,
                                     vocab_term=False)
@@ -9733,16 +9872,19 @@ the `run` field of [WorkflowStep](#WorkflowStep).
         return cls(extension_fields=extension_fields, loadingOptions=loadingOptions)
 
     def save(self, top=False, base_url="", relative_uris=True):
-        # type: (bool, Text, bool) -> Dict[Text, Any]
-        r = yaml.comments.CommentedMap()  # type: Dict[Text, Any]
+        # type: (bool, str, bool) -> Dict[str, Any]
+        r = yaml.comments.CommentedMap()  # type: Dict[str, Any]
         for ef in self.extension_fields:
             r[prefix_url(ef, self.loadingOptions.vocab)] = self.extension_fields[ef]
 
         r['class'] = 'SubworkflowFeatureRequirement'
 
-        if top and self.loadingOptions.namespaces:
-            r["$namespaces"] = self.loadingOptions.namespaces
-
+        # top refers to the directory level
+        if top:
+            if self.loadingOptions.namespaces:
+                r["$namespaces"] = self.loadingOptions.namespaces
+            if self.loadingOptions.schemas:
+                r["$schemas"] = self.loadingOptions.schemas
         return r
 
     attrs = frozenset(['class'])
@@ -9756,7 +9898,7 @@ Indicates that the workflow platform must support the `scatter` and
     """
     def __init__(
         self,
-        extension_fields=None,  # type: Optional[Dict[Text, Any]]
+        extension_fields=None,  # type: Optional[Dict[str, Any]]
         loadingOptions=None  # type: Optional[LoadingOptions]
     ):  # type: (...) -> None
 
@@ -9772,7 +9914,7 @@ Indicates that the workflow platform must support the `scatter` and
 
     @classmethod
     def fromDoc(cls, doc, baseuri, loadingOptions, docRoot=None):
-        # type: (Any, Text, LoadingOptions, Optional[Text]) -> ScatterFeatureRequirement
+        # type: (Any, str, LoadingOptions, Optional[str]) -> ScatterFeatureRequirement
 
         _doc = copy.copy(doc)
         if hasattr(doc, 'lc'):
@@ -9789,7 +9931,7 @@ Indicates that the workflow platform must support the `scatter` and
             if k not in cls.attrs:
                 if ":" in k:
                     ex = expand_url(k,
-                                    u"",
+                                    "",
                                     loadingOptions,
                                     scoped_id=False,
                                     vocab_term=False)
@@ -9810,16 +9952,19 @@ Indicates that the workflow platform must support the `scatter` and
         return cls(extension_fields=extension_fields, loadingOptions=loadingOptions)
 
     def save(self, top=False, base_url="", relative_uris=True):
-        # type: (bool, Text, bool) -> Dict[Text, Any]
-        r = yaml.comments.CommentedMap()  # type: Dict[Text, Any]
+        # type: (bool, str, bool) -> Dict[str, Any]
+        r = yaml.comments.CommentedMap()  # type: Dict[str, Any]
         for ef in self.extension_fields:
             r[prefix_url(ef, self.loadingOptions.vocab)] = self.extension_fields[ef]
 
         r['class'] = 'ScatterFeatureRequirement'
 
-        if top and self.loadingOptions.namespaces:
-            r["$namespaces"] = self.loadingOptions.namespaces
-
+        # top refers to the directory level
+        if top:
+            if self.loadingOptions.namespaces:
+                r["$namespaces"] = self.loadingOptions.namespaces
+            if self.loadingOptions.schemas:
+                r["$schemas"] = self.loadingOptions.schemas
         return r
 
     attrs = frozenset(['class'])
@@ -9833,7 +9978,7 @@ listed in the `source` field of [WorkflowStepInput](#WorkflowStepInput).
     """
     def __init__(
         self,
-        extension_fields=None,  # type: Optional[Dict[Text, Any]]
+        extension_fields=None,  # type: Optional[Dict[str, Any]]
         loadingOptions=None  # type: Optional[LoadingOptions]
     ):  # type: (...) -> None
 
@@ -9849,7 +9994,7 @@ listed in the `source` field of [WorkflowStepInput](#WorkflowStepInput).
 
     @classmethod
     def fromDoc(cls, doc, baseuri, loadingOptions, docRoot=None):
-        # type: (Any, Text, LoadingOptions, Optional[Text]) -> MultipleInputFeatureRequirement
+        # type: (Any, str, LoadingOptions, Optional[str]) -> MultipleInputFeatureRequirement
 
         _doc = copy.copy(doc)
         if hasattr(doc, 'lc'):
@@ -9866,7 +10011,7 @@ listed in the `source` field of [WorkflowStepInput](#WorkflowStepInput).
             if k not in cls.attrs:
                 if ":" in k:
                     ex = expand_url(k,
-                                    u"",
+                                    "",
                                     loadingOptions,
                                     scoped_id=False,
                                     vocab_term=False)
@@ -9887,16 +10032,19 @@ listed in the `source` field of [WorkflowStepInput](#WorkflowStepInput).
         return cls(extension_fields=extension_fields, loadingOptions=loadingOptions)
 
     def save(self, top=False, base_url="", relative_uris=True):
-        # type: (bool, Text, bool) -> Dict[Text, Any]
-        r = yaml.comments.CommentedMap()  # type: Dict[Text, Any]
+        # type: (bool, str, bool) -> Dict[str, Any]
+        r = yaml.comments.CommentedMap()  # type: Dict[str, Any]
         for ef in self.extension_fields:
             r[prefix_url(ef, self.loadingOptions.vocab)] = self.extension_fields[ef]
 
         r['class'] = 'MultipleInputFeatureRequirement'
 
-        if top and self.loadingOptions.namespaces:
-            r["$namespaces"] = self.loadingOptions.namespaces
-
+        # top refers to the directory level
+        if top:
+            if self.loadingOptions.namespaces:
+                r["$namespaces"] = self.loadingOptions.namespaces
+            if self.loadingOptions.schemas:
+                r["$schemas"] = self.loadingOptions.schemas
         return r
 
     attrs = frozenset(['class'])
@@ -9910,7 +10058,7 @@ of [WorkflowStepInput](#WorkflowStepInput).
     """
     def __init__(
         self,
-        extension_fields=None,  # type: Optional[Dict[Text, Any]]
+        extension_fields=None,  # type: Optional[Dict[str, Any]]
         loadingOptions=None  # type: Optional[LoadingOptions]
     ):  # type: (...) -> None
 
@@ -9926,7 +10074,7 @@ of [WorkflowStepInput](#WorkflowStepInput).
 
     @classmethod
     def fromDoc(cls, doc, baseuri, loadingOptions, docRoot=None):
-        # type: (Any, Text, LoadingOptions, Optional[Text]) -> StepInputExpressionRequirement
+        # type: (Any, str, LoadingOptions, Optional[str]) -> StepInputExpressionRequirement
 
         _doc = copy.copy(doc)
         if hasattr(doc, 'lc'):
@@ -9943,7 +10091,7 @@ of [WorkflowStepInput](#WorkflowStepInput).
             if k not in cls.attrs:
                 if ":" in k:
                     ex = expand_url(k,
-                                    u"",
+                                    "",
                                     loadingOptions,
                                     scoped_id=False,
                                     vocab_term=False)
@@ -9964,16 +10112,19 @@ of [WorkflowStepInput](#WorkflowStepInput).
         return cls(extension_fields=extension_fields, loadingOptions=loadingOptions)
 
     def save(self, top=False, base_url="", relative_uris=True):
-        # type: (bool, Text, bool) -> Dict[Text, Any]
-        r = yaml.comments.CommentedMap()  # type: Dict[Text, Any]
+        # type: (bool, str, bool) -> Dict[str, Any]
+        r = yaml.comments.CommentedMap()  # type: Dict[str, Any]
         for ef in self.extension_fields:
             r[prefix_url(ef, self.loadingOptions.vocab)] = self.extension_fields[ef]
 
         r['class'] = 'StepInputExpressionRequirement'
 
-        if top and self.loadingOptions.namespaces:
-            r["$namespaces"] = self.loadingOptions.namespaces
-
+        # top refers to the directory level
+        if top:
+            if self.loadingOptions.namespaces:
+                r["$namespaces"] = self.loadingOptions.namespaces
+            if self.loadingOptions.schemas:
+                r["$schemas"] = self.loadingOptions.schemas
         return r
 
     attrs = frozenset(['class'])
@@ -10178,7 +10329,7 @@ _rvocab = {
     "https://w3id.org/cwl/cwl#v1.0.dev4": "v1.0.dev4",
 }
 
-strtype = _PrimitiveLoader((str, text_type))
+strtype = _PrimitiveLoader((str, str))
 inttype = _PrimitiveLoader(int)
 floattype = _PrimitiveLoader(float)
 booltype = _PrimitiveLoader(bool)
@@ -10394,7 +10545,7 @@ union_of_CommandLineToolLoader_or_ExpressionToolLoader_or_WorkflowLoader_or_arra
 
 
 def load_document(doc, baseuri=None, loadingOptions=None):
-    # type: (Any, Optional[Text], Optional[LoadingOptions]) -> Any
+    # type: (Any, Optional[str], Optional[LoadingOptions]) -> Any
     if baseuri is None:
         baseuri = file_uri(os.getcwd()) + "/"
     if loadingOptions is None:
@@ -10403,8 +10554,8 @@ def load_document(doc, baseuri=None, loadingOptions=None):
 
 
 def load_document_by_string(string, uri, loadingOptions=None):
-    # type: (Any, Text, Optional[LoadingOptions]) -> Any
-    result = yaml.round_trip_load(string, preserve_quotes=True)
+    # type: (Any, str, Optional[LoadingOptions]) -> Any
+    result = yaml.main.round_trip_load(string, preserve_quotes=True)
     add_lc_filename(result, uri)
 
     if loadingOptions is None:
