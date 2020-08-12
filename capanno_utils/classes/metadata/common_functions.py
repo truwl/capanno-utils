@@ -18,29 +18,6 @@ def _mk_hashes(arg1, *args):
     return hashes
 
 
-def mk_tool_identifier(name, version, start=0):
-    name_hash, version_hash = _mk_hashes(name, version)
-    identifier = f"TL_{name_hash[start:start + 6]}.{version_hash[:2]}"
-    return identifier
-
-
-def mk_tool_instance_identifier(tool_identifier):
-    uuid_string = uuid.uuid4().hex[:4]
-    return f"{tool_identifier}.{uuid_string}"
-
-
-def mk_subtool_identifier():
-    raise NotImplementedError
-
-
-def mk_script_identifier():
-    raise NotImplementedError
-
-
-def mk_workflow_identifier():
-    raise NotImplementedError
-
-
 def mk_empty_prop_object(property_name):
     """
     Should only call this to override a None value for a property.
@@ -142,6 +119,8 @@ class CommonPropsMixin:
                 people = [Person(**person) for person in person_list]
             elif isinstance(person_list[0], Person):
                 people = person_list
+            else:
+                raise NotImplementedError
         else:
             people = None
         self._creator = people

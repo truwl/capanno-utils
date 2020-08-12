@@ -3,10 +3,12 @@ from pathlib import Path
 from collections import OrderedDict
 from abc import abstractmethod
 import re
+import uuid
 from ruamel.yaml import safe_load
-from ...helpers.get_paths import get_tool_metadata, get_parent_tool_relative_path_string
+from capanno_utils.config import *
+from ...helpers.get_paths import *
 from ...classes.metadata.metadata_base import MetadataBase
-from ...classes.metadata.shared_properties import CodeRepository, Person, WebSite, Keyword
+from ...classes.metadata.shared_properties import CodeRepository, Person, WebSite, Keyword, IOObjectItem, IOArrayItem
 from ...helpers.get_metadata_from_biotools import make_tool_metadata_kwargs_from_biotools
 from ...classes.metadata.common_functions import _mk_hashes, CommonPropsMixin
 
@@ -86,13 +88,8 @@ class ParentToolMetadata(CommonPropsMixin, ToolMetadataBase):
         ])
 
     def _check_identifier(self, identifier):
-        if not identifier[:3] == "TL_":
-            raise ValueError(f"Tool identifiers must start with 'TL_' you provided {identifier}")
-        else:
-            hex_pattern = r'[0-9a-f]{6}\.[0-9a-f]{2}$'
-            match_obj = re.match(hex_pattern, identifier[3:])
-            if not match_obj:
-                raise ValueError(f"Tool identifier not formatted correctly: {identifier}")
+        if not parent_tool_identifier_pattern.match(identifier):
+            raise ValueError(f"Tool identifier not formatted correctly: {identifier}")
         return identifier
 
     def _mk_identifier(self, start=0):
@@ -226,9 +223,7 @@ class SubtoolMetadata(CommonPropsMixin, ToolMetadataBase):
         if not identifier.endswith(parent_identifier[-3:]):  # should be '.xx'
             raise ValueError(
                 f"Subtool identifier {identifier} does not properly correspond to parent identifier {parent_identifier}")
-        hex_pattern = r'[0-9a-f]{6}_[0-9a-f]{2}\.[0-9a-f]{2}$'
-        match_obj = re.match(hex_pattern, identifier[3:])
-        if not match_obj:
+        if not subtool_identifier_pattern.match(identifier):
             raise ValueError(f"Tool identifier not formatted correctly: {identifier}")
 
         return identifier
@@ -245,8 +240,11 @@ class SubtoolMetadata(CommonPropsMixin, ToolMetadataBase):
     def mk_completed_file(self):
         raise NotImplementedError
 
-    def mk_instance(self):
-        raise NotImplementedError
+    def mk_instance(self, **kwargs):
+        tool_name = f"{self._parentMetadata.name} {self.name}"
+        tool_instance_dict = {'toolName': tool_name, 'toolVersion': self._parentMetadata.softwareVersion.versionName, 'toolIdentifier': self.identifier, '_subtoolMetadata': self}
+        tool_instance_metadata = ToolInstanceMetadata(**tool_instance_dict, **kwargs)
+        return tool_instance_metadata
 
     def mk_file(self, base_dir, keys=None, replace_none=True):
         try:
@@ -256,4 +254,147 @@ class SubtoolMetadata(CommonPropsMixin, ToolMetadataBase):
             raise
         if not file_path.parent.exists():
             file_path.parent.mkdir()
+        super().mk_file(file_path, keys, replace_none)
+
+
+class ToolInstanceMetadata(MetadataBase):
+    @staticmethod
+    def _init_metadata():  # Todo: Look at cwlProv to see what kind of metadata they use for CommandLineTool run.
+        return OrderedDict([
+            ('toolName', None),
+            ('toolVersion', None),
+            ('name', None),
+            ('metadataStatus', 'Incomplete'),
+            ('jobStatus', 'Incomplete'),  # Describes status of a job file
+            ('toolIdentifier', None), # Identifier for subtool that this is an instance of.
+            ('identifier', None),  # Identifier for the instance
+            ('description', None),  # Description of what the instance does.
+            ('command', None),  # Generated command. Decide on whether to implement here.
+            ('inputObjects', None),
+            ('outputObjects', None),
+            ('extra', None),
+            ('_tool_instance_file_path', None),  # Populated if class is initialized from a file.
+            ('_subtoolMetadata', None) # Store the SubtoolMetadata instance that this is an instance of.
+        ])
+
+    def __init__(self, _tool_instance_metadata_file_path=None, **kwargs):
+        """
+        Initialize ToolInstanceMetadata
+        :param _metadata_file_path(Path): Absolute path of yaml file that SubtoolMetadata is loaded from. Should not be used directly. Only used if class is initiated using 'load_from_file' method.
+        :param kwargs: Key:value pairs that describe tool instance metadata.
+        """
+        self._subtoolMetadata = kwargs.get('_subtoolMetadata')
+        if self._subtoolMetadata:
+            assert isinstance(self._subtoolMetadata, SubtoolMetadata)
+        else:
+            self._load_subtool_metadata(_tool_instance_metadata_file_path)
+        super().__init__(**kwargs)
+
+
+    def _load_subtool_metadata(self, tool_instance_metadata_path, ignore_empties=False):
+        try:
+            base_dir = get_base_dir_from_abs_path(tool_instance_metadata_path)
+        except TypeError:
+            raise
+        subtool_metadata_path = get_subtool_metadata_path_from_tool_instance_metadata_path(tool_instance_metadata_path, base_dir=base_dir)
+
+        self._subtoolMetadata = SubtoolMetadata.load_from_file(subtool_metadata_path)
+
+        # with subtool_metadata_path.open('r') as f:
+        #     subtool_metadata_dict = safe_load(f)
+        # self._subtoolMetadata = SubtoolMetadata(**subtool_metadata_dict)
+
+
+
+    @classmethod
+    def load_from_file(cls, file_path, ignore_empties=False):
+        file_path = Path(file_path)
+        with file_path.open('r') as f:
+            file_dict = safe_load(f)
+        return cls(**file_dict, _tool_instance_metadata_file_path=file_path, ignore_empties=ignore_empties)
+
+    def _mk_identifier(self):
+        instance_hash = uuid.uuid4().hex[:4]
+        instance_identifier = f"{self.toolIdentifier}.{instance_hash}"
+        self._check_identifier(instance_identifier)  # Makes sure the toolIdentifier was correct too.
+        return instance_identifier
+
+    def _check_identifier(self, identifier):
+        if not identifier.startswith(self.toolIdentifier):
+            raise ValueError(f"Tool instance identifier {identifier} does not properly correspond to tool identifer {self.toolIdentifier}")
+        if not tool_instance_identifier_pattern.match(identifier):
+            raise ValueError(f"Tool instance identifier not formatted correctly: {identifier}")
+
+        return identifier
+
+    @property
+    def identifier(self):
+        return self._identifier
+
+    @identifier.setter
+    def identifier(self, new_identifier=None):
+        if new_identifier:
+            identifier = self._check_identifier(new_identifier)
+        else:
+            identifier = self._mk_identifier()
+        self._identifier = identifier
+
+
+    @property
+    def inputObjects(self):
+        return self._inputObjects
+
+    @inputObjects.setter
+    def inputObjects(self, input_objects_list):
+        if input_objects_list:
+            input_objects = []
+            for input_object in input_objects_list:
+                if isinstance(input_object, (IOObjectItem, IOArrayItem)):
+                    pass  # ready to append
+                elif isinstance(input_object, dict):
+                    inp_object_keys = input_object.keys()
+                    if 'identifier' in inp_object_keys:
+                        input_object = IOObjectItem(**input_object)
+                    elif 'objects' in inp_object_keys:
+                        input_object = IOArrayItem(**input_object)
+                    else:
+                        raise ValueError(f"")
+                else:
+                    raise ValueError(f"{input_object} is not a valid value for an input object.")
+                input_objects.append(input_object)
+        else:
+            input_objects = None
+        self._inputObjects = input_objects
+
+    @property
+    def outputObjects(self):
+        return self._outputObjects
+
+    @outputObjects.setter
+    def outputObjects(self, output_objects_list):
+        if output_objects_list:
+            output_objects = []
+            for outputput_object in output_objects_list:
+                if isinstance(outputput_object, (IOObjectItem, IOArrayItem)):
+                    pass  # ready to append
+                elif isinstance(outputput_object, dict):
+                    output_object_keys = outputput_object.keys()
+                    if 'identifier' in output_object_keys:
+                        outputput_object = IOObjectItem(**outputput_object)
+                    elif 'objects' in output_object_keys:
+                        outputput_object = IOArrayItem(**outputput_object)
+                    else:
+                        raise ValueError(f"")
+                else:
+                    raise ValueError(f"{outputput_object} is not a valid value for an output object.")
+                output_objects.append(outputput_object)
+        else:
+            output_objects = None
+        self._outputObjects = output_objects
+
+    def mk_file(self, base_dir, keys=None, replace_none=True):
+        input_hash = self.identifier[-4:]
+        file_path = get_tool_instance_metadata_path(self._subtoolMetadata._parentMetadata.name, self.toolVersion, input_hash=input_hash, subtool_name=self._subtoolMetadata.name, base_dir=base_dir)
+        if not file_path.parent.exists():
+            file_path.parent.mkdir(parents=True)
         super().mk_file(file_path, keys, replace_none)

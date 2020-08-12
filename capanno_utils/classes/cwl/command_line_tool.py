@@ -986,7 +986,7 @@ path available on the same host as the CWL runner (for inputs) or the
 runtime environment of a command line tool execution (for command line tool
 outputs).
 
-If no `location` or `path` is specified, a file object must specify
+If no `location` or `path` is specified, a file attribute_value must specify
 `contents` with the UTF-8 text content of the file.  This is a "file
 literal".  File literals do not correspond to external resources, but are
 created on disk with `contents` with when needed for a executing a tool.
@@ -1029,7 +1029,7 @@ node, or within the executing container).
 When evaluating an ExpressionTool, file objects must be referenced via
 `location` (the expression tool does not have access to files on disk so
 `path` is meaningless) or as file literals.  It is legal to return a file
-object with an existing `location` but a different `basename`.  The
+attribute_value with an existing `location` but a different `basename`.  The
 `loadContents` field of ExpressionTool inputs behaves the same as on
 CommandLineTool inputs, however it is not meaningful on the outputs.
 
@@ -1219,7 +1219,7 @@ must be a filesystem path available on the same host as the CWL runner (for
 inputs) or the runtime environment of a command line tool execution (for
 command line tool outputs).
 
-A Directory object may have a `listing` field.  This is a list of File and
+A Directory attribute_value may have a `listing` field.  This is a list of File and
 Directory objects that are contained in the Directory.  For each entry in
 `listing`, the `basename` property defines the name of the File or
 Subdirectory when staged to disk.  If `listing` is not provided, the
@@ -2295,8 +2295,8 @@ the CWL core specification.
 class Process(Savable):
     """
 
-The base executable type in CWL is the `Process` object defined by the
-document.  Note that the `Process` object is abstract and cannot be
+The base executable type in CWL is the `Process` attribute_value defined by the
+document.  Note that the `Process` attribute_value is abstract and cannot be
 directly executed.
 
     """
@@ -2480,7 +2480,7 @@ class CommandLineBinding(InputBinding, CommandLineBindingMixin):
     """
 
 When listed under `inputBinding` in the input schema, the term
-"value" refers to the the corresponding value in the input object.  For
+"value" refers to the the corresponding value in the input attribute_value.  For
 binding objects listed in `CommandLineTool.arguments`, the term "value"
 refers to the effective value after evaluating `valueFrom`.
 
@@ -2509,7 +2509,7 @@ effective value.
       individual elements.
       If the array is empty, it does not add anything to command line.
 
-  - **object**: Add `prefix` only, and recursively add object fields for
+  - **attribute_value**: Add `prefix` only, and recursively add attribute_value fields for
       which `inputBinding` is specified.
 
   - **null**: Add nothing.
@@ -3907,7 +3907,7 @@ the appropriate Docker image and tool command line.
 
 The workflow platform may provide input files and the designated output
 directory through the use of volume bind mounts.  The platform should rewrite
-file paths in the input object to correspond to the Docker bind mounted
+file paths in the input attribute_value to correspond to the Docker bind mounted
 locations. That is, the platform should rewrite values in the parameter context
 such as `runtime.outdir`, `runtime.tmpdir` and others to be valid paths
 within the container.

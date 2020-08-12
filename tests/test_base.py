@@ -12,6 +12,7 @@ test_constants = {'script_group1': 'ENCODE-DCC', 'script_version1': '1.1.x', 'sc
 class TestBase(TestCase):
     projects_path = Path(__file__).parents[2]
     src_content_dir = projects_path / 'cwl-source'
+    test_files_dir = Path(__file__).parent / 'test_files'
     test_content_dir = Path(__file__).parent / 'test_files' / 'cwl-source'
     invalid_content_dir = Path(__file__).parent / 'test_files' / 'invalid_content'  # Will copy data here, then modify to make invalid.
 

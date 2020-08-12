@@ -5,6 +5,8 @@ import argparse
 from unittest import defaultTestLoader, TestSuite
 from tests.test_add_content import TestAddToolMain, TestAddScriptMain
 from tests.test_add_tool import TestAddTool
+from tests.test_input_templates import TestMakeCommandLineToolInputsTemplate
+from tests.test_tool_instance_metadata import TestMakeToolInstanceMetadata
 from tests.test_tool_metadata import TestMakeParentToolMetadata, TestMakeSubtoolMetadata
 from tests.test_script_metadata import TestScriptMetadata
 from tests.test_content_maps import TestToolMaps
@@ -22,6 +24,7 @@ def suite_full():
     suite.addTest(suite_add_content())
     suite.addTest((suite_add_tool()))
     suite.addTest(suite_content_maps())
+    suite.addTest(suite_input_templates())
     suite.addTest(suite_script_metadata())
     suite.addTest(suite_tool_metadata())
     suite.addTest(suite_validate())
@@ -48,6 +51,10 @@ def suite_content_maps():
     suite = defaultTestLoader.loadTestsFromTestCase(TestToolMaps)
     return suite
 
+def suite_input_templates():
+    suite = defaultTestLoader.loadTestsFromTestCase(TestMakeCommandLineToolInputsTemplate)
+    return suite
+
 
 def suite_path_tools():
     suite = defaultTestLoader.loadTestsFromTestCase(TestGetTypesFromPath)
@@ -58,6 +65,9 @@ def suite_script_metadata():
     suite = defaultTestLoader.loadTestsFromTestCase(TestScriptMetadata)
     return suite
 
+def suite_tool_instance_metadata():
+    suite = defaultTestLoader.loadTestsFromTestCase(TestMakeToolInstanceMetadata)
+    return suite
 
 def suite_tool_metadata():
     suite = defaultTestLoader.loadTestsFromTestCase(TestMakeParentToolMetadata)
@@ -101,8 +111,10 @@ def suite_dict():
                   'add_tool': suite_add_tool(),
                   'content_maps': suite_content_maps(),
                   'full': suite_full(),
+                  'input_templates': suite_input_templates(),
                   'path_tools': suite_path_tools(),
                   'script_metadata': suite_script_metadata(),
+                  'tool_instance_metadata': suite_tool_instance_metadata(),
                   'tool_metadata': suite_tool_metadata(),
                   'validate': suite_validate(),
                   'validate_all_metadata_in_maps': suite_validate_all_metadata_in_maps(),
