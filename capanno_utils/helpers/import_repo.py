@@ -1,7 +1,7 @@
 """ Get projects from https://github.com/common-workflow-library/bio-cwl-tools
     make sure this repo is added as a submodule so we can just parse it locally instead of getting bogged down in scraping
     git submodule add git@github.com:common-workflow-library/bio-cwl-tools.git bio-cwl-tools-submodule
-    from xd_cwl_utils.helpers import get_bio_cwl_tools
+    from capanno_utils.helpers import get_bio_cwl_tools
     get_bio_cwl_tools.listVersion()
 """
 
@@ -17,8 +17,8 @@ from ruamel.yaml.compat import string_types, ordereddict
 import logging, sys
 import subprocess
 from typing import Optional
-from xd_cwl_utils.add.add_tools import add_tool, add_subtool
-from xd_cwl_utils.helpers.get_paths import get_tool_common_dir, main_tool_subtool_name, get_tool_metadata, get_tool_dir
+from capanno_utils.add.add_tools import add_tool, add_subtool
+from capanno_utils.helpers.get_paths import get_tool_common_dir, main_tool_subtool_name, get_tool_metadata, get_tool_dir
 
 
 logging.basicConfig(stream=sys.stderr)
