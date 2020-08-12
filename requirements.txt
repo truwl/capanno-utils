@@ -1,8 +1,8 @@
 requests==2.21.0
 semantic-version==2.8.2
 pandoc-include==0.3.2
-cwltool>=1.0,<1.1
+cwltool==3.0.20200720165847
 cwlgen==0.4.0
-#cwl-utils==0.5
-schema-salad<7
+cwl-utils==0.7 #just make the parser command_line_tool.py from scratch, however
+schema-salad==7.0.20200811075006
 ruamel.yaml
