@@ -12,7 +12,8 @@ def get_metadata_from_biotools(biotoolsID):
     """
     params = {'format': 'json'}
     attrs = {'biotoolsID': f'"{biotoolsID}"'}
-    r = requests.get(f"https://bio.tools/api/t/", params={**params, **attrs})
+    requests.packages.urllib3.disable_warnings()
+    r = requests.get(f"https://bio.tools/api/t/", params={**params, **attrs}, verify=False)
     biotools_dict = r.json()
     if biotools_dict['count'] != 1:
         logging.error(f"bio.tools returned {biotools_dict['count']} results. Expected 1")
