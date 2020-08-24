@@ -31,7 +31,10 @@ cwl-tools/
 
 ## Adding a subtool
 ```
+#remote
 capanno-add subtool kallisto 0.45.x index -u --init-cwl https://github.com/common-workflow-library/bio-cwl-tools/raw/release/Kallisto/Kallisto-Index.cwl
+#local
+capanno-add subtool kallisto 0.45.x index -u --init-cwl bio-cwl-tools-submodule/Kallisto/Kallisto-Index.cwl 
 cwl-tools/
 └── kallisto
     └── 0.45.x
