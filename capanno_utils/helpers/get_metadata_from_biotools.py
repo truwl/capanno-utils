@@ -1,7 +1,12 @@
 
 import requests
 import logging
+import sys
 # from .classes.metadata import ToolMetadata
+
+logging.basicConfig(stream=sys.stderr)
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 def get_metadata_from_biotools(biotoolsID):
     """
@@ -70,6 +75,8 @@ def pop_websites_and_repo(homepage, link, documentation):
 
 def make_tool_metadata_kwargs_from_biotools(biotools_id, tool_name=None):
     meta_dict = get_metadata_from_biotools(biotools_id)
+    if 'list' not in meta_dict:
+        logger.error("{}".format(meta_dict))
     meta_data = meta_dict['list'][0]
     tool_kwargs = {}
     tool_kwargs['name'] = tool_name if tool_name else meta_data['name']
