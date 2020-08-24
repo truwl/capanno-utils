@@ -17,7 +17,7 @@ class TestMakeCommandLineToolInputsTemplate(TestBase):
         inputs_schema = InputsSchema(cwl_tool)
         template = inputs_schema.make_template()
         yaml = YAML()
-        with NamedTemporaryFile(delete=True, prefix='template_', suffix='.yml') as tmp:
+        with NamedTemporaryFile(delete=False, prefix='template_', suffix='.yml') as tmp:
             yaml.dump(template, tmp)
             assert True
         return
