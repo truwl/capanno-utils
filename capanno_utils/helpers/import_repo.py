@@ -1,11 +1,13 @@
 """ Get projects from https://github.com/common-workflow-library/bio-cwl-tools
     make sure this repo is added as a submodule so we can just parse it locally instead of getting bogged down in scraping
     git submodule add git@github.com:common-workflow-library/bio-cwl-tools.git bio-cwl-tools-submodule
-    from capanno_utils.helpers import get_bio_cwl_tools
-    get_bio_cwl_tools.listVersion()
+    from capanno_utils.helpers.import_repo import bioCwl
+    mybiocwl=bioCwl()
+    mybiocwl.getCwlInfos()
 """
 
-import cwl_utils.parser_v1_0 as parser
+#import cwl_utils.parser_v1_0 as parser
+from capanno_utils.classes.cwl import command_line_tool as pycwl
 import os
 import re
 import sys
@@ -85,7 +87,7 @@ class bioCwl(repoImporter):
         super().__init__(path=path,denylist=denylist)
 
     def getCwlInfos(self) -> None:
-        logger.debug("getCWLinfos")
+        logger.debug("getCwlInfos")
         tooldict = {}
         #for tool in [os.path.basename(x[1]) for x in os.walk(self.path)]:
         for tool in os.listdir(self.abspath):
@@ -114,21 +116,23 @@ class bioCwl(repoImporter):
 
 
                 if len(set(dockers_reported)) > 1:
-                    raise ValueError('Observing multiple docker images in the tool {}: {}'.format(tool, dockers_reported))
+                    logger.error('Observing multiple docker images in the tool {}: {}'.format(tool, dockers_reported))
+                    tooldict[tool]['docker'] = dockers_reported[0]
                 elif len(dockers_reported) == 0:
-                    raise ValueError('Observing no docker images in the tool {}'.format(tool))
+                    logger.error('Observing no docker images in the tool {}'.format(tool))
                 else:
                     tooldict[tool]['docker'] = dockers_reported[0]
 
                 if len(set(versions_reported)) > 1:
-                    raise ValueError(
+                    logger.error(
                         'Observing multiple versions in the tool {}: {}'.format(tool, versions_reported))
                 elif len(versions_reported) == 0:
                     logger.info('Observing no versions in the tool {}'.format(tool))
 
                     # is there a docker version we can use?
                     # quay.io/biocontainers/picard:2.22.2--0
-                    m = re.search('(\\S+)/(.+)', tooldict[tool]['docker'])
+                    if len(dockers_reported) > 0:
+                        m = re.search('(\\S+)/(.+)', tooldict[tool]['docker'])
                     tooldict[tool]['version']=m[2]
                 else:
                     tooldict[tool]['version']=versions_reported[0]
@@ -158,10 +162,10 @@ class bioCwl(repoImporter):
         :return: dict with tool_name, version_name, subtool name
         """
         filename=os.path.join(self.abspath,tool,subtoolcwl)
-        version = docker = None
+        version = docker = biotools = None
         with open(filename) as fp:
             result = ruamel.yaml.main.round_trip_load(fp)
-
+            #result_pycwl = pycwl.load_document(fp)
             if 'hints' in result:
                 for hint in result['hints']:
                     if 'class' in hint:
@@ -170,6 +174,15 @@ class bioCwl(repoImporter):
                                 try:
                                     version=hint['packages'][tool]['version'][0]
                                     logger.info("version:{}".format(version))
+                                except KeyError as e:
+                                    logger.debug("keyerror:{}".format(e))
+                                except IndexError as e:
+                                    logger.debug("indexerror:{}".format(e))
+                                try:
+                                    specs=hint['packages'][tool]['specs'][0]
+                                    if 'biotools' in specs or 'bio.tools' in specs:
+                                        biotools=specs
+                                        logger.info("biotools:{}".format(biotools))
                                 except KeyError as e:
                                     logger.debug("keyerror:{}".format(e))
                                 except IndexError as e:
@@ -202,6 +215,7 @@ class bioCwl(repoImporter):
                         docker=result['requirements']['DockerRequirement']['dockerPull']
 
         name=subtoolcwl.replace('.cwl','')
-        if not all([name, subtoolcwl, version, docker]):
-            raise Exception('missing one of name:{} cwl:{} version:{} docker:{}'.format(name,subtoolcwl,version,docker))
-        return({'name':name,'subtoolcwl':subtoolcwl,'version':version,'docker':docker})
+        if not all([name, subtoolcwl, version, docker, biotools]):
+            logger.error('missing one of name:{} cwl:{} version:{} docker:{} biotools:{}'.format(name,subtoolcwl,version,docker,biotools))
+            #raise Exception('missing one of name:{} cwl:{} version:{} docker:{}'.format(name,subtoolcwl,version,docker))
+        return({'name':name,'subtoolcwl':subtoolcwl,'version':version,'docker':docker,'biotools':biotools})
