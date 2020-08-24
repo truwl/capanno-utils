@@ -167,7 +167,11 @@ def expand_url(
     if url in ("@id", "@type"):
         return url
 
-    if vocab_term and url in loadingOptions.vocab:
+    try:
+        if vocab_term and url in loadingOptions.vocab:
+            return url
+    except TypeError as e:
+        print("vocab:{0} url:{1}".format(loadingOptions.vocab.keys(),url))
         return url
 
     if bool(loadingOptions.vocab) and ":" in url:
