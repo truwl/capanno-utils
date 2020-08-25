@@ -1,9 +1,7 @@
 """ Get projects from https://github.com/common-workflow-library/bio-cwl-tools
     make sure this repo is added as a submodule so we can just parse it locally instead of getting bogged down in scraping
     git submodule add git@github.com:common-workflow-library/bio-cwl-tools.git bio-cwl-tools-submodule
-    from capanno_utils.helpers.import_repo import bioCwl
-    mybiocwl=bioCwl()
-    mybiocwl.getCwlInfos()
+    from capanno_utils.helpers.import_repo import bioCwl;mybiocwl=bioCwl();mybiocwl.processDir()
 """
 
 #import cwl_utils.parser_v1_0 as parser
@@ -21,7 +19,8 @@ import subprocess
 from typing import Optional
 from capanno_utils.add.add_tools import add_tool, add_subtool
 from capanno_utils.helpers.get_paths import get_tool_common_dir, main_tool_subtool_name, get_tool_metadata, get_tool_dir
-
+from capanno_utils.helpers.get_paths import get_cwl_tool, get_cwl_script, main_tool_subtool_name
+from capanno_utils.classes.cwl.command_line_tool import load_document
 
 logging.basicConfig(stream=sys.stderr)
 logger = logging.getLogger(__name__)
@@ -86,72 +85,92 @@ class bioCwl(repoImporter):
     ) -> None:
         super().__init__(path=path,denylist=denylist)
 
-    def getCwlInfos(self) -> None:
-        logger.debug("getCwlInfos")
-        tooldict = {}
+    def processDir(self) -> None:
+        logger.debug("processDir")
         #for tool in [os.path.basename(x[1]) for x in os.walk(self.path)]:
         for tool in os.listdir(self.abspath):
             logger.info("potential tool:{}".format(tool))
             logger.debug("potential tool:{}".format(tool))
             if tool not in self.denylist and os.path.isdir(os.path.join(self.path,tool)) and not tool.startswith('.'):
                 logger.info("accepted:{}".format(tool))
-                tooldict[tool] = {}
-                tooldict[tool]['subtools'] = []
+                self.processTool(tool)
 
-                #TODO: consider using the x[2] from os.walk
-                versions_reported = []
-                dockers_reported = []
-                for subtoolcwl in glob.glob(self.path+"/"+tool+'/*cwl'):
-                    logger.info("\tsub:{}".format(os.path.basename(subtoolcwl)))
-                    subtooldict=self.getCwlInfo(tool,str(os.path.basename(subtoolcwl)))
-                    tooldict[tool]['subtools']+=[subtooldict]
+    def processTool(self,tool,newSubtools=True) -> None:
+        tooldict = {}
+        tooldict[tool] = {}
+        tooldict[tool]['subtools'] = []
 
-                    for k,v in subtooldict.items():
-                        logger.info("{}:{}".format(k, v))
-                        #can we figure out a consensus for the version?
-                        if k=='version' and v is not None:
-                            versions_reported+=[v]
-                        elif k=='docker' and v is not None:
-                            dockers_reported+=[v]
+        #TODO: consider using the x[2] from os.walk
+        versions_reported = []
+        dockers_reported = []
+        biotools_reported = []
+        for subtoolcwl in glob.glob(self.path+"/"+tool+'/*cwl'):
+            logger.info("\tsub:{}".format(os.path.basename(subtoolcwl)))
+            subtooldict=self.getCwlInfo(tool,str(os.path.basename(subtoolcwl)))
+            tooldict[tool]['subtools']+=[subtooldict]
+
+            for k,v in subtooldict.items():
+                logger.info("{}:{}".format(k, v))
+                #can we figure out a consensus for the version?
+                if k=='version' and v is not None:
+                    versions_reported+=[v]
+                elif k=='docker' and v is not None:
+                    dockers_reported+=[v]
+                elif k=='biotools' and v is not None:
+                    biotools_reported+=[v]
 
 
-                if len(set(dockers_reported)) > 1:
-                    logger.error('Observing multiple docker images in the tool {}: {}'.format(tool, dockers_reported))
-                    tooldict[tool]['docker'] = dockers_reported[0]
-                elif len(dockers_reported) == 0:
-                    logger.error('Observing no docker images in the tool {}'.format(tool))
-                else:
-                    tooldict[tool]['docker'] = dockers_reported[0]
+        if len(set(dockers_reported)) > 1:
+            logger.error('Observing multiple docker images in the tool {}: {}'.format(tool, dockers_reported))
+            tooldict[tool]['docker'] = dockers_reported[0]
+        elif len(dockers_reported) == 0:
+            logger.error('Observing no docker images in the tool {}'.format(tool))
+        else:
+            tooldict[tool]['docker'] = dockers_reported[0]
 
-                if len(set(versions_reported)) > 1:
-                    logger.error(
-                        'Observing multiple versions in the tool {}: {}'.format(tool, versions_reported))
-                elif len(versions_reported) == 0:
-                    logger.info('Observing no versions in the tool {}'.format(tool))
+        if len(set(versions_reported)) > 1:
+            logger.error(
+                'Observing multiple versions in the tool {}: {}'.format(tool, versions_reported))
+        elif len(versions_reported) == 0:
+            logger.info('Observing no versions in the tool {}'.format(tool))
 
-                    # is there a docker version we can use?
-                    # quay.io/biocontainers/picard:2.22.2--0
-                    if len(dockers_reported) > 0:
-                        m = re.search('(\\S+)/(.+)', tooldict[tool]['docker'])
-                    tooldict[tool]['version']=m[2]
-                else:
-                    tooldict[tool]['version']=versions_reported[0]
+        if len(set(biotools_reported)) >= 1:
+            tooldict[tool]['biotools'] = biotools_reported[0]
+        else:
+            tooldict[tool]['biotools'] = None
+
+        # is there a docker version we can use?
+        # quay.io/biocontainers/picard:2.22.2--0 should really be 2.22.2
+        if len(dockers_reported) > 0:
+            m = re.search('(\\S+):([.0-9]+)', tooldict[tool]['docker'])
+            tooldict[tool]['version']=m[2]
+        else:
+            tooldict[tool]['version']=versions_reported[0]
         logger.info("addtool loop")
         for tool in tooldict.keys():
+            subtoolnames = []
             if len(tooldict[tool]['subtools'])>1:
                 # TODO: has_primary could be true? we need to figure this out
                 has_primary = False
-                subtoolnames = tooldict[tool]['subtools']
+                for subtool in tooldict[tool]['subtools']:
+                    subtoolnames += [subtool['name']]
             else:
                 has_primary = True
                 subtoolnames=main_tool_subtool_name
             # TODO: study the existing tool directory and try not to clobber other versions
-            logger.info("adding tool {}".format(tool))
-            add_tool(tool, version_name=tooldict[tool]['version'], subtool_names=subtoolnames, biotools_id=tool,
-                             has_primary=has_primary) #, init_cwl=args.init_cwl, root_repo_path=args.root_path)
-            for subtool in tooldict['tools']['subtools']:
-                logger.info("adding subtool {}".format(subtool['name']))
-                add_subtool(tool_name=tool, tool_version=subtool['version'], subtool_name=subtool['name'],init_cwl=subtool['subtoolcwl']) #root_repo_path=Path.cwd(),update_featureList=False, init_cwl=subtoolcwl)
+            logger.info("adding tool: {} version: {} biotools: {} subtoolnames: {}".format(tool,tooldict[tool]['version'],tooldict[tool]['biotools'],subtoolnames))
+            if newSubtools:
+                add_tool(tool, version_name=tooldict[tool]['version'],subtool_names=[],biotools_id=tooldict[tool]['biotools'])
+            else:
+                add_tool(tool, version_name=tooldict[tool]['version'], subtool_names=subtoolnames, biotools_id=tooldict[tool]['biotools'],
+                                 has_primary=has_primary, init_cwl = False) #, init_cwl=args.init_cwl, root_repo_path=args.root_path)
+            #add_tool visits the subtools
+            if newSubtools:
+                for subtool in tooldict[tool]['subtools']:
+                    logger.info("adding subtool {}".format(subtool['name']))
+                    #add_content_main(['-p', tmp_dir, 'subtool', tool_name, tool_version, subtool_name, '-u', '--init-cwl', cwl_url])
+                    logger.info("adding subtool: {} version: {} path: {}".format(subtool['name'], subtool['version'], subtool['path']))
+                    add_subtool(tool_name=tool, tool_version=subtool['version'], subtool_name=subtool['name'],init_cwl=subtool['path'], update_featureList=True) #root_repo_path=Path.cwd(),update_featureList=False, init_cwl=subtoolcwl)
 
 
     def getCwlInfo(self, tool: str, subtoolcwl: str) -> dict:
@@ -181,8 +200,10 @@ class bioCwl(repoImporter):
                                 try:
                                     specs=hint['packages'][tool]['specs'][0]
                                     if 'biotools' in specs or 'bio.tools' in specs:
-                                        biotools=specs
-                                        logger.info("biotools:{}".format(biotools))
+                                        #http://identifiers.org/biotools/gatk
+                                        #https://bio.tools/picard_arrg
+                                        m = re.search('bio.?tools/(.+)', specs)
+                                        biotools = m[1]
                                 except KeyError as e:
                                     logger.debug("keyerror:{}".format(e))
                                 except IndexError as e:
@@ -218,4 +239,4 @@ class bioCwl(repoImporter):
         if not all([name, subtoolcwl, version, docker, biotools]):
             logger.error('missing one of name:{} cwl:{} version:{} docker:{} biotools:{}'.format(name,subtoolcwl,version,docker,biotools))
             #raise Exception('missing one of name:{} cwl:{} version:{} docker:{}'.format(name,subtoolcwl,version,docker))
-        return({'name':name,'subtoolcwl':subtoolcwl,'version':version,'docker':docker,'biotools':biotools})
+        return({'name':name,'basename':subtoolcwl,'path':filename,'version':version,'docker':docker,'biotools':biotools})
