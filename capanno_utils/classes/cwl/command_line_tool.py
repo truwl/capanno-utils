@@ -29,6 +29,8 @@ from schema_salad.exceptions import SchemaSaladException, ValidationException
 from schema_salad.fetcher import DefaultFetcher, Fetcher
 from schema_salad.sourceline import SourceLine, add_lc_filename
 
+from .command_line_tool_mixins import CommandLineToolMixin, CommandInputParameterMixin, SchemaDefRequirementMixin, CommandLineBindingMixin, CommandOutputParameterMixin
+
 _vocab = {}  # type: Dict[str, str]
 _rvocab = {}  # type: Dict[str, str]
 
@@ -3696,7 +3698,7 @@ interpolatation.
     attrs = frozenset(['class', 'expressionLib'])
 
 
-class SchemaDefRequirement(ProcessRequirement):
+class SchemaDefRequirement(SchemaDefRequirementMixin,ProcessRequirement):
     """
 This field consists of an array of type definitions which must be used when
 interpreting the `inputs` and `outputs` fields.  When a `type` field
@@ -3915,7 +3917,7 @@ result of executing an expression, such as getting a parameter from input.
     attrs = frozenset(['envName', 'envValue'])
 
 
-class CommandLineBinding(InputBinding):
+class CommandLineBinding(CommandLineBindingMixin,InputBinding):
     """
 
 When listed under `inputBinding` in the input schema, the term
@@ -5684,7 +5686,7 @@ class CommandOutputArraySchema(OutputArraySchema):
     attrs = frozenset(['items', 'type', 'label', 'outputBinding'])
 
 
-class CommandInputParameter(InputParameter):
+class CommandInputParameter(CommandInputParameterMixin,InputParameter):
     """
 An input parameter for a CommandLineTool.
     """
@@ -5975,7 +5977,7 @@ An input parameter for a CommandLineTool.
     attrs = frozenset(['label', 'secondaryFiles', 'streamable', 'doc', 'id', 'format', 'inputBinding', 'default', 'type'])
 
 
-class CommandOutputParameter(OutputParameter):
+class CommandOutputParameter(CommandOutputParameterMixin,OutputParameter):
     """
 An output parameter for a CommandLineTool.
     """
@@ -6243,7 +6245,7 @@ An output parameter for a CommandLineTool.
     attrs = frozenset(['label', 'secondaryFiles', 'streamable', 'doc', 'id', 'outputBinding', 'format', 'type'])
 
 
-class CommandLineTool(Process):
+class CommandLineTool(CommandLineToolMixin,Process):
     """
 This defines the schema of the CWL Command Line Tool Description document.
 
