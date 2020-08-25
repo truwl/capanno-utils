@@ -4,6 +4,17 @@ Tools actively under development. Documentation will be updated when ready for o
 ```
 schema-salad-tool --codegen python https://github.com/common-workflow-language/common-workflow-language/raw/master/v1.0/CommonWorkflowLanguage.yml > capanno_utils/classes/cwl/command_line_tool.py
 ```
+
+## Add the mixins by hand
+```
+from .command_line_tool_mixins import CommandLineToolMixin, CommandInputParameterMixin, SchemaDefRequirementMixin, CommandLineBindingMixin, CommandOutputParameterMixin
+class SchemaDefRequirement(SchemaDefRequirementMixin,ProcessRequirement):
+class CommandLineBinding(CommandLineBindingMixin,InputBinding):
+class CommandInputParameter(CommandInputParameterMixin,InputParameter):
+class CommandOutputParameter(CommandOutputParameterMixin,OutputParameter):
+class CommandLineTool(CommandLineToolMixin,Process):
+```
+
 ## Adding a tool
 Usage:
 ```
