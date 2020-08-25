@@ -7,7 +7,7 @@ from capanno_utils.classes.cwl.make_cwl import initialize_command_line_tool_file
 from capanno_utils.helpers.get_paths import *
 
 
-def add_tool(tool_name, version_name, subtool_names=None, biotools_id=None, has_primary=False, root_repo_path=Path.cwd(), init_cwl=False):
+def add_tool(tool_name, version_name, subtool_names=None, biotools_id=None, has_primary=False, root_repo_path=Path.cwd(), init_cwl=False, no_clobber=False):
     """
     Make the correct directory structure for adding a new command line tool. Optionally, create initialized CWL
     and metadata files. Run from cwl-tools directory.
@@ -22,6 +22,8 @@ def add_tool(tool_name, version_name, subtool_names=None, biotools_id=None, has_
         if isinstance(subtool_names, str):
             subtool_names = [subtool_names]
     common_dir = get_tool_common_dir(tool_name, version_name, base_dir=root_repo_path)
+    if no_clobber and common_dir.exists():
+        return
     common_dir.mkdir(parents=True, exist_ok=False)
     if has_primary:  # Need to append __main__ onto subtools.
         if subtool_names:
@@ -52,7 +54,7 @@ def add_tool(tool_name, version_name, subtool_names=None, biotools_id=None, has_
     return
 
 
-def add_subtool(tool_name, tool_version, subtool_name, root_repo_path=Path.cwd(), update_featureList=False, init_cwl=False):
+def add_subtool(tool_name, tool_version, subtool_name, root_repo_path=Path.cwd(), update_featureList=False, init_cwl=False, no_clobber=False):
     """
     Add subtool to already existing ToolLibrary (ParentTool file already exists)
     :param tool_name(str):
@@ -67,6 +69,10 @@ def add_subtool(tool_name, tool_version, subtool_name, root_repo_path=Path.cwd()
     subtool_kwargs = {}  # initialize to add any additional information about the subtool.
     parent_path = get_tool_metadata(tool_name, tool_version, parent=True, base_dir=root_repo_path)
     parent_meta = ParentToolMetadata.load_from_file(parent_path)
+
+    subtool_dir = get_tool_dir(tool_name, tool_version, subtool_name, base_dir=root_repo_path)
+    if no_clobber and subtool_dir.exists():
+        return
     if update_featureList:
         if parent_meta.featureList is None:
             parent_meta.featureList = [subtool_name]
@@ -78,7 +84,6 @@ def add_subtool(tool_name, tool_version, subtool_name, root_repo_path=Path.cwd()
         subtool_kwargs['extra'] = {'cwlDocument': {'isBasedOn': init_cwl, 'dateCreated': str(date.today())}}
     subtool_meta = parent_meta.make_subtool_metadata(subtool_name, **subtool_kwargs)
     subtool_meta.mk_file(base_dir=root_repo_path)
-    subtool_dir = get_tool_dir(tool_name, tool_version, subtool_name, base_dir=root_repo_path)
     instances_dir = subtool_dir / 'instances'
     instances_dir.mkdir()
     git_keep_file = instances_dir / '.gitkeep'
