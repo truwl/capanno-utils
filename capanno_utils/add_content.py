@@ -2,6 +2,7 @@
 
 # Module to call from command line.
 
+
 import sys
 import argparse
 from pathlib import Path
@@ -9,6 +10,11 @@ from capanno_utils import config
 from capanno_utils.add.add_tools import add_tool, add_subtool, add_tool_instance
 from capanno_utils.add.add_scripts import add_script, add_common_script_metadata
 from capanno_utils.add.add_workflows import add_workflow
+import logging
+
+logging.basicConfig(stream=sys.stderr)
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 def get_parser():
     parser = argparse.ArgumentParser(description='Initialize metadata and directories for a tool, script, or workflow.')
@@ -80,8 +86,10 @@ def main(argsl=None):
         argsl = sys.argv[1:]
     parser = get_parser()
     args = parser.parse_args(argsl)
+    logger.debug("command:{}".format(args.command))
 
     if args.command == 'tool':
+        logger.debug("subtool names:{}".format(args.subtool_names))
         add_tool(args.tool_name, args.version_name, subtool_names=args.subtool_names, biotools_id=args.biotoolsID, has_primary=args.has_primary, init_cwl=args.init_cwl, root_repo_path=args.root_path)
     elif args.command == 'subtool':
         add_subtool(args.tool_name, args.version_name, args.subtool_name, update_featureList=args.update_featureList, init_cwl=args.init_cwl, root_repo_path=args.root_path)
