@@ -12,6 +12,18 @@ from capanno_utils.helpers.get_paths import *
 #     get_script_version_dir, get_metadata_path, get_relative_path, get_workflow_version_dir, get_root_tools_dir, \
 #     get_root_scripts_dir, get_workflows_root_dir, get_cwl_workflow
 
+# Todo before stable release: update function names to be consistent.
+
+def make_tools_map_dict(base_dir=None):
+    cwl_tools_dir = get_root_tools_dir(base_dir=base_dir)
+    tools_map = {}
+
+    for tool_dir in cwl_tools_dir.iterdir():
+        for version_dir in tool_dir.iterdir():
+            tool_map = make_tool_version_dir_map(tool_dir.name, version_dir.name, base_dir=base_dir)
+            tools_map.update(tool_map)
+    return tools_map
+
 def make_tools_map(outfile_path=None, base_dir=None):
     """
     Make a yaml file that specifies paths and attributes of tools in tool_dir.
@@ -21,21 +33,14 @@ def make_tools_map(outfile_path=None, base_dir=None):
         None
     """
 
-    cwl_tools_dir = get_root_tools_dir(base_dir=base_dir)
-    content_map = {}
-
-    for tool_dir in cwl_tools_dir.iterdir():
-        for version_dir in tool_dir.iterdir():
-            tool_map = make_tool_version_dir_map(tool_dir.name, version_dir.name, base_dir=base_dir)
-            content_map.update(tool_map)
-    if outfile_path:
-        outfile_path = Path(outfile_path)
-        yaml = YAML(pure=True)
-        yaml.default_flow_style = False
-        yaml.indent(mapping=2, sequence=4, offset=2)
-        with outfile_path.open('w') as outfile:
-            yaml.dump(content_map, outfile)
-    return content_map
+    tools_map = make_tools_map_dict(base_dir=base_dir)
+    outfile_path = Path(outfile_path)
+    yaml = YAML(pure=True)
+    yaml.default_flow_style = False
+    yaml.indent(mapping=2, sequence=4, offset=2)
+    with outfile_path.open('w') as outfile:
+        yaml.dump(tools_map, outfile)
+    return
 
 
 def make_main_tool_map(tool_name, base_dir=None):
@@ -101,18 +106,24 @@ def make_tool_common_dir_map(tool_name, tool_version, base_dir):
     return common_dir_map
 
 
-def make_script_maps(outfile_path, base_dir=None):
+
+def make_scripts_map_dict(base_dir=None):
     cwl_scripts_dir = get_root_scripts_dir(base_dir=base_dir)
-    outfile_path = Path(outfile_path)
-    script_maps = {}
+
+    scripts_map = {}
     for group_dir in cwl_scripts_dir.iterdir():
         group_script_map = make_group_script_map(group_dir.name, base_dir=base_dir)
-        script_maps.update(group_script_map)
+        scripts_map.update(group_script_map)
+    return scripts_map
+
+def make_script_maps(outfile_path, base_dir=None):
+    scripts_map = make_scripts_map_dict(base_dir=base_dir)
+    outfile_path = Path(outfile_path)
     yaml = YAML(pure=True)
     yaml.default_flow_style = False
     yaml.indent(mapping=2, sequence=4, offset=2)
     with outfile_path.open('w') as outfile:
-        yaml.dump(script_maps, outfile)
+        yaml.dump(scripts_map, outfile)
     return
 
 

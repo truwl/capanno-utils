@@ -13,7 +13,7 @@ for twine upload to work, must have credentials in .pypirc file
 with open('README.md', 'r') as fh:
     long_description = fh.read()
 
-package_version = Version(major=0, minor=2, patch=0, prerelease=('alpha', '1'))
+package_version = Version(major=0, minor=3, patch=0, prerelease=('alpha', '1'))
 # package_version = Version('0.5.0')  # Use this when installing locally with pip install -e
 
 setup(
