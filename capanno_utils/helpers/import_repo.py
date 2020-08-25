@@ -95,7 +95,7 @@ class bioCwl(repoImporter):
                 logger.info("accepted:{}".format(tool))
                 self.processTool(tool)
 
-    def processTool(self,tool,newSubtools=True) -> None:
+    def processTool(self, tool, addSubtoolsToTool=True, no_clobber=True) -> None:
         tooldict = {}
         tooldict[tool] = {}
         tooldict[tool]['subtools'] = []
@@ -159,18 +159,18 @@ class bioCwl(repoImporter):
                 subtoolnames=main_tool_subtool_name
             # TODO: study the existing tool directory and try not to clobber other versions
             logger.info("adding tool: {} version: {} biotools: {} subtoolnames: {}".format(tool,tooldict[tool]['version'],tooldict[tool]['biotools'],subtoolnames))
-            if newSubtools:
-                add_tool(tool, version_name=tooldict[tool]['version'],subtool_names=[],biotools_id=tooldict[tool]['biotools'])
+            if addSubtoolsToTool:
+                add_tool(tool, version_name=tooldict[tool]['version'],subtool_names=[],biotools_id=tooldict[tool]['biotools'], no_clobber = no_clobber)
             else:
                 add_tool(tool, version_name=tooldict[tool]['version'], subtool_names=subtoolnames, biotools_id=tooldict[tool]['biotools'],
-                                 has_primary=has_primary, init_cwl = False) #, init_cwl=args.init_cwl, root_repo_path=args.root_path)
+                                 has_primary=has_primary, init_cwl = False, no_clobber = no_clobber) #, init_cwl=args.init_cwl, root_repo_path=args.root_path)
             #add_tool visits the subtools
-            if newSubtools:
+            if addSubtoolsToTool:
                 for subtool in tooldict[tool]['subtools']:
                     logger.info("adding subtool {}".format(subtool['name']))
                     #add_content_main(['-p', tmp_dir, 'subtool', tool_name, tool_version, subtool_name, '-u', '--init-cwl', cwl_url])
                     logger.info("adding subtool: {} version: {} path: {}".format(subtool['name'], subtool['version'], subtool['path']))
-                    add_subtool(tool_name=tool, tool_version=subtool['version'], subtool_name=subtool['name'],init_cwl=subtool['path'], update_featureList=True) #root_repo_path=Path.cwd(),update_featureList=False, init_cwl=subtoolcwl)
+                    add_subtool(tool_name=tool, tool_version=subtool['version'], subtool_name=subtool['name'],init_cwl=subtool['path'], update_featureList=True, no_clobber = no_clobber) #root_repo_path=Path.cwd(),update_featureList=False, init_cwl=subtoolcwl)
 
 
     def getCwlInfo(self, tool: str, subtoolcwl: str) -> dict:
