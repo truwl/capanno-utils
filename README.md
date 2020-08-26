@@ -10,7 +10,7 @@ curl https://raw.githubusercontent.com/common-workflow-language/cwl-utils/main/c
 ```
 ## Add the mixins by hand
 ```
-from .command_line_tool_mixins import CommandLineToolMixin, CommandInputParameterMixin, SchemaDefRequirementMixin, CommandLineBindingMixin, CommandOutputParameterMixin
+perl -p -i -e 'print "from .command_line_tool_mixins import CommandLineToolMixin, CommandInputParameterMixin, SchemaDefRequirementMixin, CommandLineBindingMixin, CommandOutputParameterMixin\n" if $. == 1' capanno_utils/classes/cwl/command_line_tool.py
 perl -p -i -e 's/SchemaDefRequirement\(/SchemaDefRequirement(SchemaDefRequirementMixin,/;s/CommandLineBinding\(/CommandLineBinding(CommandLineBindingMixin,/;s/CommandInputParameter\(/CommandInputParameter(CommandInputParameterMixin,/;s/CommandOutputParameter\(/CommandOutputParameter(CommandOutputParameterMixin,/;s/CommandLineTool\(/CommandLineTool(CommandLineToolMixin,/' capanno_utils/classes/cwl/command_line_tool.py
 ```
 
