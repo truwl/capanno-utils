@@ -5,6 +5,13 @@ from ruamel.yaml import YAML
 from ruamel.yaml.comments import CommentedMap
 from ruamel.yaml.scalarstring import PreservedScalarString
 from cwltool.process import shortname
+import logging, sys
+
+from . import command_line_tool
+
+logging.basicConfig(stream=sys.stderr)
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 def get_short_name(url_string):
     """
@@ -101,22 +108,35 @@ class CommandLineToolMixin:
         cwl_map['baseCommand'] = self.baseCommand
         if self.requirements:
             cwl_map['requirements'] = [requirement.save() for requirement in self.requirements]
+            logger.debug("reqs: {}".format(cwl_map['requirements']))
         if self.hints:
             cwl_map['hints'] = self.hints
+            logger.debug("hints: {}".format(cwl_map['hints']))
         optional_class_fields = ['arguments']  # List non-required fields represented as classes that can be handled generically.
         for optional_field_name in optional_class_fields:
-            optional_class_value = getattr(self, optional_field_name)
-            if optional_class_value:
-                cwl_map[optional_field_name] = optional_class_value
+            optional_class_values = getattr(self, optional_field_name)
+            if type(optional_class_values) is list:
+                cwl_map[optional_field_name] = []
+                for optional_class_value in optional_class_values:
+                    if isinstance(optional_class_value, command_line_tool.CommandLineBinding):
+                        logger.debug("list member instance: {}".format(optional_class_value))
+                        # TODO: deal with this CommandLineBinding effectively
+                        #cwl_map[optional_field_name] = optional_class_value.get_ordered_input_binding()
+                    else:
+                        logger.debug("list member noninstance: {}".format(optional_class_value))
+                        cwl_map[optional_field_name] += [optional_class_value]
+            else:
+                if optional_class_values:
+                    logger.debug("scalar noninstance: {}".format(optional_class_values))
+                    cwl_map[optional_field_name] = optional_class_values
 
-            # Non-required fields represented as basic python data types. Order of list determines order in CWL file.
-            optional_simple_fields = ['stdin', 'stdout', 'stderr', 'temporaryFailCodes', 'permanentFailCodes',
-                                      'successCodes', 'label', 'doc']
+        optional_simple_fields = ['stdin', 'stdout', 'stderr', 'temporaryFailCodes', 'permanentFailCodes',
+                                  'successCodes', 'label', 'doc']
 
-            for optional_simple_field in optional_simple_fields:
-                optional_field_value = getattr(self, optional_simple_field)
-                if optional_field_value:
-                    cwl_map[optional_simple_field] = optional_field_value
+        for optional_simple_field in optional_simple_fields:
+            optional_field_value = getattr(self, optional_simple_field)
+            if optional_field_value:
+                cwl_map[optional_simple_field] = optional_field_value
         cwl_map['inputs'] = self.get_sorted_inputs_dict()
         cwl_map['outputs'] = self.get_outputs_dict()
 
@@ -128,7 +148,7 @@ class CommandLineToolMixin:
         """
         file_path = Path(filename)
         cwl_yaml = self.create_cwl_commented_map()
-
+        logger.debug("cwl: {}".format(cwl_yaml))
         yaml = YAML(pure=True)
         yaml.default_flow_style = False
         yaml.indent(mapping=2, sequence=4, offset=2)
