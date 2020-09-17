@@ -3,9 +3,12 @@ from urllib.parse import urlparse
 from pathlib import Path
 from ruamel.yaml import YAML
 from ruamel.yaml.comments import CommentedMap
+from ruamel.yaml.representer import RepresenterError
 from ruamel.yaml.scalarstring import PreservedScalarString
 from cwltool.process import shortname
 import logging, sys
+import pickle
+
 
 from . import command_line_tool
 
@@ -153,7 +156,11 @@ class CommandLineToolMixin:
         yaml.default_flow_style = False
         yaml.indent(mapping=2, sequence=4, offset=2)
         with file_path.open('w') as cwl_file:
-            yaml.dump(cwl_yaml, cwl_file)
+            try:
+                yaml.dump(cwl_yaml, cwl_file)
+            except RepresenterError as e:
+                picklestring = pickle.dumps(cwl_yaml)
+                print("pickle:{}".format(picklestring))
             assert True
         return
 

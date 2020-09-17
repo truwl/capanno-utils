@@ -43,7 +43,7 @@ def _initialize_command_line_tool_file_yaml(base_command, cwl_path):
 def _initialize_command_line_tool_from_url(url, cwl_path):
 
     # response = requests.get(url)
-    logger.debug("loading cwl for new subtool")
+    logger.debug("loading cwl for new subtool {}".format(url))
     clt = load_document(url)
     clt.dump_cwl(cwl_path)
     # yaml = YAML(typ='safe', pure=True)
