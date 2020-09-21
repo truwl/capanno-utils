@@ -7,6 +7,7 @@ from .command_line_tool_mixins import CommandLineToolMixin, CommandInputParamete
 import copy
 import os
 import re
+import sys
 import uuid as _uuid__  # pylint: disable=unused-import # noqa: F401
 from io import StringIO
 from typing import (
@@ -168,8 +169,11 @@ def expand_url(
     if url in ("@id", "@type"):
         return url
 
-    if vocab_term and url in loadingOptions.vocab:
-        return url
+    try:
+        if vocab_term and url in loadingOptions.vocab:
+            return url
+    except TypeError:
+        sys.stderr.write("I cannot figure out {}".format(url))
 
     if bool(loadingOptions.vocab) and ":" in url:
         prefix = url.split(":")[0]
