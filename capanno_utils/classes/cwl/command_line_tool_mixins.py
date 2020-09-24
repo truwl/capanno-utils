@@ -245,7 +245,7 @@ class CommandInputParameterMixin:
                     comment = 'array'
                     template_param_value, comment = CommandInputParameterMixin._make_base_input_value_field(input_type['items'], default_value, is_optional=is_optional, comment=comment)
                     if not isinstance(template_param_value, list):
-                        template_param_value = [template_param_value]  # Array should be a list.
+                        template_param_value = [template_param_value]  # Array should be a list. Make it one if not already.
 
                 else:
                     raise NotImplementedError  # Have an array of records or enums or something.
