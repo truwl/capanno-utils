@@ -13403,5 +13403,4 @@ def load_document_by_string(string, uri, loadingOptions=None):
     if loadingOptions is None:
         loadingOptions = LoadingOptions(fileuri=uri)
     loadingOptions.idx[uri] = result
-
     return _document_load(union_of_CommandLineToolLoader_or_ExpressionToolLoader_or_WorkflowLoader_or_OperationLoader_or_array_of_union_of_CommandLineToolLoader_or_ExpressionToolLoader_or_WorkflowLoader_or_OperationLoader, result, uri, loadingOptions)

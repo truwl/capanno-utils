@@ -141,6 +141,8 @@ class SubtoolMetadata(CommonPropsMixin, ToolMetadataBase):
             ('keywords', None),
             ('alternateName', None),
             ('extra', None),
+            ('sha1', None), #the sha1 hash of the cwlfile associated with this subtool
+            ('dockerImage', None), #the docker image pulled or referenced from this subtool's cwlfile
             ('parentMetadata', '../common/common-metadata.yaml'),  # relative path to parentMetadata
             ('_parentMetadata', None),  # ParentMetadata instance. Can be loaded from parentMetadata or set directly.
             ('_primary_file_attrs', None), # Keep track of attributes that are set directly from kwargs and not inherited from parent.
