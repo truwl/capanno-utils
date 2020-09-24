@@ -13,7 +13,9 @@ for twine upload to work, must have credentials in .pypirc file
 with open('README.md', 'r') as fh:
     long_description = fh.read()
 
-package_version = Version(major=0, minor=3, patch=1, prerelease=('alpha', '1'))
+
+package_version = Version(major=0, minor=4, patch=0, prerelease=('alpha', '1'))
+
 # package_version = Version('0.5.0')  # Use this when installing locally with pip install -e
 
 setup(
@@ -37,7 +39,7 @@ setup(
     ],
     entry_points={
         'console_scripts': ["capanno-validate=capanno_utils.validate_content:main", "capanno-add=capanno_utils.add_content:main"]
-                  },
+    },
     classifiers=[
         "Development Status :: 3 - Alpha",
         "License :: OSI Approved :: Apache Software License",
