@@ -5,7 +5,11 @@ from datetime import date
 from capanno_utils.classes.metadata.tool_metadata import ParentToolMetadata, SubtoolMetadata
 from capanno_utils.classes.cwl.make_cwl import initialize_command_line_tool_file_tool
 from capanno_utils.helpers.get_paths import *
+import logging, sys
 
+logging.basicConfig(stream=sys.stderr)
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 def add_tool(tool_name, version_name, subtool_names=None, biotools_id=None, has_primary=False, root_repo_path=Path.cwd(), init_cwl=False, no_clobber=False):
     """
@@ -23,8 +27,9 @@ def add_tool(tool_name, version_name, subtool_names=None, biotools_id=None, has_
             subtool_names = [subtool_names]
     common_dir = get_tool_common_dir(tool_name, version_name, base_dir=root_repo_path)
     if no_clobber and common_dir.exists():
+        logger.debug("Skipping tool directory setup")
         return
-    common_dir.mkdir(parents=True, exist_ok=False)
+    common_dir.mkdir(parents=True, exist_ok=not no_clobber)
     if has_primary:  # Need to append __main__ onto subtools.
         if subtool_names:
             subtool_names.append(main_tool_subtool_name)

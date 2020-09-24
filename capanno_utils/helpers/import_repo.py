@@ -81,7 +81,8 @@ class bioCwl(repoImporter):
             self,
             *,
             path: str = "bio-cwl-tools-submodule",
-            denylist: Optional[list] = ['pca','util','graph-genome-segmentation'] #pca is half-baked, util is just rename, ggs has a Dockerfile but no image
+            denylist: Optional[list] = ['pca','util','graph-genome-segmentation', 'prefetch_fastq.cwl']
+            #pca is half-baked, util is just rename, ggs has a Dockerfile but no image, prefetch_fastq.cwl is a workflow
     ) -> None:
         super().__init__(path=path,denylist=denylist)
 
@@ -105,19 +106,20 @@ class bioCwl(repoImporter):
         dockers_reported = []
         biotools_reported = []
         for subtoolcwl in glob.glob(self.path+"/"+tool+'/*cwl'):
-            logger.info("\tsub:{}".format(os.path.basename(subtoolcwl)))
-            subtooldict=self.getCwlInfo(tool,str(os.path.basename(subtoolcwl)))
-            tooldict[tool]['subtools']+=[subtooldict]
+            if os.path.basename(subtoolcwl) not in self.denylist:
+                logger.info("\tsub:{}".format(os.path.basename(subtoolcwl)))
+                subtooldict=self.getCwlInfo(tool,str(os.path.basename(subtoolcwl)))
+                tooldict[tool]['subtools']+=[subtooldict]
 
-            for k,v in subtooldict.items():
-                logger.info("{}:{}".format(k, v))
-                #can we figure out a consensus for the version?
-                if k=='version' and v is not None:
-                    versions_reported+=[v]
-                elif k=='docker' and v is not None:
-                    dockers_reported+=[v]
-                elif k=='biotools' and v is not None:
-                    biotools_reported+=[v]
+                for k,v in subtooldict.items():
+                    logger.info("{}:{}".format(k, v))
+                    #can we figure out a consensus for the version?
+                    if k=='version' and v is not None:
+                        versions_reported+=[v]
+                    elif k=='docker' and v is not None:
+                        dockers_reported+=[v]
+                    elif k=='biotools' and v is not None:
+                        biotools_reported+=[v]
 
 
         if len(set(dockers_reported)) > 1:
@@ -142,10 +144,17 @@ class bioCwl(repoImporter):
         # is there a docker version we can use?
         # quay.io/biocontainers/picard:2.22.2--0 should really be 2.22.2
         if len(dockers_reported) > 0:
-            m = re.search('(\\S+):([.0-9]+)', tooldict[tool]['docker'])
-            tooldict[tool]['version']=m[2]
+            m = re.search('(\\S+):v?([.0-9]+)', tooldict[tool]['docker'])
+            if m is not None:
+                tooldict[tool]['version']=m[2]
+                versions_reported+=[m[2]]
+        #else:
+        #    tooldict[tool]['version']=versions_reported[0]
+
+        if len(versions_reported) == 0:
+            raise RuntimeError("Can't find version for {}".format(tool))
         else:
-            tooldict[tool]['version']=versions_reported[0]
+            tooldict[tool]['version'] = versions_reported[0]
         logger.info("addtool loop")
         for tool in tooldict.keys():
             subtoolnames = []
@@ -169,15 +178,28 @@ class bioCwl(repoImporter):
                 for subtool in tooldict[tool]['subtools']:
                     logger.info("adding subtool {}".format(subtool['name']))
                     #add_content_main(['-p', tmp_dir, 'subtool', tool_name, tool_version, subtool_name, '-u', '--init-cwl', cwl_url])
-                    logger.info("adding subtool: {} version: {} path: {}".format(subtool['name'], subtool['version'], subtool['path']))
-                    add_subtool(tool_name=tool, tool_version=subtool['version'], subtool_name=subtool['name'],init_cwl=subtool['path'], update_featureList=True, no_clobber = no_clobber) #root_repo_path=Path.cwd(),update_featureList=False, init_cwl=subtoolcwl)
+
+                    #bio-cwl tools has the habit of naming tools like picard_MarkDuplicates.cwl
+                    if subtool['name'].startswith(tool):
+                        subtool_name = subtool['name'].replace(tool+'_','')
+                    else:
+                        subtool_name = subtool['name']
+
+                    if subtool['version'] is None:
+                        tool_version = tooldict[tool]['version']
+                    else:
+                        tool_version = subtool['version']
+                    logger.info("adding subtool: {} version: {} path: {}".format(subtool_name, subtool['version'],
+                                                                                 subtool['path']))
+                    add_subtool(tool_name=tool, tool_version=tool_version, subtool_name=subtool_name,init_cwl=subtool['path'], update_featureList=True, no_clobber = no_clobber) #root_repo_path=Path.cwd(),update_featureList=False, init_cwl=subtoolcwl)
 
 
-    def getCwlInfo(self, tool: str, subtoolcwl: str) -> dict:
+    def getCwlInfo(self, tool: str, subtoolcwl: str, acceptClassYaml = False) -> dict:
         """
         Fetch vital information about a subtool
         :param tool: the tool e.g. bamtools
         :param subtoolcwl: the subtool cwl basename e.g. bamtools_stats.cwl
+        :param acceptClassYaml: allow -class style descriptors
         :return: dict with tool_name, version_name, subtool name
         """
         filename=os.path.join(self.abspath,tool,subtoolcwl)
@@ -186,45 +208,53 @@ class bioCwl(repoImporter):
             result = ruamel.yaml.main.round_trip_load(fp)
             #result_pycwl = pycwl.load_document(fp)
             if 'hints' in result:
-                for hint in result['hints']:
-                    if 'class' in hint:
-                        if hint['class']=='SoftwareRequirement':
-                            if 'packages' in hint:
-                                try:
-                                    version=hint['packages'][tool]['version'][0]
-                                    logger.info("version:{}".format(version))
-                                except KeyError as e:
-                                    logger.debug("keyerror:{}".format(e))
-                                except IndexError as e:
-                                    logger.debug("indexerror:{}".format(e))
-                                try:
-                                    specs=hint['packages'][tool]['specs'][0]
-                                    if 'biotools' in specs or 'bio.tools' in specs:
-                                        #http://identifiers.org/biotools/gatk
-                                        #https://bio.tools/picard_arrg
-                                        m = re.search('bio.?tools/(.+)', specs)
-                                        biotools = m[1]
-                                except KeyError as e:
-                                    logger.debug("keyerror:{}".format(e))
-                                except IndexError as e:
-                                    logger.debug("indexerror:{}".format(e))
-                        elif hint['class']=='DockerRequirement':
+                sftreq = None
+
+
+                for hintkey in result['hints']: # hintkey = ordereddict([('class', 'DockerRequirement'), ('dockerPull', 'quay.io/biocontainers/picard:2.22.2--0')])
+                    if 'class' in hintkey:
+                        if not acceptClassYaml:
+                            raise ValueError("No -class style Yaml accepted for tool info {} {}".format(tool, subtoolcwl))
+                        if hintkey['class']=='SoftwareRequirement':
+                            sftreq = hintkey['packages']
+                        elif hintkey['class'] == 'DockerRequirement':
                             try:
-                                docker=hint['dockerPull']
+                                docker = hintkey['dockerPull']
                                 logger.debug("docker:{}".format(docker))
                             except KeyError as e:
                                 logger.debug("keyerror:{}".format(e))
-                    elif 'DockerRequirement' in hint:
-                        #see picard_AddOrReplaceReadGroups
+                    elif hintkey == 'SoftwareRequirement':
+                        sftreq = result['hints']['SoftwareRequirement']['packages'][tool]
+                    elif hintkey == 'DockerRequirement':
+                        # see picard_AddOrReplaceReadGroups
                         # import pdb
                         # pdb.set_trace()
                         if 'dockerPull' in result['hints']['DockerRequirement']:
-                            docker=result['hints']['DockerRequirement']['dockerPull']
+                            docker = result['hints']['DockerRequirement']['dockerPull']
                         else:
-                            #graph-genome-segmentation component_segmentation.cwl
-                            docker=result['hints']['DockerRequirement']['dockerFile']
+                            # graph-genome-segmentation component_segmentation.cwl
+                            docker = result['hints']['DockerRequirement']['dockerFile']
+                    if sftreq is not None:
+                        logger.info("SoftwareRequirement found")
+                        try:
+                            version=result['hints']['SoftwareRequirement']['packages'][tool]['version'][0]
+                            logger.info("version:{}".format(version))
+                        except KeyError as e:
+                            logger.debug("keyerror:{}".format(e))
+                        except IndexError as e:
+                            logger.debug("indexerror:{}".format(e))
+                        try:
+                            specs=result['hints']['SoftwareRequirement']['packages'][tool]['specs'][0]
+                            if 'biotools' in specs or 'bio.tools' in specs:
+                                #http://identifiers.org/biotools/gatk
+                                #https://bio.tools/picard_arrg
+                                m = re.search('bio.?tools/(.+)', specs)
+                                biotools = m[1]
+                        except KeyError as e:
+                            logger.debug("keyerror:{}".format(e))
+                        except IndexError as e:
+                            logger.debug("indexerror:{}".format(e))
             if 'requirements' in result:
-                #result['requirements'].__class__ == ruamel.yaml.comments.CommentedSeq
                 for req in result['requirements']:
                     if 'dockerPull' in req:
                         docker=req['dockerPull']
