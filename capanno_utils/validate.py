@@ -55,7 +55,7 @@ def validate_tool_content_from_map(tool_map_dict, base_dir=None):
             metadata_path = get_metadata_path(tool_path)
             validate_subtool_metadata(metadata_path)
 
-            if cwl_status in ('Draft', 'Release'):
+            if cwl_status in ('Draft', 'Released'):
                 validate_cwl_tool(tool_path)
 
                 validate_all_inputs_for_tool(tool_path)

@@ -3,8 +3,18 @@ from urllib.parse import urlparse
 from pathlib import Path
 from ruamel.yaml import YAML
 from ruamel.yaml.comments import CommentedMap
+from ruamel.yaml.representer import RepresenterError
 from ruamel.yaml.scalarstring import PreservedScalarString
 from cwltool.process import shortname
+import logging, sys
+import pickle
+
+
+# from . import command_line_tool  # Todo circular import
+
+logging.basicConfig(stream=sys.stderr)
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.WARNING)
 
 def get_short_name(url_string):
     """
@@ -23,7 +33,21 @@ class CommandLineToolMixin:
     """Mixin methods for working with cwl_classes.CommandLineTool objects. These objects should be preprocessed and
     validated before using these methods"""
 
+    def get_input_parameter_by_short_id(self, id_):
+        input_parameter = None
+        for command_input_parameter in self.inputs:
+            if shortname(command_input_parameter.id) == id_:
+                input_parameter = command_input_parameter
+                break
+        return input_parameter
 
+    def get_output_parameter_by_short_id(self, id_):
+        output_parameter = None
+        for command_output_parameter in self.outputs:
+            if shortname(command_output_parameter.id) == id_:
+                output_parameter = command_output_parameter
+                break
+        return output_parameter
 
     def get_schema_def_requirement(self):
         """
@@ -101,22 +125,35 @@ class CommandLineToolMixin:
         cwl_map['baseCommand'] = self.baseCommand
         if self.requirements:
             cwl_map['requirements'] = [requirement.save() for requirement in self.requirements]
+            logger.debug("reqs: {}".format(cwl_map['requirements']))
         if self.hints:
             cwl_map['hints'] = self.hints
+            logger.debug("hints: {}".format(cwl_map['hints']))
         optional_class_fields = ['arguments']  # List non-required fields represented as classes that can be handled generically.
-        for optional_field_name in optional_class_fields:
-            optional_class_value = getattr(self, optional_field_name)
-            if optional_class_value:
-                cwl_map[optional_field_name] = optional_class_value
+        # for optional_field_name in optional_class_fields:
+        #     optional_class_values = getattr(self, optional_field_name)
+        #     if type(optional_class_values) is list:
+        #         cwl_map[optional_field_name] = []
+        #         for optional_class_value in optional_class_values:
+        #             if isinstance(optional_class_value, command_line_tool.CommandLineBinding):
+        #                 logger.debug("list member instance: {}".format(optional_class_value))
+        #                 # TODO: deal with this CommandLineBinding effectively
+        #                 #cwl_map[optional_field_name] = optional_class_value.get_ordered_input_binding()
+        #             else:
+        #                 logger.debug("list member noninstance: {}".format(optional_class_value))
+        #                 cwl_map[optional_field_name] += [optional_class_value]
+        #     else:
+        #         if optional_class_values:
+        #             logger.debug("scalar noninstance: {}".format(optional_class_values))
+        #             cwl_map[optional_field_name] = optional_class_values
 
-            # Non-required fields represented as basic python data types. Order of list determines order in CWL file.
-            optional_simple_fields = ['stdin', 'stdout', 'stderr', 'temporaryFailCodes', 'permanentFailCodes',
-                                      'successCodes', 'label', 'doc']
+        optional_simple_fields = ['stdin', 'stdout', 'stderr', 'temporaryFailCodes', 'permanentFailCodes',
+                                  'successCodes', 'label', 'doc']
 
-            for optional_simple_field in optional_simple_fields:
-                optional_field_value = getattr(self, optional_simple_field)
-                if optional_field_value:
-                    cwl_map[optional_simple_field] = optional_field_value
+        for optional_simple_field in optional_simple_fields:
+            optional_field_value = getattr(self, optional_simple_field)
+            if optional_field_value:
+                cwl_map[optional_simple_field] = optional_field_value
         cwl_map['inputs'] = self.get_sorted_inputs_dict()
         cwl_map['outputs'] = self.get_outputs_dict()
 
@@ -128,12 +165,16 @@ class CommandLineToolMixin:
         """
         file_path = Path(filename)
         cwl_yaml = self.create_cwl_commented_map()
-
+        logger.debug("cwl: {}".format(cwl_yaml))
         yaml = YAML(pure=True)
         yaml.default_flow_style = False
         yaml.indent(mapping=2, sequence=4, offset=2)
         with file_path.open('w') as cwl_file:
-            yaml.dump(cwl_yaml, cwl_file)
+            try:
+                yaml.dump(cwl_yaml, cwl_file)
+            except RepresenterError as e:
+                picklestring = pickle.dumps(cwl_yaml)
+                print("pickle:{}".format(picklestring))
             assert True
         return
 
@@ -360,3 +401,111 @@ class CommandOutputParameterMixin:
         if self.doc:
             output_map['doc'] = self.doc
         return output_map
+
+
+class WorkflowMixin:
+
+    def get_wf_inputs(self):
+        wf_inputs = self.inputs
+        inputs_dict = CommentedMap()
+        for input in wf_inputs:
+            single_input_dict = input.to_dict_with_id_key()
+            inputs_dict.update(single_input_dict)
+        return inputs_dict
+
+    def get_wf_outputs(self):
+        wf_outputs = self.outputs
+        outputs_dict = CommentedMap()
+        for output in wf_outputs:
+            individual_output_dict = output.to_dict_with_id_key()  # output is instance of WorkflowOutputParameter
+            outputs_dict.update(individual_output_dict)
+        return outputs_dict
+
+    def get_wf_steps(self):
+        wf_steps = self.steps
+        steps_dict = CommentedMap()
+        for step in wf_steps:
+            individual_step_dict = step.to_dict_with_id_key()
+            wf_steps.update(individual_step_dict)
+        return wf_steps
+
+
+
+    def dump_cwl(self, filename):
+        cwl_map = CommentedMap()
+        cwl_map['cwlVersion'] = self.cwlVersion
+        cwl_map['class'] = 'Workflow'
+        requirements = self.requirements
+        if requirements:
+            cwl_map['requirements'] = [requirement.save() for requirement in requirements]
+        hints = self.hints
+        if hints:
+            cwl_map['hints'] = hints  # No idea why hints aren't stored as classes.
+        # optional_simple_fields list determines order of these fields if they are present.
+        optional_simple_fields = ['label', 'doc']
+        for optional_field in optional_simple_fields:
+            optional_field_value = getattr(self, optional_field)
+            if optional_field_value:
+                cwl_map[optional_field] = optional_field_value
+        cwl_map['inputs'] = self.get_wf_inputs()  # list of InputParameter objects.
+        cwl_map['outputs'] = self.get_wf_outputs()
+        cwl_map['steps'] = self.get_wf_steps()
+
+
+class InputParameterMixin:
+
+    def to_dict_with_id_key(self):
+        input_dict = CommentedMap()
+        input_id = get_short_name(self.id)
+        input_dict[input_id] = CommentedMap()
+        input_dict[input_id]['type'] = self.type
+        return input_dict
+
+class WorkflowOutputParameterMixin:
+
+    def to_dict_with_id_key(self):
+        output_dict = CommentedMap()
+        output_id = get_short_name(self.id)
+        output_dict[output_id] = CommentedMap()
+        output_dict[output_id]['type'] = self.type
+        output_source_id = self.outputSource
+        rel_output_source_id = '/'.join(output_source_id.split('#')[-1].split('/')[1:])
+        output_dict[output_id]['outputSource'] = rel_output_source_id
+        return output_dict
+
+class WorkflowStepMixin:
+
+    def to_dict_with_id_key(self):
+        step_dict = CommentedMap()
+        step_id = get_short_name(self.id)
+        step_dict[step_id] = CommentedMap()
+        step_dict[step_id]['run'] = get_short_name(self.run)
+        step_dict[step_id]['in'] = CommentedMap()
+        for step_input in self.in_:  # list of WorkflowStepInput instances.
+            step_dict[step_id]['in'].update(step_input.return_workflow_step_input_dict())
+        # step_dict[step_id]['in'] = [step_input.return_workflow_step_input_dict() for step_input in self.in_]
+        step_dict[step_id]['out'] = [get_short_name(output) for output in self.out]
+        return step_dict
+
+class WorflowStepInputMixin:
+
+    def get_shortened_source_ids(self): # Might need to rename this if it needs to do more.
+        if isinstance(self.source, str):
+            source_shortname = get_short_name(self.source)
+        elif isinstance(self.source, list):
+            source_shortname = [get_short_name(source) for source in self.source]
+        else:
+            raise NotImplementedError(f"Deal with WorflowStepInput.source of {self.source}")
+        return source_shortname
+
+
+    def get_workflow_step_inputs(self):
+        step_input_dict = CommentedMap()
+        input_id = get_short_name(self.id)
+        step_input_attrs = list(self.attrs)
+        step_input_attrs.remove('id')  # Handled explicitly
+        step_input_attrs.remove('source')  # Handled explicitly
+        step_input_dict[input_id] = CommentedMap()
+        step_input_dict[input_id]['source'] = self.get_shortened_source_ids()
+        step_input_dict[input_id].update({step_input_attr: getattr(self, step_input_attr) for step_input_attr in step_input_attrs if getattr(self, step_input_attr)})
+        return step_input_dict
