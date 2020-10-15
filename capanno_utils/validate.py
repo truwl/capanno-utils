@@ -12,7 +12,6 @@ from .content_maps import make_tools_map, make_main_tool_map, make_tool_version_
 from .helpers.get_paths import get_metadata_path, get_base_dir
 from .helpers.validate_cwl import validate_cwl_tool
 from .validate_inputs import validate_all_inputs_for_tool
-from .classes.cwl.command_line_tool import ValidationException
 
 
 def metadata_validator_factory(class_to_validate):

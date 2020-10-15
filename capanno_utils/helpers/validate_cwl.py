@@ -1,7 +1,7 @@
 
 import logging
 import cwltool.main
-from ..classes.cwl.command_line_tool import load_document
+from ..classes.cwl.common_workflow_language import load_document
 
 def validate_cwl_tool(cwl_doc_path):
     # Just load into CommandLineTool class and see if it works. Seems to be good.
