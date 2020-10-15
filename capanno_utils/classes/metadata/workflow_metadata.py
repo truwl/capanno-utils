@@ -7,6 +7,7 @@ from pathlib import Path
 import re
 from abc import abstractmethod
 from ruamel.yaml import safe_load
+from capanno_utils.config import *
 from ...classes.metadata.shared_properties import CodeRepository, WebSite, Person, Publication, Keyword, CallMap
 from ...classes.metadata.common_functions import _mk_hashes, CommonPropsMixin
 from ...classes.metadata.metadata_base import MetadataBase
@@ -79,8 +80,8 @@ class WorkflowMetadata(CommonPropsMixin, WorkflowMetadataBase):
     ])
 
     def _check_identifier(self, identifier):
-        if not identifier[:3] == "WF_":
-            raise ValueError(f"Workflow identifiers must start with 'WF_' you provided {identifier}")
+        if not identifier[:3] == f"{worklfow_identifier_prefix}_":
+            raise ValueError(f"Workflow identifiers must start with '{worklfow_identifier_prefix}_' you provided {identifier}")
         else:
             hex_pattern = r'[0-9a-f]{6}\.[0-9a-f]{2}$'
             match_obj = re.match(hex_pattern, identifier[3:])
@@ -92,7 +93,7 @@ class WorkflowMetadata(CommonPropsMixin, WorkflowMetadataBase):
         if not (self.name and self.softwareVersion):
             raise ValueError(f"Name and softwareVersion must be provided to make an identifier.")
         name_hash, version_hash = _mk_hashes(self.name, self.softwareVersion)
-        identifier = f"WF_{name_hash[start:start + 6]}.{version_hash[:2]}"
+        identifier = f"{worklfow_identifier_prefix}_{name_hash[start:start + 6]}.{version_hash[:2]}"
         return identifier
 
 

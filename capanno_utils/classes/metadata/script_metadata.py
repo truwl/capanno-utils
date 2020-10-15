@@ -2,6 +2,7 @@ from pathlib import Path
 import re
 from collections import OrderedDict
 from ruamel.yaml import safe_load
+from capanno_utils.config import *
 from ...classes.metadata.common_functions import is_attr_empty, CommonPropsMixin, _mk_hashes
 from ...classes.metadata.shared_properties import WebSite, CodeRepository, Person, Publication, Keyword, ParentScript, \
     Tool
@@ -118,8 +119,8 @@ class ScriptMetadata(CommonPropsMixin, ScriptMetadataBase):
             self._update_attributes(master_common_metadata)
 
     def _check_identifier(self, identifier):
-        if not identifier[:3] == "ST_":
-            raise ValueError(f"Script identifiers must start with 'ST_' you provided {identifier}")
+        if not identifier[:3] == f"{script_identifier_prefix}_":
+            raise ValueError(f"Script identifiers must start with '{script_identifier_prefix}_' you provided {identifier}")
         else:
             hex_pattern = r'[0-9a-f]{6}\.[0-9a-f]{2}$'
             match_obj = re.match(hex_pattern, identifier[3:])
@@ -132,7 +133,7 @@ class ScriptMetadata(CommonPropsMixin, ScriptMetadataBase):
         if not (self.name and self.softwareVersion.versionName):
             raise ValueError(f"Name and softwareVersion must be provided to make an identifier.")
         name_hash, version_hash = _mk_hashes(self.name, self.softwareVersion.versionName)
-        identifier = f"ST_{name_hash[start:start + 6]}.{version_hash[:2]}"
+        identifier = f"{script_identifier_prefix}_{name_hash[start:start + 6]}.{version_hash[:2]}"
         return identifier
 
     def _load_common_metadata(self, file_path):

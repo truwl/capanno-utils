@@ -13,6 +13,7 @@ from ...helpers.get_metadata_from_biotools import make_tool_metadata_kwargs_from
 from ...classes.metadata.common_functions import _mk_hashes, CommonPropsMixin
 
 
+
 class ToolMetadataBase(MetadataBase):
     """Factor stuff out to here."""
 
@@ -96,7 +97,7 @@ class ParentToolMetadata(CommonPropsMixin, ToolMetadataBase):
         if not (self.name and self.softwareVersion.versionName):
             raise ValueError(f"Name and softwareVersion must be provided to make an identifier.")
         name_hash, version_hash = _mk_hashes(self.name, self.softwareVersion.versionName)
-        identifier = f"TL_{name_hash[start:start + 6]}.{version_hash[:2]}"
+        identifier = f"{tool_identifier_prefix}_{name_hash[start:start + 6]}.{version_hash[:2]}"
         return identifier
 
     def make_subtool_metadata(self, subtool_name, **kwargs):

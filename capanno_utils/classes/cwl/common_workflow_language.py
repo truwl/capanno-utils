@@ -16,7 +16,7 @@ import six
 from ruamel.yaml.comments import CommentedBase, CommentedMap, CommentedSeq
 from typing_extensions import Text  # pylint: disable=unused-import
 
-from .command_line_tool_mixins import CommandLineToolMixin, CommandInputParameterMixin, SchemaDefRequirementMixin, CommandLineBindingMixin, CommandOutputParameterMixin, WorkflowMixin, InputParameterMixin
+from .command_line_tool_mixins import *
 
 # move to a regular typing import when Python 3.3-3.6 is no longer supported
 
@@ -4727,7 +4727,7 @@ Execute an expression as a Workflow step.
     attrs = frozenset(['id', 'inputs', 'outputs', 'requirements', 'hints', 'label', 'doc', 'cwlVersion', 'class', 'expression'])
 
 
-class WorkflowOutputParameter(OutputParameter):
+class WorkflowOutputParameter(WorkflowOutputParameterMixin, OutputParameter):
     """
 Describe an output parameter of a workflow.  The parameter must be
 connected to one or more parameters defined in the workflow that will
@@ -4894,7 +4894,7 @@ provide the value of the output parameter.
 class Sink(Savable):
     pass
 
-class WorkflowStepInput(Sink):
+class WorkflowStepInput(WorkflowStepInputMixin, Sink):
     """
 The input of a workflow step connects an upstream parameter (from the
 workflow inputs, or the outputs of other workflows steps) with the input
@@ -5099,7 +5099,7 @@ with an output parameter of the process.
     attrs = frozenset(['id'])
 
 
-class WorkflowStep(Savable):
+class WorkflowStep(WorkflowStepMixin, Savable):
     """
 A workflow step is an executable element of a workflow.  It specifies the
 underlying process implementation (such as `CommandLineTool` or another

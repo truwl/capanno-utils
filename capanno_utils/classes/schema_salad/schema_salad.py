@@ -9,9 +9,8 @@ from schema_salad.ref_resolver import file_uri, Loader
 from schema_salad.jsonld_context import salad_to_jsonld_context
 from schema_salad.schema import get_metaschema, validate_doc, collect_namespaces, make_avro, make_avro_schema_from_avro
 from capanno_utils.classes.cwl.command_line_tool import load_document
-from capanno_utils.helpers.string_tools import uri_name
+from capanno_utils.helpers.string_tools import get_shortened_id
 from capanno_utils.helpers.dict_tools import get_dict_from_list
-from capanno_utils.classes.cwl.command_line_tool_mixins import get_short_name
 
 
 
@@ -240,7 +239,7 @@ class InputsSchema:
     def _make_schema_dict(self):
         inputs_fields = {}
         for input in self.cwl_inputs:
-            inputs_fields[uri_name(input.id)] = {'type': input._handle_input_type_field(self.cwl_schema_def_requirement)}
+            inputs_fields[get_shortened_id(input.id)] = {'type': input._handle_input_type_field(self.cwl_schema_def_requirement)}
 
         schema_dict = deepcopy(InputsSchema.template_dict)
         _, inputs_field_index = get_dict_from_list(schema_dict['$graph'], 'name', 'InputsField')
@@ -327,7 +326,7 @@ class InputsSchema:
         """
         template = CommentedMap()
         for input in self.cwl_inputs:
-            input_name = get_short_name(input.id)
+            input_name = get_shortened_id(input.id)
             template_param_value, comment = self._make_input_value_field(input, self._cwl_schema_def_requirement)
             template.insert(0, input_name, template_param_value, comment)
         return template

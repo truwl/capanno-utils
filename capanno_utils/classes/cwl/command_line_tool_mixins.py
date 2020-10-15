@@ -5,9 +5,10 @@ from ruamel.yaml import YAML
 from ruamel.yaml.comments import CommentedMap
 from ruamel.yaml.representer import RepresenterError
 from ruamel.yaml.scalarstring import PreservedScalarString
-from cwltool.process import shortname
 import logging, sys
 import pickle
+from capanno_utils.helpers.string_tools import get_shortened_id
+from capanno_utils.helpers.dict_tools import dump_dict_to_yaml_file
 
 
 # from . import command_line_tool  # Todo circular import
@@ -15,17 +16,6 @@ import pickle
 logging.basicConfig(stream=sys.stderr)
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.WARNING)
-
-def get_short_name(url_string):
-    """
-    Return the part of a uri after the '#'
-    """
-    url_parse = urlparse(url_string)
-    if url_parse.fragment:
-        short_name = url_parse.fragment
-    else:
-        short_name = url_parse.path.split('#')[-1]
-    return short_name
 
 cwl_types = ('null', 'boolean', 'int', 'long', 'float', 'double', 'string', 'File', 'Directory')
 
@@ -36,7 +26,7 @@ class CommandLineToolMixin:
     def get_input_parameter_by_short_id(self, id_):
         input_parameter = None
         for command_input_parameter in self.inputs:
-            if shortname(command_input_parameter.id) == id_:
+            if get_shortened_id(command_input_parameter.id) == id_:
                 input_parameter = command_input_parameter
                 break
         return input_parameter
@@ -44,7 +34,7 @@ class CommandLineToolMixin:
     def get_output_parameter_by_short_id(self, id_):
         output_parameter = None
         for command_output_parameter in self.outputs:
-            if shortname(command_output_parameter.id) == id_:
+            if get_shortened_id(command_output_parameter.id) == id_:
                 output_parameter = command_output_parameter
                 break
         return output_parameter
@@ -79,7 +69,7 @@ class CommandLineToolMixin:
             position = command_line_binding.position  # Will be None if not specified.
             if not position:
                 position = 999
-            input_id = get_short_name(input.id)
+            input_id = get_shortened_id(input.id)
             sort_key = [position, input_id]
             sort_key_dict[input_id] = sort_key
         sorted_ids = sorted(sort_key_dict.keys(),
@@ -97,7 +87,7 @@ class CommandLineToolMixin:
         sort_keys_list = self._make_sorted_input_names(clt_inputs_list)
         schema_def_requirement = self.get_schema_def_requirement()
         for command_input in clt_inputs_list:
-            input_id = get_short_name(command_input.id)
+            input_id = get_shortened_id(command_input.id)
             ordered_input_field = command_input.get_ordered_input_map(schema_def_requirement)
             unsorted_inputs_dict[input_id] = ordered_input_field
         sorted_inputs_dict = CommentedMap((input_name, unsorted_inputs_dict[input_name]) for input_name in sort_keys_list)
@@ -109,7 +99,7 @@ class CommandLineToolMixin:
         """
         outputs_dict = CommentedMap()
         for output in self.outputs:
-            output_id = get_short_name(output.id)
+            output_id = get_shortened_id(output.id)
             outputs_dict[output_id] = output.get_ordered_output()
         return outputs_dict
 
@@ -181,7 +171,7 @@ class CommandLineToolMixin:
 
 class CommandInputParameterMixin:
 
-    def _handle_str_input_type(self, _type, schema_def_requirement):
+    def _handle_str_input_type(self, type_, schema_def_requirement):
         """
         Should be the terminating function of walking CommandInputParameter.type fields.
         The value of _type must be a string here.
@@ -191,13 +181,13 @@ class CommandInputParameterMixin:
         :param schema_def_dict:
         :return:
         """
-        if _type in cwl_types:
-            _type = _type
+        if type_ in cwl_types:
+            type_ = type_
         else:
             schema_def_dict = schema_def_requirement._make_schema_def_dict()
-            schema_def_name = shortname(_type)
-            _type = schema_def_dict[schema_def_name]
-        return _type
+            schema_def_name = get_shortened_id(type_)
+            type_ = schema_def_dict[schema_def_name]
+        return type_
 
     def _handle_input_type_field(self, schema_def_requirement):
         """
@@ -338,9 +328,9 @@ class SchemaDefRequirementMixin:
             raise NotImplementedError
         schema_def_dict = {}
         for type_def in schema_def_types:
-            type_def_name = shortname(type_def.name)
+            type_def_name = get_shortened_id(type_def.name)
             schema_def_dict[type_def_name] = type_def.save()
-            schema_def_dict[type_def_name]['name'] = shortname(schema_def_dict[type_def_name]['name'])
+            schema_def_dict[type_def_name]['name'] = get_shortened_id(schema_def_dict[type_def_name]['name'])
             if type_def.type == 'record':
                 pass
             elif type_def.type == 'array':
@@ -426,8 +416,14 @@ class WorkflowMixin:
         steps_dict = CommentedMap()
         for step in wf_steps:
             individual_step_dict = step.to_dict_with_id_key()
-            wf_steps.update(individual_step_dict)
-        return wf_steps
+            steps_dict.update(individual_step_dict)
+        return steps_dict
+
+    def get_input_parameter_by_short_id(self, id_):
+        for input_parameter in self.inputs:
+            if get_shortened_id(input_parameter.id) == id_:
+                return input_parameter
+        return
 
 
 
@@ -450,13 +446,15 @@ class WorkflowMixin:
         cwl_map['inputs'] = self.get_wf_inputs()  # list of InputParameter objects.
         cwl_map['outputs'] = self.get_wf_outputs()
         cwl_map['steps'] = self.get_wf_steps()
+        dump_dict_to_yaml_file(cwl_map, filename)
+        return
 
 
 class InputParameterMixin:
 
     def to_dict_with_id_key(self):
         input_dict = CommentedMap()
-        input_id = get_short_name(self.id)
+        input_id = get_shortened_id(self.id)
         input_dict[input_id] = CommentedMap()
         input_dict[input_id]['type'] = self.type
         return input_dict
@@ -465,7 +463,7 @@ class WorkflowOutputParameterMixin:
 
     def to_dict_with_id_key(self):
         output_dict = CommentedMap()
-        output_id = get_short_name(self.id)
+        output_id = get_shortened_id(self.id)
         output_dict[output_id] = CommentedMap()
         output_dict[output_id]['type'] = self.type
         output_source_id = self.outputSource
@@ -477,23 +475,23 @@ class WorkflowStepMixin:
 
     def to_dict_with_id_key(self):
         step_dict = CommentedMap()
-        step_id = get_short_name(self.id)
+        step_id = get_shortened_id(self.id)
         step_dict[step_id] = CommentedMap()
-        step_dict[step_id]['run'] = get_short_name(self.run)
+        step_dict[step_id]['run'] = get_shortened_id(self.run)
         step_dict[step_id]['in'] = CommentedMap()
         for step_input in self.in_:  # list of WorkflowStepInput instances.
-            step_dict[step_id]['in'].update(step_input.return_workflow_step_input_dict())
+            step_dict[step_id]['in'].update(step_input.get_workflow_step_inputs())  # WorkflowStepInput class
         # step_dict[step_id]['in'] = [step_input.return_workflow_step_input_dict() for step_input in self.in_]
-        step_dict[step_id]['out'] = [get_short_name(output) for output in self.out]
+        step_dict[step_id]['out'] = [get_shortened_id(output) for output in self.out]
         return step_dict
 
-class WorflowStepInputMixin:
+class WorkflowStepInputMixin:
 
     def get_shortened_source_ids(self): # Might need to rename this if it needs to do more.
         if isinstance(self.source, str):
-            source_shortname = get_short_name(self.source)
+            source_shortname = get_shortened_id(self.source)
         elif isinstance(self.source, list):
-            source_shortname = [get_short_name(source) for source in self.source]
+            source_shortname = [get_shortened_id(source) for source in self.source]
         else:
             raise NotImplementedError(f"Deal with WorflowStepInput.source of {self.source}")
         return source_shortname
@@ -501,7 +499,7 @@ class WorflowStepInputMixin:
 
     def get_workflow_step_inputs(self):
         step_input_dict = CommentedMap()
-        input_id = get_short_name(self.id)
+        input_id = get_shortened_id(self.id)
         step_input_attrs = list(self.attrs)
         step_input_attrs.remove('id')  # Handled explicitly
         step_input_attrs.remove('source')  # Handled explicitly
