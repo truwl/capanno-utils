@@ -37,24 +37,24 @@ class TestValidateTools(TestBase):
         subtool_dir = get_tool_dir(tool_name, version_name, subtool_name, base_dir=self.test_content_dir)
         validate_content([str(subtool_dir), '-p', str(self.test_content_dir), '-q'])
         return
+    #
+    # def test_validate_common_dir(self):
+    #     tool_name = 'md5sum'
+    #     version_name = '8.x'
+    #     common_dir = get_tool_common_dir(tool_name, version_name, base_dir=self.test_content_dir)
+    #     validate_content([str(common_dir), '-p', str(self.test_content_dir), '-q'])
+    #     return
+    #
+    # def test_validate_instance_dir(self):
+    #     tool_name = 'gawk'
+    #     version_name = '4.1.x'
+    #     subtool_name = None
+    #     instances_dir = get_tool_instances_dir(tool_name, version_name, subtool_name=subtool_name,
+    #                                            base_dir=self.test_content_dir)
+    #     validate_content([str(instances_dir), '-p', str(self.test_content_dir), '-q'])
+    #     return
 
-    def test_validate_common_dir(self):
-        tool_name = 'md5sum'
-        version_name = '8.x'
-        common_dir = get_tool_common_dir(tool_name, version_name, base_dir=self.test_content_dir)
-        validate_content([str(common_dir), '-p', str(self.test_content_dir), '-q'])
-        return
-
-    def test_validate_instance_dir(self):
-        tool_name = 'gawk'
-        version_name = '4.1.x'
-        subtool_name = None
-        instances_dir = get_tool_instances_dir(tool_name, version_name, subtool_name=subtool_name,
-                                               base_dir=self.test_content_dir)
-        validate_content([str(instances_dir), '-p', str(self.test_content_dir), '-q'])
-        return
-
-
+# @skip('')
 class TestValidateScripts(TestBase):
 
     def test_validate_group_script_dir(self):
