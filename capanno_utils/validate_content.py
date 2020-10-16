@@ -6,7 +6,7 @@ import logging
 from pathlib import Path
 from capanno_utils.validate import *
 from capanno_utils.validate_inputs import validate_inputs_for_instance
-from capanno_utils.helpers.validate_cwl import validate_cwl_tool
+from capanno_utils.helpers.validate_cwl import validate_cwl_doc
 from capanno_utils.helpers.get_paths import get_types_from_path
 
 
@@ -45,7 +45,7 @@ def main(argsl=None):
         if specific_type == 'common_metadata':
             validate_parent_tool_metadata(full_path)
         elif specific_type == 'cwl':
-            validate_cwl_tool(full_path)
+            validate_cwl_doc(full_path)
         elif specific_type == 'metadata':
             validate_subtool_metadata(full_path)
         elif specific_type == 'instance':
@@ -82,7 +82,7 @@ def main(argsl=None):
             raise ValueError(f"")
     elif base_type == 'script':
         if specific_type == 'cwl':
-            validate_cwl_tool(full_path)
+            validate_cwl_doc(full_path)
         elif specific_type == 'metadata':
             validate_script_metadata(full_path)
         elif specific_type == 'instance':
