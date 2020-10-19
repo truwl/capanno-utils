@@ -8,8 +8,7 @@ from ruamel.yaml.scalarstring import PreservedScalarString
 import logging, sys
 import pickle
 from capanno_utils.helpers.string_tools import get_shortened_id
-from capanno_utils.helpers.dict_tools import dump_dict_to_yaml_file
-
+from capanno_utils.helpers.file_management import dump_dict_to_yaml_file
 
 # from . import command_line_tool  # Todo circular import
 

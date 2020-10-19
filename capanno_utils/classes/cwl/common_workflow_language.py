@@ -16,7 +16,7 @@ import six
 from ruamel.yaml.comments import CommentedBase, CommentedMap, CommentedSeq
 from typing_extensions import Text  # pylint: disable=unused-import
 
-from .command_line_tool_mixins import *
+from .common_workflow_language_mixins import *
 
 # move to a regular typing import when Python 3.3-3.6 is no longer supported
 

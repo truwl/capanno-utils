@@ -41,13 +41,6 @@ def _initialize_command_line_tool_from_url(url, cwl_path):
 
     clt = load_document(url)
     clt.dump_cwl(cwl_path)
-    # yaml = YAML(typ='safe', pure=True)
-    # yaml.default_flow_style = False
-    # yaml.indent(mapping=2, sequence=4, offset=2)
-    # yaml_doc = yaml.load(response.text)
-    # with cwl_path.open('w') as cwl_file:
-    #     yaml.dump(yaml_doc, cwl_file)
-    #     assert True
     return
 
 

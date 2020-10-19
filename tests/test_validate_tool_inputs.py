@@ -15,7 +15,7 @@ class TestValidateInputs(TestBase):
         input_hash = '8a6c'
         cwl_document_path = get_cwl_tool(tool_name, tool_version)
         instance_path = get_tool_instance_path(tool_name, tool_version, input_hash)
-        validate_inputs_for_instance(instance_path, cwl_tool_path=cwl_document_path)
+        validate_inputs_for_instance(instance_path, cwl_document_path)
         return
 
 
@@ -27,20 +27,20 @@ class TestValidateInputs(TestBase):
         instance_hash = '395d'
         cwl_document_path = get_cwl_tool(tool_name, tool_version, subtool_name=subtool, base_dir=self.test_content_dir)
         instance_path = get_tool_instance_path(tool_name, tool_version, instance_hash, subtool_name=subtool, base_dir=self.test_content_dir)
-        validate_inputs_for_instance(instance_path, cwl_tool_path=cwl_document_path)
+        validate_inputs_for_instance(instance_path, cwl_document_path)
         return
-
-    # @unittest.skip('')
-    def test_validate_all_tool_inputs(self):
-        tool_map = config[os.environ.get('CONFIG_KEY')]['content_maps_dir'] / 'tool-maps.yaml'
-        with tool_map.open('r') as tm:
-            tool_map_dict = safe_load(tm)
-        for tool_identifier, tool_data in tool_map_dict.items():
-            if tool_data['type'] == 'parent':
-                continue
-            elif tool_data['type'] == 'tool':
-                tool_name = tool_data['name']
-
-                raise NotImplementedError
-        return
+    #
+    # # @unittest.skip('')
+    # def test_validate_all_tool_inputs(self):
+    #     tool_map = config[os.environ.get('CONFIG_KEY')]['content_maps_dir'] / 'tool-maps.yaml'  # Need to change this if want to do tests
+    #     with tool_map.open('r') as tm:
+    #         tool_map_dict = safe_load(tm)
+    #     for tool_identifier, tool_data in tool_map_dict.items():
+    #         if tool_data['type'] == 'parent':
+    #             continue
+    #         elif tool_data['type'] == 'tool':
+    #             tool_name = tool_data['name']
+    #
+    #             raise NotImplementedError
+    #     return
 
