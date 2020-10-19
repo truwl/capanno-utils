@@ -198,12 +198,12 @@ class ScriptMetadata(CommonPropsMixin, ScriptMetadataBase):
 
 
     def mk_file(self, file_path):
-        super().mk_file(file_path, keys=self._primary_file_attrs)
+        return super().mk_file(file_path, keys=self._primary_file_attrs)
 
 
     def mk_completed_file(self, file_path):
         # substitute in parent metadata fields for fields not specified by the script's own metadata.
-        super().mk_file(file_path)
+        return super().mk_file(file_path)
 
     @property
     def identifier(self):

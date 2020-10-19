@@ -125,7 +125,7 @@ class ParentToolMetadata(CommonPropsMixin, ToolMetadataBase):
 
     def mk_file(self, base_dir, keys=None, replace_none=True):
         file_path = get_tool_metadata(self.name, self.softwareVersion.versionName, subtool_name=None, parent=True, base_dir=base_dir)
-        super().mk_file(file_path, keys, replace_none)
+        return super().mk_file(file_path, keys, replace_none)
 
 
 class SubtoolMetadata(CommonPropsMixin, ToolMetadataBase):
@@ -253,7 +253,7 @@ class SubtoolMetadata(CommonPropsMixin, ToolMetadataBase):
             raise
         if not file_path.parent.exists():
             file_path.parent.mkdir()
-        super().mk_file(file_path, keys, replace_none)
+        return super().mk_file(file_path, keys, replace_none)
 
 
 class ToolInstanceMetadata(MetadataBase):
