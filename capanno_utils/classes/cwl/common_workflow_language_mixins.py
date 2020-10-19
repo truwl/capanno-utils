@@ -119,25 +119,26 @@ class CommandLineToolMixin:
             cwl_map['hints'] = self.hints
             logger.debug("hints: {}".format(cwl_map['hints']))
         optional_class_fields = ['arguments']  # List non-required fields represented as classes that can be handled generically.
-        # for optional_field_name in optional_class_fields:
-        #     optional_class_values = getattr(self, optional_field_name)
-        #     if type(optional_class_values) is list:
-        #         cwl_map[optional_field_name] = []
-        #         for optional_class_value in optional_class_values:
-        #             if isinstance(optional_class_value, command_line_tool.CommandLineBinding):
-        #                 logger.debug("list member instance: {}".format(optional_class_value))
-        #                 # TODO: deal with this CommandLineBinding effectively
-        #                 #cwl_map[optional_field_name] = optional_class_value.get_ordered_input_binding()
-        #             else:
-        #                 logger.debug("list member noninstance: {}".format(optional_class_value))
-        #                 cwl_map[optional_field_name] += [optional_class_value]
-        #     else:
-        #         if optional_class_values:
-        #             logger.debug("scalar noninstance: {}".format(optional_class_values))
-        #             cwl_map[optional_field_name] = optional_class_values
+        for optional_field_name in optional_class_fields:
+            optional_class_values = getattr(self, optional_field_name)
+            if type(optional_class_values) is list:
+                cwl_map[optional_field_name] = []
+                for optional_class_value in optional_class_values:
+                    if isinstance(optional_class_value, command_line_tool.CommandLineBinding):
+                        logger.debug("list member instance: {}".format(optional_class_value))
+                        # TODO: deal with this CommandLineBinding effectively
+                        #cwl_map[optional_field_name] = optional_class_value.get_ordered_input_binding()
+                    else:
+                        logger.debug("list member noninstance: {}".format(optional_class_value))
+                        cwl_map[optional_field_name] += [optional_class_value]
+            else:
+                if optional_class_values:
+                    logger.debug("scalar noninstance: {}".format(optional_class_values))
+                    cwl_map[optional_field_name] = optional_class_values
 
-        optional_simple_fields = ['stdin', 'stdout', 'stderr', 'temporaryFailCodes', 'permanentFailCodes',
-                                  'successCodes', 'label', 'doc']
+            # Non-required fields represented as basic python data types. Order of list determines order in CWL file.
+            optional_simple_fields = ['stdin', 'stdout', 'stderr', 'temporaryFailCodes', 'permanentFailCodes',
+                                      'successCodes', 'label', 'doc']
 
         for optional_simple_field in optional_simple_fields:
             optional_field_value = getattr(self, optional_simple_field)
