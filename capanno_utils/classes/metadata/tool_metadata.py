@@ -396,4 +396,4 @@ class ToolInstanceMetadata(MetadataBase):
         file_path = get_tool_instance_metadata_path(self._subtoolMetadata._parentMetadata.name, self.toolVersion, input_hash=input_hash, subtool_name=self._subtoolMetadata.name, base_dir=base_dir)
         if not file_path.parent.exists():
             file_path.parent.mkdir(parents=True)
-        super().mk_file(file_path, keys, replace_none)
+        return super().mk_file(file_path, keys, replace_none)

@@ -335,3 +335,9 @@ class InputsSchema:
             template_param_value, comment = self._make_input_value_field(input, self._cwl_schema_def_requirement)
             template.insert(0, input_name, template_param_value, comment)
         return template
+
+    def make_template_file(self, template_file):
+        template = self.make_template()
+        dump_dict_to_yaml_file(template, template_file)
+        return
+
