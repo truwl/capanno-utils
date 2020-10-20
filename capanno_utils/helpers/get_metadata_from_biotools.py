@@ -6,7 +6,7 @@ import sys
 
 logging.basicConfig(stream=sys.stderr)
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.WARNING)
 
 # from capanno_utils.helpers.get_metadata_from_biotools import get_metadata_from_biotools;get_metadata_from_biotools('picard')
 

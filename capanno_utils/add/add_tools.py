@@ -4,6 +4,7 @@ from pathlib import Path
 from datetime import date
 from capanno_utils.classes.metadata.tool_metadata import ParentToolMetadata, SubtoolMetadata
 from capanno_utils.classes.cwl.make_cwl import initialize_command_line_tool_file_tool
+from capanno_utils.classes.schema_salad.schema_salad import InputsSchema
 from capanno_utils.helpers.get_paths import *
 import logging, sys
 
@@ -98,12 +99,15 @@ def add_subtool(tool_name, tool_version, subtool_name, root_repo_path=Path.cwd()
 
 
 def add_tool_instance(tool_name, tool_version, subtool_name, init_job_file=True, root_repo_path=Path.cwd()):
-    tool_instance_kwargs = {}
     subtool_path = get_tool_metadata(tool_name, tool_version, subtool_name, base_dir=root_repo_path)
     subtool_metadata = SubtoolMetadata.load_from_file(subtool_path)
     instance_meta = subtool_metadata.mk_instance()
-    instance_meta.mk_file(base_dir=root_repo_path)
+    instance_metadata_path = instance_meta.mk_file(base_dir=root_repo_path)
+    input_hash = instance_meta.identifier[-4:]
+    job_file_path = None
     if init_job_file:
-        input_hash = instance_meta.identifier[-4:]
+        tool_cwl_path = get_cwl_tool(tool_name, tool_version, subtool_name, base_dir=root_repo_path)
         job_file_path = get_tool_instance_path(tool_name, tool_version, input_hash=input_hash, subtool_name=subtool_name, base_dir=root_repo_path)
-    return
+        tool_inputs_schema = InputsSchema(tool_cwl_path)
+        tool_inputs_schema.make_template_file(job_file_path)
+    return instance_metadata_path, job_file_path

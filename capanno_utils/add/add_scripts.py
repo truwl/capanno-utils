@@ -45,4 +45,7 @@ def add_script(group_name, project_name, script_version, script_name, root_repo_
         initialize_command_line_tool_file_script(group_name, project_name, script_version, script_name, base_dir=root_repo_path)
     return
 
+def add_script_instance(group_name, project_name, script_version, script_name, init_job_file=True, base_dir=Path.cwd()):
+    raise NotImplementedError(f"Need to make script instance metadata classes first")
+
 

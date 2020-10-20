@@ -54,7 +54,7 @@ class TestValidateTools(TestBase):
         validate_content([str(instances_dir), '-p', str(self.test_content_dir), '-q'])
         return
 
-
+# @skip('')
 class TestValidateScripts(TestBase):
 
     def test_validate_group_script_dir(self):
