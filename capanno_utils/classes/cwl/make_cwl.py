@@ -5,13 +5,12 @@ import requests
 from ruamel.yaml import YAML, tokens, error
 from ruamel.yaml.comments import CommentedMap
 from capanno_utils.helpers.get_paths import get_cwl_tool, get_cwl_script, main_tool_subtool_name
-from capanno_utils.classes.cwl.command_line_tool import load_document
+from capanno_utils.classes.cwl.common_workflow_language import load_document
 import logging, sys
 
 logging.basicConfig(stream=sys.stderr)
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
-from capanno_utils.classes.cwl.common_workflow_language import load_document
+logger.setLevel(logging.WARNING)
 
 blank_line_tk = tokens.CommentToken('\n\n', error.CommentMark(0), None)
 

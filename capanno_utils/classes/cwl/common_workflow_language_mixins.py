@@ -10,8 +10,6 @@ import pickle
 from capanno_utils.helpers.string_tools import get_shortened_id
 from capanno_utils.helpers.file_management import dump_dict_to_yaml_file
 
-# from . import command_line_tool  # Todo circular import
-
 logging.basicConfig(stream=sys.stderr)
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.WARNING)
@@ -124,13 +122,20 @@ class CommandLineToolMixin:
             if type(optional_class_values) is list:
                 cwl_map[optional_field_name] = []
                 for optional_class_value in optional_class_values:
-                    if isinstance(optional_class_value, command_line_tool.CommandLineBinding):
-                        logger.debug("list member instance: {}".format(optional_class_value))
-                        # TODO: deal with this CommandLineBinding effectively
-                        #cwl_map[optional_field_name] = optional_class_value.get_ordered_input_binding()
-                    else:
+                    if isinstance(optional_class_value, str):
                         logger.debug("list member noninstance: {}".format(optional_class_value))
                         cwl_map[optional_field_name] += [optional_class_value]
+                    else:
+                       try:
+                           if 'position' in optional_class_value.attrs:  # Only CommandLineBinding has position in attrs. Avoids cirucular import with using isinstance()
+                               logger.debug("list member instance: {}".format(optional_class_value))
+                               # TODO: deal with this CommandLineBinding effectively
+                               # cwl_map[optional_field_name] = optional_class_value.get_ordered_input_binding()
+                           else:
+                               raise NotImplementedError  # Something else going on that we'll have to deal with.
+                       except AttributeError as e:
+                                logging.error(f"Need to deal with {optional_class_value} of type {optional_class_value}")
+                                raise
             else:
                 if optional_class_values:
                     logger.debug("scalar noninstance: {}".format(optional_class_values))

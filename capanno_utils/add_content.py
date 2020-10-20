@@ -14,7 +14,7 @@ import logging
 
 logging.basicConfig(stream=sys.stderr)
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.WARNING)
 
 def get_parser():
     parser = argparse.ArgumentParser(description='Initialize metadata and directories for a tool, script, or workflow.')
