@@ -42,6 +42,12 @@ scripts_dir_name = 'cwl-scripts'
 
 workflows_dir_name = 'cwl-workflows'
 
+tool_identifier_prefix = 'TL'
+
+script_identifier_prefix = 'ST'
+
+worklfow_identifier_prefix = 'WF'
+
 def make_config_dict(base_path):
     base_path = Path(base_path)  # Make sure any string values are turned into Path objects.
     config_dict = {

@@ -1,4 +1,3 @@
-
 def get_dict_from_list(dict_list, target_key_name, value):
     """
     Find a dictionary in a list dictionaries that has a particular value for a key.
@@ -27,3 +26,4 @@ def get_dict_from_list(dict_list, target_key_name, value):
         return my_dict, target_index
     else:
         raise NotImplementedError("Should never hit this.")
+

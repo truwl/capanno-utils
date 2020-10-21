@@ -10,9 +10,8 @@ from .content_maps import make_tools_map, make_main_tool_map, make_tool_version_
     make_subtool_map, make_script_maps, make_group_script_map, make_project_script_map, make_script_version_map, \
     make_script_map, make_workflow_maps
 from .helpers.get_paths import get_metadata_path, get_base_dir
-from .helpers.validate_cwl import validate_cwl_tool
+from .helpers.validate_cwl import validate_cwl_doc
 from .validate_inputs import validate_all_inputs_for_tool
-from .classes.cwl.command_line_tool import ValidationException
 
 
 def metadata_validator_factory(class_to_validate):
@@ -55,8 +54,8 @@ def validate_tool_content_from_map(tool_map_dict, base_dir=None):
             metadata_path = get_metadata_path(tool_path)
             validate_subtool_metadata(metadata_path)
 
-            if cwl_status in ('Draft', 'Release'):
-                validate_cwl_tool(tool_path)
+            if cwl_status in ('Draft', 'Released'):
+                validate_cwl_doc(tool_path)
 
                 validate_all_inputs_for_tool(tool_path)
     return
@@ -118,7 +117,7 @@ def validate_script_content_from_map(script_map_dict, base_dir=None):
         # validate cwl
         cwl_status = values['cwlStatus']
         if cwl_status in ('Draft', 'Released'):
-            validate_cwl_tool(script_path)
+            validate_cwl_doc(script_path)
             validate_all_inputs_for_tool(script_path)
     return
 

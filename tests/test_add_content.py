@@ -71,6 +71,7 @@ class TestAddToolMain(TestBase):
             tool_temp_path = Path(tmp_dir) / tools_dir_name / tool_name
             copytree(tool_directory, tool_temp_path)
             add_content_main(['-p', tmp_dir, 'tool-instance', tool_name, tool_version, subtool_name])
+            assert True  # Just provides a place for a breakpoint to take a look.at tmp_dir
         return
 
 

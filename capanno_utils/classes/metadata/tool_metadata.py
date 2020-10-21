@@ -13,6 +13,7 @@ from ...helpers.get_metadata_from_biotools import make_tool_metadata_kwargs_from
 from ...classes.metadata.common_functions import _mk_hashes, CommonPropsMixin
 
 
+
 class ToolMetadataBase(MetadataBase):
     """Factor stuff out to here."""
 
@@ -96,7 +97,7 @@ class ParentToolMetadata(CommonPropsMixin, ToolMetadataBase):
         if not (self.name and self.softwareVersion.versionName):
             raise ValueError(f"Name and softwareVersion must be provided to make an identifier.")
         name_hash, version_hash = _mk_hashes(self.name, self.softwareVersion.versionName)
-        identifier = f"TL_{name_hash[start:start + 6]}.{version_hash[:2]}"
+        identifier = f"{tool_identifier_prefix}_{name_hash[start:start + 6]}.{version_hash[:2]}"
         return identifier
 
     def make_subtool_metadata(self, subtool_name, **kwargs):
@@ -124,7 +125,7 @@ class ParentToolMetadata(CommonPropsMixin, ToolMetadataBase):
 
     def mk_file(self, base_dir, keys=None, replace_none=True):
         file_path = get_tool_metadata(self.name, self.softwareVersion.versionName, subtool_name=None, parent=True, base_dir=base_dir)
-        super().mk_file(file_path, keys, replace_none)
+        return super().mk_file(file_path, keys, replace_none)
 
 
 class SubtoolMetadata(CommonPropsMixin, ToolMetadataBase):
@@ -254,7 +255,7 @@ class SubtoolMetadata(CommonPropsMixin, ToolMetadataBase):
             raise
         if not file_path.parent.exists():
             file_path.parent.mkdir()
-        super().mk_file(file_path, keys, replace_none)
+        return super().mk_file(file_path, keys, replace_none)
 
 
 class ToolInstanceMetadata(MetadataBase):
@@ -397,4 +398,4 @@ class ToolInstanceMetadata(MetadataBase):
         file_path = get_tool_instance_metadata_path(self._subtoolMetadata._parentMetadata.name, self.toolVersion, input_hash=input_hash, subtool_name=self._subtoolMetadata.name, base_dir=base_dir)
         if not file_path.parent.exists():
             file_path.parent.mkdir(parents=True)
-        super().mk_file(file_path, keys, replace_none)
+        return super().mk_file(file_path, keys, replace_none)
