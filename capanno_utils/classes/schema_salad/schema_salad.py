@@ -230,9 +230,9 @@ class InputsSchema:
         return self._cwl_schema_def_requirement
 
     def validate_inputs(self, document_path):
-        with tempfile.NamedTemporaryFile(prefix='metaschema_base', suffix='.yml') as tmp_meta_base:
+        with tempfile.NamedTemporaryFile(prefix='metaschema_base', suffix='.yml', delete=True) as tmp_meta_base:
             self._make_metaschema_base_file(tmp_meta_base)
-            with tempfile.NamedTemporaryFile(prefix='inputs_schema', suffix='.yml') as tmp:
+            with tempfile.NamedTemporaryFile(prefix='inputs_schema', suffix='.yml', delete=True) as tmp:
                 self._make_temp_schema_file(tmp_meta_base.name, tmp)
                 self._schema_salad_validate(tmp.name, document_path)
         return

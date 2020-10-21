@@ -160,10 +160,8 @@ def make_script_map(group_name, project_name, version_name, script_name, base_di
                                                   'cwlStatus': script_metadata.cwlStatus}
     return script_map
 
-
-def make_workflow_maps(outfile_name='workflow-maps', base_dir=None):
+def make_workflow_maps_dict(base_dir=None):
     cwl_workflows_dir = get_workflows_root_dir(base_dir=base_dir)
-    outfile_path = Path(outfile_name)
     master_workflow_map = {}
     for group_dir in cwl_workflows_dir.iterdir():
         for project_dir in group_dir.iterdir():
@@ -173,6 +171,11 @@ def make_workflow_maps(outfile_name='workflow-maps', base_dir=None):
                         workflow_dict = make_workflow_map(group_dir.name, project_dir.name, version_dir.name, item.stem,
                                                           base_dir=base_dir)
                         master_workflow_map.update(workflow_dict)
+    return master_workflow_map
+
+def make_workflow_maps(outfile_name='workflow-maps', base_dir=None):
+    master_workflow_map = make_workflow_maps_dict(base_dir=base_dir)
+    outfile_path = Path(outfile_name)
     yaml = YAML(pure=True)
     yaml.default_flow_style = False
     yaml.indent(mapping=2, sequence=4, offset=2)
