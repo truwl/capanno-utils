@@ -154,24 +154,41 @@ class CommandLineToolMixin:
 
         return cwl_map
 
-    def dump_cwl(self, filename):
+    def dump_cwl(self, filename=None):
         """
-        Create a formatted CWL file.
+        Create a formatted CWL file, returning either the string value or 
+        writing a file to disk.
+        
+        :param filename: If pathlike string is given, will attempt to write
+            the cwl to a file at the given filename. If filename is None,
+            the the cwl will be returned as a string.
         """
-        file_path = Path(filename)
-        cwl_yaml = self.create_cwl_commented_map()
-        logger.debug("cwl: {}".format(cwl_yaml))
         yaml = YAML(pure=True)
         yaml.default_flow_style = False
         yaml.indent(mapping=2, sequence=4, offset=2)
-        with file_path.open('w') as cwl_file:
-            try:
-                yaml.dump(cwl_yaml, cwl_file)
-            except RepresenterError as e:
-                picklestring = pickle.dumps(cwl_yaml)
-                print("pickle:{}".format(picklestring))
+        cwl_yaml = self.create_cwl_commented_map()
+        logger.debug("cwl: {}".format(cwl_yaml))    
+        
+        if filename:
+            file_path = Path(filename)
+            cwl_file = file_path.open('w')
+        else:
+            cwl_file = io.StringIO()
+    
+        try:
+            yaml.dump(cwl_yaml, cwl_file)
+            contents = None if filename else cwl_file.getvalue()
+        except RepresenterError as e:
+            picklestring = pickle.dumps(cwl_yaml)
+            print("pickle:{}".format(picklestring))
+        finally:
+            cwl_file.close()
+            
+        if filename:
             assert True
-        return
+            return 
+            
+        return contents
 
 
 class CommandInputParameterMixin:
