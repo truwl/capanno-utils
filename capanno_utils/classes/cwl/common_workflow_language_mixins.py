@@ -1,5 +1,4 @@
-
-from urllib.parse import urlparse
+import io
 from pathlib import Path
 from ruamel.yaml import YAML
 from ruamel.yaml.comments import CommentedMap
@@ -8,7 +7,7 @@ from ruamel.yaml.scalarstring import PreservedScalarString
 import logging, sys
 import pickle
 from capanno_utils.helpers.string_tools import get_shortened_id
-from capanno_utils.helpers.file_management import dump_dict_to_yaml_file
+from capanno_utils.helpers.file_management import dump_dict_to_yaml_output
 
 logging.basicConfig(stream=sys.stderr)
 logger = logging.getLogger(__name__)
@@ -154,23 +153,23 @@ class CommandLineToolMixin:
 
         return cwl_map
 
+    def dump_cwl_str(self):
+        """
+
+        :return:
+        """
+        cwl_yaml = self.create_cwl_commented_map()
+        cwl_string = dump_dict_to_yaml_output(cwl_yaml)
+        return cwl_string
+
+
     def dump_cwl(self, filename):
         """
         Create a formatted CWL file.
         """
-        file_path = Path(filename)
         cwl_yaml = self.create_cwl_commented_map()
         logger.debug("cwl: {}".format(cwl_yaml))
-        yaml = YAML(pure=True)
-        yaml.default_flow_style = False
-        yaml.indent(mapping=2, sequence=4, offset=2)
-        with file_path.open('w') as cwl_file:
-            try:
-                yaml.dump(cwl_yaml, cwl_file)
-            except RepresenterError as e:
-                picklestring = pickle.dumps(cwl_yaml)
-                print("pickle:{}".format(picklestring))
-            assert True
+        dump_dict_to_yaml_output(cwl_yaml, filename)
         return
 
 
@@ -451,7 +450,7 @@ class WorkflowMixin:
         cwl_map['inputs'] = self.get_wf_inputs()  # list of InputParameter objects.
         cwl_map['outputs'] = self.get_wf_outputs()
         cwl_map['steps'] = self.get_wf_steps()
-        dump_dict_to_yaml_file(cwl_map, filename)
+        dump_dict_to_yaml_output(cwl_map, filename)
         return
 
 

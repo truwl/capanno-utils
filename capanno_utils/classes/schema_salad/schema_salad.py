@@ -9,7 +9,7 @@ from schema_salad.schema import get_metaschema, validate_doc, collect_namespaces
 from capanno_utils.classes.cwl.common_workflow_language import load_document
 from capanno_utils.helpers.string_tools import get_shortened_id
 from capanno_utils.helpers.dict_tools import get_dict_from_list
-from capanno_utils.helpers.file_management import dump_dict_to_yaml_file
+from capanno_utils.helpers.file_management import dump_dict_to_yaml_output
 
 
 class SaladSchemaBase:
@@ -235,7 +235,7 @@ class InputsSchema:
         :return:
         """
         with tempfile.NamedTemporaryFile(prefix='metaschema_base', suffix='.yml') as tmp_meta_base:
-            dump_dict_to_yaml_file(SaladSchemaBase.metaschema_base, tmp_meta_base.name)
+            dump_dict_to_yaml_output(SaladSchemaBase.metaschema_base, tmp_meta_base.name)
             with tempfile.NamedTemporaryFile(prefix='inputs_schema', suffix='.yml') as tmp:
                 self._make_inputs_schema_file(tmp_meta_base.name, tmp.name)
                 self._schema_salad_validate(tmp.name, document_path)
@@ -266,7 +266,7 @@ class InputsSchema:
         schema_dict = self._make_inputs_schema_dict()
         import_dict, import_index = get_dict_from_list(schema_dict['$graph'], '$import', 'null')
         schema_dict['$graph'][import_index] = {'$import': metaschema_path}
-        dump_dict_to_yaml_file(schema_dict, out_file)
+        dump_dict_to_yaml_output(schema_dict, out_file)
         return
 
     def _schema_salad_validate(self, schema_path, document_path):
@@ -338,6 +338,6 @@ class InputsSchema:
 
     def make_template_file(self, template_file):
         template = self.make_template()
-        dump_dict_to_yaml_file(template, template_file)
+        dump_dict_to_yaml_output(template, template_file)
         return
 
