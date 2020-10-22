@@ -5,7 +5,7 @@
 """
 
 #import cwl_utils.parser_v1_0 as parser
-from capanno_utils.classes.cwl import command_line_tool as pycwl
+from capanno_utils.classes.cwl import common_workflow_language as pycwl
 import os
 import re
 import sys
@@ -20,7 +20,7 @@ from typing import Optional
 from capanno_utils.add.add_tools import add_tool, add_subtool
 from capanno_utils.helpers.get_paths import get_tool_common_dir, main_tool_subtool_name, get_tool_metadata, get_tool_dir
 from capanno_utils.helpers.get_paths import get_cwl_tool, get_cwl_script, main_tool_subtool_name
-from capanno_utils.classes.cwl.command_line_tool import load_document
+from capanno_utils.classes.cwl.common_workflow_language import load_document
 
 logging.basicConfig(stream=sys.stderr)
 logger = logging.getLogger(__name__)
