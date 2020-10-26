@@ -27,9 +27,9 @@ def get_base_dir_from_abs_path(absolute_path):
     if not absolute_path.is_absolute():
         raise ValueError(f"{absolute_path} is not an absolute path")
     absolute_path_parts = absolute_path.parts
-    if not absolute_path_parts.count(root_repo_name) == 1:
-        raise ValueError(f"Expected the root repo name ({root_repo_name}) to be path one time.")
-    root_path_part_index = absolute_path_parts.index(root_repo_name)
+    if not absolute_path_parts.count(content_repo_name) == 1:
+        raise ValueError(f"Expected the root repo name ({content_repo_name}) to be path one time.")
+    root_path_part_index = absolute_path_parts.index(content_repo_name)
     base_dir = Path(*absolute_path_parts[:root_path_part_index + 1])
     return base_dir
 
@@ -401,7 +401,7 @@ def get_type_from_file_path(abs_path, method_type):
     return file_type
 
 
-def get_base_method_type_from_path(abs_path, cwl_root_repo_name=root_repo_name):
+def get_base_method_type_from_path(abs_path, cwl_root_repo_name=content_repo_name):
     """
     Given a path, determine if the path is in the tools, scripts, workflows, or root directory.
     """
@@ -424,10 +424,10 @@ def get_base_method_type_from_path(abs_path, cwl_root_repo_name=root_repo_name):
         raise ValueError(f"{abs_path} does not seem to be a path in a cwl repo.")
     return method_type
 
-def get_dir_type_from_path(abs_dir_path, cwl_root_repo_name=root_repo_name):
+def get_dir_type_from_path(abs_dir_path, cwl_root_repo_name=content_repo_name):
     """
     Get the type of a directory
-    Allow optional parameter cwl_root_repo_name in case repo is called something other than `root_repo_name`(cwl-source at this time).
+    Allow optional parameter cwl_root_repo_name in case repo is called something other than `content_repo_name`(cwl-source at this time).
     Returns
      str: '' | ''
     """
@@ -493,7 +493,7 @@ def get_dir_type_from_path(abs_dir_path, cwl_root_repo_name=root_repo_name):
 
     return dir_type
 
-def get_types_from_path(path, cwl_root_repo_name=root_repo_name, base_path=None):
+def get_types_from_path(path, cwl_root_repo_name=content_repo_name, base_path=None):
     """
     Get the type of file from the path.
 

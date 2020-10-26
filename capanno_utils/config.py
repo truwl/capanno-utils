@@ -34,7 +34,7 @@ common_tool_metadata_name = 'common-metadata.yaml'
 
 instances_dir_name = 'instances'
 
-root_repo_name = 'cwl-source'
+content_repo_name = 'capanno'
 
 tools_dir_name = 'cwl-tools'
 

@@ -5,6 +5,8 @@ from capanno_utils.config import config
 from capanno_utils.classes.metadata.script_metadata import ScriptMetadata
 from capanno_utils.classes.metadata.tool_metadata import ParentToolMetadata, SubtoolMetadata
 from capanno_utils.classes.metadata.workflow_metadata import WorkflowMetadata
+from capanno_utils.helpers.dict_tools import no_clobber_update
+from capanno_utils.helpers.file_management import dump_dict_to_yaml_output
 from capanno_utils.helpers.get_paths import *
 
 
@@ -21,7 +23,7 @@ def make_tools_map_dict(base_dir=None):
     for tool_dir in cwl_tools_dir.iterdir():
         for version_dir in tool_dir.iterdir():
             tool_map = make_tool_version_dir_map(tool_dir.name, version_dir.name, base_dir=base_dir)
-            tools_map.update(tool_map)
+            no_clobber_update(tools_map, tool_map)
     return tools_map
 
 def make_tools_map(outfile_path=None, base_dir=None):
@@ -34,13 +36,8 @@ def make_tools_map(outfile_path=None, base_dir=None):
     """
 
     tools_map = make_tools_map_dict(base_dir=base_dir)
-    outfile_path = Path(outfile_path)
-    yaml = YAML(pure=True)
-    yaml.default_flow_style = False
-    yaml.indent(mapping=2, sequence=4, offset=2)
-    with outfile_path.open('w') as outfile:
-        yaml.dump(tools_map, outfile)
-    return
+    dump_dict_to_yaml_output(tools_map, output=outfile_path)
+    return outfile_path
 
 
 def make_main_tool_map(tool_name, base_dir=None):
@@ -51,7 +48,7 @@ def make_main_tool_map(tool_name, base_dir=None):
     main_tool_map = {}
     tool_dir = get_main_tool_dir(tool_name, base_dir=base_dir)
     for version_dir in tool_dir.iterdir():
-        main_tool_map.update(make_tool_version_dir_map(tool_name, version_dir.name, base_dir=base_dir))
+        no_clobber_update(main_tool_map, make_tool_version_dir_map(tool_name, version_dir.name, base_dir=base_dir))
     return main_tool_map
 
 
@@ -77,7 +74,7 @@ def make_tool_version_dir_map(tool_name, tool_version, base_dir=None):
         if subtool_name == '':
             subtool_name = None
         subdir_map = make_subtool_map(tool_name, tool_version, subtool_name, base_dir=base_dir)
-        tool_version_map.update(subdir_map)
+        no_clobber_update(tool_version_map, subdir_map)
     return tool_version_map
 
 
@@ -113,17 +110,12 @@ def make_scripts_map_dict(base_dir=None):
     scripts_map = {}
     for group_dir in cwl_scripts_dir.iterdir():
         group_script_map = make_group_script_map(group_dir.name, base_dir=base_dir)
-        scripts_map.update(group_script_map)
+        no_clobber_update(scripts_map, group_script_map)
     return scripts_map
 
 def make_script_maps(outfile_path, base_dir=None):
     scripts_map = make_scripts_map_dict(base_dir=base_dir)
-    outfile_path = Path(outfile_path)
-    yaml = YAML(pure=True)
-    yaml.default_flow_style = False
-    yaml.indent(mapping=2, sequence=4, offset=2)
-    with outfile_path.open('w') as outfile:
-        yaml.dump(scripts_map, outfile)
+    dump_dict_to_yaml_output(scripts_map, output=outfile_path)
     return
 
 
@@ -132,7 +124,7 @@ def make_group_script_map(group_name, base_dir=None):
     script_group_dir = get_script_group_dir(group_name, base_dir=base_dir)
     for project_dir in script_group_dir.iterdir():
         script_project_map = make_project_script_map(group_name, project_dir.name, base_dir=base_dir)
-        group_script_map.update(script_project_map)
+        no_clobber_update(group_script_map, script_project_map)
     return group_script_map
 
 
@@ -141,7 +133,7 @@ def make_project_script_map(group_name, project_name, base_dir=None):
     script_project_dir = get_script_project_dir(group_name, project_name, base_dir=base_dir)
     for version_dir in script_project_dir.iterdir():
         version_map = make_script_version_map(group_name, project_name, version_dir.name, base_dir=base_dir)
-        script_project_map.update(version_map)
+        no_clobber_update(script_project_map, version_map)
     return script_project_map
 
 
@@ -152,7 +144,7 @@ def make_script_version_map(group_name, project_name, version_name, base_dir=Non
         if script_dir.name == 'common':
             continue
         script_map = make_script_map(group_name, project_name, version_name, script_dir.name, base_dir=base_dir)
-        script_version_map.update(script_map)
+        no_clobber_update(script_version_map, script_map)
     return script_version_map
 
 
@@ -181,17 +173,12 @@ def make_workflow_maps_dict(base_dir=None):
                     if item.suffix == '.cwl':
                         workflow_dict = make_workflow_map(group_dir.name, project_dir.name, version_dir.name, item.stem,
                                                           base_dir=base_dir)
-                        master_workflow_map.update(workflow_dict)
+                        no_clobber_update(master_workflow_map, workflow_dict)
     return master_workflow_map
 
 def make_workflow_maps(outfile_name='workflow-maps', base_dir=None):
     master_workflow_map = make_workflow_maps_dict(base_dir=base_dir)
-    outfile_path = Path(outfile_name)
-    yaml = YAML(pure=True)
-    yaml.default_flow_style = False
-    yaml.indent(mapping=2, sequence=4, offset=2)
-    with outfile_path.open('w') as outfile:
-        yaml.dump(master_workflow_map, outfile)
+    dump_dict_to_yaml_output(master_workflow_map, output=outfile_name)
     return
 
 
@@ -212,10 +199,10 @@ def combine_yaml_files_into_dict(file_path, *file_paths):
     # make a 'master map' that contains all file
     combined_dict = {}
     with file_path.open('r') as f:
-        combined_dict.update(safe_load(f))
+        no_clobber_update(combined_dict, safe_load(f))
     for file in file_paths:
         with file.open('r') as f:
-            combined_dict.update(safe_load(f))
+            no_clobber_update(combined_dict, safe_load(f))
     return combined_dict
 
 

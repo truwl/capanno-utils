@@ -3,7 +3,7 @@ from shutil import copytree, move
 from tempfile import TemporaryDirectory
 from pathlib import Path
 from unittest import skip
-from capanno_utils.config import root_repo_name, tools_dir_name
+from capanno_utils.config import tools_dir_name
 from tests.test_base import TestBase
 from capanno_utils.add_content import main as add_content_main
 from capanno_utils.helpers.get_paths import *

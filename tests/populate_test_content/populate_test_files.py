@@ -26,11 +26,11 @@ def teardown_tools():
     """Just delete whole cwl-tools directory. Removes anything that was manually copied too."""
     test_tools_dir = get_root_tools_dir(base_dir=test_content_dir)
     invalid_tools_dir = get_root_tools_dir(base_dir=invalid_content_dir)
-    print(test_tools_dir)
     if test_tools_dir.exists():
         print(f"Removing {test_tools_dir}")
         shutil.rmtree(str(test_tools_dir))
     if invalid_tools_dir.exists():
+        print(f"Removing {invalid_tools_dir}")
         shutil.rmtree(str(invalid_tools_dir))
     return
 
@@ -105,5 +105,5 @@ def main():
     populate_scripts()
 
 if  __name__ == "__main__":
-    print(test_content_dir)
+    print(f"Updating {test_content_dir}")
     sys.exit(main())

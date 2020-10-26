@@ -6,6 +6,7 @@ from unittest import defaultTestLoader, TestSuite
 from tests.test_add_content import TestAddToolMain, TestAddScriptMain
 from tests.test_add_tool import TestAddTool
 from tests.test_add_tool_instance import TestAddToolInstance
+from tests.test_dict_tools import TestDictTools
 from tests.test_dump_cwl import TestDumpCwlTool
 from tests.test_input_templates import TestMakeCommandLineToolInputsTemplate
 from tests.test_tool_instance_metadata import TestMakeToolInstanceMetadata
@@ -27,6 +28,8 @@ def suite_full():
     suite.addTest((suite_add_tool()))
     suite.addTest(suite_add_tool_instance())
     suite.addTest(suite_content_maps())
+    suite.addTest(suite_dict_tools()),
+    suite.addTest(suite_dump_cwl()),
     suite.addTest(suite_input_templates())
     suite.addTest(suite_script_metadata())
     suite.addTest(suite_tool_metadata())
@@ -49,17 +52,26 @@ def suite_add_tool():
     suite = defaultTestLoader.loadTestsFromTestCase(TestAddTool)
     return suite
 
+
 def suite_add_tool_instance():
     suite = defaultTestLoader.loadTestsFromTestCase(TestAddToolInstance)
     return suite
+
 
 def suite_content_maps():
     suite = defaultTestLoader.loadTestsFromTestCase(TestToolMaps)
     return suite
 
+
+def suite_dict_tools():
+    suite = defaultTestLoader.loadTestsFromTestCase(TestDictTools)
+    return suite
+
+
 def suite_dump_cwl():
     suite = defaultTestLoader.loadTestsFromTestCase(TestDumpCwlTool)
     return suite
+
 
 def suite_input_templates():
     suite = defaultTestLoader.loadTestsFromTestCase(TestMakeCommandLineToolInputsTemplate)
@@ -75,9 +87,11 @@ def suite_script_metadata():
     suite = defaultTestLoader.loadTestsFromTestCase(TestScriptMetadata)
     return suite
 
+
 def suite_tool_instance_metadata():
     suite = defaultTestLoader.loadTestsFromTestCase(TestMakeToolInstanceMetadata)
     return suite
+
 
 def suite_tool_metadata():
     suite = defaultTestLoader.loadTestsFromTestCase(TestMakeParentToolMetadata)
@@ -121,6 +135,7 @@ def suite_dict():
                   'add_tool': suite_add_tool(),
                   'add_tool_instance': suite_add_tool_instance(),
                   'content_maps': suite_content_maps(),
+                  'dict_tools': suite_dict_tools(),
                   'dump_cwl': suite_dump_cwl(),
                   'full': suite_full(),
                   'input_templates': suite_input_templates(),
