@@ -206,6 +206,13 @@ def combine_yaml_files_into_dict(file_path, *file_paths):
     return combined_dict
 
 
+def make_master_map_dict(base_dir=None):
+    master_map = {}
+    master_map.update(make_tools_map_dict(base_dir=base_dir))
+    master_map.update(make_scripts_map_dict(base_dir=base_dir))
+    master_map.update(make_workflow_maps_dict(base_dir=base_dir))
+    return master_map
+
 def make_master_map(file_name, *file_names, outfile_name="master_map"):
     file_path = config[os.environ['CONFIG_KEY']]['content_maps_dir'] / f"{file_name}.yaml"
 

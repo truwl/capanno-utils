@@ -491,7 +491,7 @@ def get_dir_type_from_path(abs_dir_path, cwl_root_repo_name=content_repo_name):
     else:
         raise ValueError
 
-    return dir_type
+    return base_type, dir_type
 
 def get_types_from_path(path, cwl_root_repo_name=content_repo_name, base_path=None):
     """
@@ -514,7 +514,7 @@ def get_types_from_path(path, cwl_root_repo_name=content_repo_name, base_path=No
 
     else:
         if abs_path.is_dir():
-            file_type = get_dir_type_from_path(abs_path, cwl_root_repo_name=cwl_root_repo_name)
+            _, file_type = get_dir_type_from_path(abs_path, cwl_root_repo_name=cwl_root_repo_name)
         elif path.is_file():
             file_type = get_type_from_file_path(abs_path, method_type)
         else:
