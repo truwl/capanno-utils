@@ -30,7 +30,12 @@ class ToolMetadataBase(MetadataBase):
         return self._identifier
 
     @identifier.setter
-    def identifier(self, new_identifier=None, **kwargs):
+    def identifier(self, new_identifier=None, base_dir=None, **kwargs):
+        tools_map_dict = None
+        if base_dir:
+            tools_map_path = Path(base_dir) / tools_map_name
+            with tools_map_path.open('r') as tm:
+                tools_map_dict = safe_load(tm)
         if new_identifier:
             identifier = self._check_identifier(new_identifier)
         else:
@@ -93,11 +98,11 @@ class ParentToolMetadata(CommonPropsMixin, ToolMetadataBase):
             raise ValueError(f"Tool identifier not formatted correctly: {identifier}")
         return identifier
 
-    def _mk_identifier(self, start=0):
+    def _mk_identifier(self, name_hash_start_index=0, version_hash_start_index=0):
         if not (self.name and self.softwareVersion.versionName):
             raise ValueError(f"Name and softwareVersion must be provided to make an identifier.")
         name_hash, version_hash = _mk_hashes(self.name, self.softwareVersion.versionName)
-        identifier = f"{tool_identifier_prefix}_{name_hash[start:start + 6]}.{version_hash[:2]}"
+        identifier = f"{tool_identifier_prefix}_{name_hash[name_hash_start_index:name_hash_start_index + 6]}.{version_hash[version_hash_start_index:version_hash_start_index + 2]}"
         return identifier
 
     def make_subtool_metadata(self, subtool_name, **kwargs):
@@ -156,6 +161,7 @@ class SubtoolMetadata(CommonPropsMixin, ToolMetadataBase):
         :param kwargs(dict): Key:value pairs that describe subtool metadata.
         """
         ignore_empties = kwargs.pop('ignore_empties', None)
+        base_dir = kwargs.pop('base_dir', None)  # Allow specification of the root of the content directory that is being worked with. Used to check for duplicate identifiers.
         self._parentMetadata = kwargs.get('_parentMetadata')
         if self._parentMetadata:
             assert isinstance(self._parentMetadata, ParentToolMetadata)
@@ -165,9 +171,9 @@ class SubtoolMetadata(CommonPropsMixin, ToolMetadataBase):
         self._primary_file_attrs = []
         for k, value in kwargs.items():  # populate _primary_file_attrs
             if value:
-                self._primary_file_attrs.append(k)  # keep track of kwargs supplied.
+                self._primary_file_attrs.append(k)  # keep track of kwargs supplied. ignore_empties and base_dir were popped off.
         # self._load_attrs_from_parent()
-        super().__init__(**kwargs, ignore_empties=ignore_empties)
+        super().__init__(**kwargs, ignore_empties=ignore_empties, base_dir=base_dir)
 
 
     @property
@@ -211,13 +217,15 @@ class SubtoolMetadata(CommonPropsMixin, ToolMetadataBase):
         # self.keywords = parent_meta.keywords
         return
 
-    def _mk_identifier(self):
+    def _mk_identifier(self, start_hash_index=0):
         identifier_str, version_str = self._parentMetadata.identifier.split('.', 1)
-        subtool_hash = _mk_hashes(self.name)[0][:2]
+        subtool_hash = _mk_hashes(self.name)[start_hash_index][:start_hash_index + 2]  # shift hash slice if identifier already exists.
         identifier = f"{identifier_str}_{subtool_hash}.{version_str}"
         return identifier
 
-    def _check_identifier(self, identifier):
+    def _check_identifier(self, identifier, tool_map_dict=None):
+        if tool_map_dict:  # Check to make sure identifiers are not duplicated.
+            assert identifier not in tool_map_dict
         parent_identifier = self._parentMetadata.identifier
         if not identifier.startswith(parent_identifier[:9]):
             raise ValueError(f"Subtool identifier {identifier} does not properly correspond to parent identifier {parent_identifier}")

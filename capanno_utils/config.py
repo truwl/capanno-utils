@@ -48,6 +48,12 @@ script_identifier_prefix = 'ST'
 
 worklfow_identifier_prefix = 'WF'
 
+tools_map_name = '.tools_maps.yaml'
+
+scripts_maps_name = '.scripts_map.yaml'
+
+workflow_maps_name = 'workflows_map.yaml'
+
 def make_config_dict(base_path):
     base_path = Path(base_path)  # Make sure any string values are turned into Path objects.
     config_dict = {

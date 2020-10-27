@@ -72,13 +72,18 @@ class MetadataBase(ABC):
 
     def __init__(self, **kwargs):
         init_metadata = self._init_metadata()
-        ignore_empties = kwargs.get('ignore_empties')  # if not there will be None which is falsey so default is not to ignore.
-        kwargs.pop('ignore_empties', None)
+        ignore_empties = kwargs.pop('ignore_empties', None)  # if not there will be None which is falsey so default is not to ignore.
+        # kwargs.pop('ignore_empties', None)
+        base_dir = kwargs.pop('base_dir', None)
         for k, v in kwargs.items():
             if not k in init_metadata:
                 raise AttributeError(f"{k} is not a valid key for {type(self)}")
 
         for k, v in init_metadata.items():
+            # Special handling of identifiers to check for duplicates. Only works with access to content repo identifiers.
+            if k == 'identifier':
+                if base_dir:  # base_dir is known.
+                    raise NotImplementedError
             if k in kwargs:
                 setattr(self, k, kwargs[k])  # Highest priority.
             else:
@@ -91,7 +96,7 @@ class MetadataBase(ABC):
                         raise NotImplementedError(f"Figure out what's happening here and fix it.")
                 except AttributeError:
                     setattr(self, k, v)  # Set to default value provided in self._init_metadata. Last resort.
-            if ignore_empties:
+            if ignore_empties:   # Set attribute to None rather than have empty subfields.
                 attribute = getattr(self, k)
                 if is_attr_empty(attribute):
                     # print(f"Setting {k} to None for {self.name}")
