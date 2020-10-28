@@ -22,7 +22,7 @@ class ToolMetadataBase(MetadataBase):
         pass
 
     @abstractmethod
-    def _check_identifier(self, identifier):
+    def _check_identifier(self, identifier, **kwargs):
         pass
 
     @property
@@ -30,16 +30,25 @@ class ToolMetadataBase(MetadataBase):
         return self._identifier
 
     @identifier.setter
-    def identifier(self, new_identifier=None, base_dir=None, **kwargs):
-        tools_map_dict = None
-        if base_dir:
+    def identifier(self, new_identifier=None, tools_map_dict=None, base_dir=None, **kwargs):
+        """
+        Assign an identifier to a tool. If tools_map_dict or base_dir is provided, assign an identifier that isn't in use.
+        :param new_identifier:
+        :param tools_map_dict:
+        :param base_dir: only used if it is provided and not tools_map_dict
+        :param kwargs:
+        :return:
+        """
+
+
+        if not tools_map_dict and base_dir:
             tools_map_path = Path(base_dir) / tools_map_name
             with tools_map_path.open('r') as tm:
                 tools_map_dict = safe_load(tm)
         if new_identifier:
-            identifier = self._check_identifier(new_identifier)
+            identifier = self._check_identifier(new_identifier, tools_map_dict=tools_map_dict) # Let it error if duplicate identifier explicitly passed.
         else:
-            identifier = self._mk_identifier(**kwargs)
+            identifier = self._mk_identifier(tools_map_dict=tools_map_dict)
         self._identifier = identifier
 
     @property
@@ -93,12 +102,12 @@ class ParentToolMetadata(CommonPropsMixin, ToolMetadataBase):
             ('extra', None)
         ])
 
-    def _check_identifier(self, identifier):
+    def _check_identifier(self, identifier, tools_map_dict=None):
         if not parent_tool_identifier_pattern.match(identifier):
             raise ValueError(f"Tool identifier not formatted correctly: {identifier}")
         return identifier
 
-    def _mk_identifier(self, name_hash_start_index=0, version_hash_start_index=0):
+    def _mk_identifier(self, tools_map_dict=None, name_hash_start_index=0, version_hash_start_index=0):
         if not (self.name and self.softwareVersion.versionName):
             raise ValueError(f"Name and softwareVersion must be provided to make an identifier.")
         name_hash, version_hash = _mk_hashes(self.name, self.softwareVersion.versionName)
@@ -217,15 +226,30 @@ class SubtoolMetadata(CommonPropsMixin, ToolMetadataBase):
         # self.keywords = parent_meta.keywords
         return
 
-    def _mk_identifier(self, start_hash_index=0):
-        identifier_str, version_str = self._parentMetadata.identifier.split('.', 1)
-        subtool_hash = _mk_hashes(self.name)[start_hash_index][:start_hash_index + 2]  # shift hash slice if identifier already exists.
-        identifier = f"{identifier_str}_{subtool_hash}.{version_str}"
+    def _loop_mk_identifier(self, parent_name_str, version_str, subtool_name_hash, tools_map_dict, hash_split_index=1):
+        subtool_hash = subtool_name_hash[hash_split_index][
+                       :hash_split_index + 2]  # shift hash slice if identifier already exists.
+        identifier = f"{parent_name_str}_{subtool_hash}.{version_str}"
+        try:
+            self._check_identifier(identifier, tools_map_dict=tools_map_dict)
+        except AssertionError:
+            identifier = self._loop_mk_identifier(parent_name_str, version_str, subtool_name_hash, tools_map_dict, hash_split_index=hash_split_index+1)
         return identifier
 
-    def _check_identifier(self, identifier, tool_map_dict=None):
-        if tool_map_dict:  # Check to make sure identifiers are not duplicated.
-            assert identifier not in tool_map_dict
+    def _mk_identifier(self, tools_map_dict=None):
+        parent_name_str, version_str = self._parentMetadata.identifier.split('.', 1)
+        subtool_name_hash = _mk_hashes(self.name)[0]
+        subtool_hash = subtool_name_hash[:2]
+        identifier = f"{parent_name_str}_{subtool_hash}.{version_str}"
+        try:
+            self._check_identifier(identifier, tools_map_dict=tools_map_dict)  # Can only hit AssertionError if tool_map_dict provided.
+        except AssertionError:
+            identifier = self._loop_mk_identifier(parent_name_str, version_str, subtool_hash, tools_map_dict)
+        return identifier
+
+    def _check_identifier(self, identifier, tools_map_dict=None):
+        if tools_map_dict:  # Check to make sure identifiers are not duplicated.
+            assert identifier not in tools_map_dict
         parent_identifier = self._parentMetadata.identifier
         if not identifier.startswith(parent_identifier[:9]):
             raise ValueError(f"Subtool identifier {identifier} does not properly correspond to parent identifier {parent_identifier}")
