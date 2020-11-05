@@ -1,7 +1,7 @@
 import os
 import tempfile
 from tests.test_base import TestBase
-from capanno_utils.config import config
+from capanno_utils.repo_config import config
 from capanno_utils.content_maps import make_tools_map, make_script_maps
 
 

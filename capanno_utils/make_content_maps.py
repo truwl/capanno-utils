@@ -2,7 +2,7 @@
 import argparse
 import sys
 from pathlib import Path
-from capanno_utils.config import content_repo_name
+from capanno_utils.repo_config import content_repo_name
 from capanno_utils.helpers.get_paths import get_dir_type_from_path
 from capanno_utils.helpers.file_management import dump_dict_to_yaml_output
 from capanno_utils.content_maps import *

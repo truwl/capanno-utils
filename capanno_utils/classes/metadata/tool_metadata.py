@@ -5,13 +5,12 @@ from abc import abstractmethod
 import re
 import uuid
 from ruamel.yaml import safe_load
-from capanno_utils.config import *
+from capanno_utils.repo_config import *
 from ...helpers.get_paths import *
 from ...classes.metadata.metadata_base import MetadataBase
 from ...classes.metadata.shared_properties import CodeRepository, Person, WebSite, Keyword, IOObjectItem, IOArrayItem
 from ...helpers.get_metadata_from_biotools import make_tool_metadata_kwargs_from_biotools
 from ...classes.metadata.common_functions import _mk_hashes, CommonPropsMixin
-from ...content_maps import make_tools_map_dict  # Cirucular import
 
 
 
@@ -37,16 +36,16 @@ class ToolMetadataBase(MetadataBase):
         :param new_identifier:
         :return:
         """
-
-
-        if not self.repo_map_dict and self.root_repo_path:
+        if not self.repo_map_dict and self.root_repo_path:  # Can look for pre-built map-file:
             tools_map_path = Path(self.root_repo_path) / tools_map_name
             with tools_map_path.open('r') as tm:
-                tools_map_dict = safe_load(tm)
+                self.repo_map_dict = safe_load(tm)
         if new_identifier:
             identifier = self._check_identifier(new_identifier) # Let it error if duplicate identifier explicitly passed.
+
+
         else:
-            identifier = self._mk_identifier(tools_map_dict=tools_map_dict)
+            identifier = self._mk_identifier()
         self._identifier = identifier
 
     @property
@@ -82,6 +81,8 @@ class ParentToolMetadata(CommonPropsMixin, ToolMetadataBase):
         return OrderedDict([
             ('name', None),
             ('softwareVersion', None),
+            ('root_repo_path', None),  # These need to be set before identifier.
+            ('repo_map_dict', None),
             ('identifier', None),
             ('featureList', None),
             ('metadataStatus', 'Incomplete'),
@@ -97,8 +98,6 @@ class ParentToolMetadata(CommonPropsMixin, ToolMetadataBase):
             ('programmingLanguage', None),
             ('datePublished', None),
             ('downloadURL', None),
-            ('root_repo_path', None),
-            ('repo_map_dict', None),
             ('extra', None)
         ])
 
@@ -108,7 +107,7 @@ class ParentToolMetadata(CommonPropsMixin, ToolMetadataBase):
         if self.repo_map_dict:
             assert identifier not in self.repo_map_dict
         elif self.root_repo_path:
-            self.repo_map_dict = make_tools_map_dict(self.root_repo_path)
+            pass
         else:
             pass # Nothing to check against.
 
@@ -159,6 +158,8 @@ class SubtoolMetadata(CommonPropsMixin, ToolMetadataBase):
             ('metadataStatus', 'Incomplete'),
             ('cwlStatus', 'Incomplete'),
             ('version', '0.1'),
+            ('root_repo_path', None),  # These need to be set before identifier.
+            ('repo_map_dict', None),
             ('identifier', None),
             ('description', None),
             ('keywords', None),
@@ -178,7 +179,6 @@ class SubtoolMetadata(CommonPropsMixin, ToolMetadataBase):
         :param kwargs(dict): Key:value pairs that describe subtool metadata.
         """
         ignore_empties = kwargs.pop('ignore_empties', None)
-        base_dir = kwargs.pop('base_dir', None)  # Allow specification of the root of the content directory that is being worked with. Used to check for duplicate identifiers.
         self._parentMetadata = kwargs.get('_parentMetadata')
         if self._parentMetadata:
             assert isinstance(self._parentMetadata, ParentToolMetadata)
@@ -190,7 +190,7 @@ class SubtoolMetadata(CommonPropsMixin, ToolMetadataBase):
             if value:
                 self._primary_file_attrs.append(k)  # keep track of kwargs supplied. ignore_empties and base_dir were popped off.
         # self._load_attrs_from_parent()
-        super().__init__(**kwargs, ignore_empties=ignore_empties, base_dir=base_dir)
+        super().__init__(**kwargs, ignore_empties=ignore_empties)
 
 
     @property

@@ -2,7 +2,7 @@ import os
 from tests.test_base import TestBase
 from pathlib import Path
 from ruamel.yaml import safe_load
-from capanno_utils.config import config
+from capanno_utils.repo_config import config
 from capanno_utils.helpers.get_paths import get_metadata_path
 from capanno_utils.validate_content import main
 

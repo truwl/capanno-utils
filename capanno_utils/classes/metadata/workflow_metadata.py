@@ -7,7 +7,7 @@ from pathlib import Path
 import re
 from abc import abstractmethod
 from ruamel.yaml import safe_load
-from capanno_utils.config import *
+from capanno_utils.repo_config import *
 from ...classes.metadata.shared_properties import CodeRepository, WebSite, Person, Publication, Keyword, CallMap
 from ...classes.metadata.common_functions import _mk_hashes, CommonPropsMixin
 from ...classes.metadata.metadata_base import MetadataBase

@@ -1,7 +1,7 @@
 import os
 import unittest
 from tests.test_base import TestBase
-from capanno_utils.config import config
+from capanno_utils.repo_config import config
 from ruamel.yaml import safe_load
 from capanno_utils.validate_inputs import validate_inputs_for_instance
 from capanno_utils.helpers.get_paths import get_tool_instance_path, get_cwl_tool

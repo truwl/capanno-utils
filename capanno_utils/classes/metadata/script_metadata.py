@@ -2,7 +2,7 @@ from pathlib import Path
 import re
 from collections import OrderedDict
 from ruamel.yaml import safe_load
-from capanno_utils.config import *
+from capanno_utils.repo_config import *
 from ...classes.metadata.common_functions import is_attr_empty, CommonPropsMixin, _mk_hashes
 from ...classes.metadata.shared_properties import WebSite, CodeRepository, Person, Publication, Keyword, ParentScript, \
     Tool

@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 from ruamel.yaml import safe_load, YAML
-from capanno_utils.config import config
+from capanno_utils.repo_config import config
 from capanno_utils.classes.metadata.script_metadata import ScriptMetadata
 from capanno_utils.classes.metadata.tool_metadata import ParentToolMetadata, SubtoolMetadata
 from capanno_utils.classes.metadata.workflow_metadata import WorkflowMetadata

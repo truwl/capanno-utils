@@ -1,7 +1,7 @@
 
 import re
 from urllib.parse import urlparse
-from capanno_utils.config import *
+from capanno_utils.repo_config import *
 
 def get_shortened_id(input_uri):
     # return the part after the '#'

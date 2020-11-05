@@ -58,7 +58,11 @@ class MetadataBase(ABC):
 
     @root_repo_path.setter
     def root_repo_path(self, new_root_repo_path):
-        self._root_repo_path = Path(new_root_repo_path)
+        if new_root_repo_path:
+            self._root_repo_path = Path(new_root_repo_path)
+        else:
+            self._root_repo_path = None
+        return
 
     @property
     def repo_map_dict(self):
@@ -67,6 +71,7 @@ class MetadataBase(ABC):
     @repo_map_dict.setter
     def repo_map_dict(self, new_repo_map_dict):
         self._repo_map_dict = new_repo_map_dict
+        return
 
     @property
     def metadataStatus(self):
@@ -90,16 +95,11 @@ class MetadataBase(ABC):
         init_metadata = self._init_metadata()
         ignore_empties = kwargs.pop('ignore_empties', None)  # if not there will be None which is falsey so default is not to ignore.
         # kwargs.pop('ignore_empties', None)
-        base_dir = kwargs.pop('base_dir', None)
         for k, v in kwargs.items():
             if not k in init_metadata:
                 raise AttributeError(f"{k} is not a valid key for {type(self)}")
 
         for k, v in init_metadata.items():
-            # Special handling of identifiers to check for duplicates. Only works with access to content repo identifiers.
-            if k == 'identifier':  # pass base_dir to identifier property setter if known. This will ensure duplicate identifiers are not made in repos.
-                if base_dir:  # base_dir is known.
-                    setattr(self, k, new_identifier=v, base_dir=base_dir)
             if k in kwargs:
                 setattr(self, k, kwargs[k])  # Highest priority.
             else:

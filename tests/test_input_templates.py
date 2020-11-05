@@ -2,7 +2,7 @@
 from tests.test_base import TestBase
 from tempfile import NamedTemporaryFile
 from ruamel.yaml import YAML, dump
-from capanno_utils.config import config
+from capanno_utils.repo_config import config
 from capanno_utils.helpers.get_paths import *
 from capanno_utils.classes.schema_salad.schema_salad import InputsSchema
 
