@@ -53,6 +53,22 @@ class MetadataBase(ABC):
         self._version = str(v)
 
     @property
+    def root_repo_path(self):
+        return self._root_repo_path
+
+    @root_repo_path.setter
+    def root_repo_path(self, new_root_repo_path):
+        self._root_repo_path = Path(new_root_repo_path)
+
+    @property
+    def repo_map_dict(self):
+        return self._repo_map_dict
+
+    @repo_map_dict.setter
+    def repo_map_dict(self, new_repo_map_dict):
+        self._repo_map_dict = new_repo_map_dict
+
+    @property
     def metadataStatus(self):
         return self._metadataStatus
 
@@ -81,9 +97,9 @@ class MetadataBase(ABC):
 
         for k, v in init_metadata.items():
             # Special handling of identifiers to check for duplicates. Only works with access to content repo identifiers.
-            if k == 'identifier':
+            if k == 'identifier':  # pass base_dir to identifier property setter if known. This will ensure duplicate identifiers are not made in repos.
                 if base_dir:  # base_dir is known.
-                    raise NotImplementedError
+                    setattr(self, k, new_identifier=v, base_dir=base_dir)
             if k in kwargs:
                 setattr(self, k, kwargs[k])  # Highest priority.
             else:

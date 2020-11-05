@@ -38,7 +38,7 @@ def add_tool(tool_name, version_name, subtool_names=None, biotools_id=None, has_
             subtool_names = [main_tool_subtool_name]
     if biotools_id:
         # tool_name will be ignored.
-        parent_metadata = ParentToolMetadata.create_from_biotools(biotools_id, version_name, subtool_names, tool_name=tool_name)
+        parent_metadata = ParentToolMetadata.create_from_biotools(biotools_id, version_name, subtool_names, name=tool_name, root_repo_path=root_repo_path)
         # can't find it in biotools
         if parent_metadata is None:
             parent_metadata = ParentToolMetadata(name=tool_name,
@@ -88,7 +88,7 @@ def add_subtool(tool_name, tool_version, subtool_name, root_repo_path=Path.cwd()
         parent_meta.mk_file(base_dir=root_repo_path)  # Remake the file. Needs to be remade if updated.
     if not isinstance(init_cwl, bool):  # initialized from a url.
         subtool_kwargs['extra'] = {'cwlDocument': {'isBasedOn': init_cwl, 'dateCreated': str(date.today())}}
-    subtool_meta = parent_meta.make_subtool_metadata(subtool_name, **subtool_kwargs)
+    subtool_meta = parent_meta.make_subtool_metadata(subtool_name, base_dir=root_repo_path, **subtool_kwargs)
     subtool_meta.mk_file(base_dir=root_repo_path)
     instances_dir = subtool_dir / 'instances'
     instances_dir.mkdir()

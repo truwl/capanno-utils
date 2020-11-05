@@ -11,6 +11,7 @@ from ...classes.metadata.metadata_base import MetadataBase
 from ...classes.metadata.shared_properties import CodeRepository, Person, WebSite, Keyword, IOObjectItem, IOArrayItem
 from ...helpers.get_metadata_from_biotools import make_tool_metadata_kwargs_from_biotools
 from ...classes.metadata.common_functions import _mk_hashes, CommonPropsMixin
+from ...content_maps import make_tools_map_dict  # Cirucular import
 
 
 
@@ -22,7 +23,7 @@ class ToolMetadataBase(MetadataBase):
         pass
 
     @abstractmethod
-    def _check_identifier(self, identifier, **kwargs):
+    def _check_identifier(self, identifier):
         pass
 
     @property
@@ -30,23 +31,20 @@ class ToolMetadataBase(MetadataBase):
         return self._identifier
 
     @identifier.setter
-    def identifier(self, new_identifier=None, tools_map_dict=None, base_dir=None, **kwargs):
+    def identifier(self, new_identifier):
         """
         Assign an identifier to a tool. If tools_map_dict or base_dir is provided, assign an identifier that isn't in use.
         :param new_identifier:
-        :param tools_map_dict:
-        :param base_dir: only used if it is provided and not tools_map_dict
-        :param kwargs:
         :return:
         """
 
 
-        if not tools_map_dict and base_dir:
-            tools_map_path = Path(base_dir) / tools_map_name
+        if not self.repo_map_dict and self.root_repo_path:
+            tools_map_path = Path(self.root_repo_path) / tools_map_name
             with tools_map_path.open('r') as tm:
                 tools_map_dict = safe_load(tm)
         if new_identifier:
-            identifier = self._check_identifier(new_identifier, tools_map_dict=tools_map_dict) # Let it error if duplicate identifier explicitly passed.
+            identifier = self._check_identifier(new_identifier) # Let it error if duplicate identifier explicitly passed.
         else:
             identifier = self._mk_identifier(tools_map_dict=tools_map_dict)
         self._identifier = identifier
@@ -99,15 +97,24 @@ class ParentToolMetadata(CommonPropsMixin, ToolMetadataBase):
             ('programmingLanguage', None),
             ('datePublished', None),
             ('downloadURL', None),
+            ('root_repo_path', None),
+            ('repo_map_dict', None),
             ('extra', None)
         ])
 
-    def _check_identifier(self, identifier, tools_map_dict=None):
+    def _check_identifier(self, identifier):
         if not parent_tool_identifier_pattern.match(identifier):
             raise ValueError(f"Tool identifier not formatted correctly: {identifier}")
+        if self.repo_map_dict:
+            assert identifier not in self.repo_map_dict
+        elif self.root_repo_path:
+            self.repo_map_dict = make_tools_map_dict(self.root_repo_path)
+        else:
+            pass # Nothing to check against.
+
         return identifier
 
-    def _mk_identifier(self, tools_map_dict=None, name_hash_start_index=0, version_hash_start_index=0):
+    def _mk_identifier(self, name_hash_start_index=0, version_hash_start_index=0):
         if not (self.name and self.softwareVersion.versionName):
             raise ValueError(f"Name and softwareVersion must be provided to make an identifier.")
         name_hash, version_hash = _mk_hashes(self.name, self.softwareVersion.versionName)
@@ -130,8 +137,9 @@ class ParentToolMetadata(CommonPropsMixin, ToolMetadataBase):
         return cls(**file_dict, ignore_empties=ignore_empties)
 
     @classmethod
-    def create_from_biotools(cls, biotools_id, version_name, subtools, tool_name=None):
-        kwargs = make_tool_metadata_kwargs_from_biotools(biotools_id, tool_name=tool_name)
+    def create_from_biotools(cls, biotools_id, version_name, subtools, **kwargs):
+        biotools_kwargs = make_tool_metadata_kwargs_from_biotools(biotools_id)
+        kwargs = biotools_kwargs.update(kwargs)  # Overwrite any biotools kwargs with kwargs that were provided.
         kwargs['featureList'] = list(subtools)  # A lot more to do here.
         kwargs['softwareVersion'] = {}
         kwargs['softwareVersion']['versionName'] = version_name
@@ -229,6 +237,7 @@ class SubtoolMetadata(CommonPropsMixin, ToolMetadataBase):
     def _loop_mk_identifier(self, parent_name_str, version_str, subtool_name_hash, tools_map_dict, hash_split_index=1):
         subtool_hash = subtool_name_hash[hash_split_index][
                        :hash_split_index + 2]  # shift hash slice if identifier already exists.
+        import pdb; pdb.set_trace()
         identifier = f"{parent_name_str}_{subtool_hash}.{version_str}"
         try:
             self._check_identifier(identifier, tools_map_dict=tools_map_dict)
