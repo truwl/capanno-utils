@@ -4,6 +4,7 @@ import os
 from pathlib import Path
 from capanno_utils import repo_config
 from capanno_utils.content_maps import make_tools_map, make_workflow_maps, make_script_maps
+from capanno_utils.helpers.file_management import dump_dict_to_yaml_output
 
 test_constants = {'script_group1': 'ENCODE-DCC', 'script_version1': '1.1.x', 'script_project1': 'atac-seq-pipeline',
                   'test_software_version': {'versionName': 'test_version'}}
@@ -17,9 +18,15 @@ class TestBase(TestCase):
     invalid_content_dir = Path(__file__).parent / 'test_files' / 'invalid_content'  # Will copy data here, then modify to make invalid.
 
     def get_content_map_paths(self):
-        return {'tool_maps': repo_config.config[os.environ.get('CONFIG_KEY')]['content_maps_dir'] / 'tool-maps.yaml',
+        return {'tool_maps': repo_config.config[os.environ.get('CONFIG_KEY')]['content_maps_dir'] / repo_config.tools_map_name,
                 'script_maps': repo_config.config[os.environ.get('CONFIG_KEY')]['content_maps_dir'] / 'script-maps.yaml',
                 'workflow_maps': repo_config.config[os.environ.get('CONFIG_KEY')]['content_maps_dir'] / 'workflow-maps.yaml'}
+
+    def make_empty_tools_map_file(self, output_dir):
+        empty_dict = {}
+        output_path = Path(output_dir) / repo_config.tools_map_name
+        dump_dict_to_yaml_output(empty_dict, output_path)
+
 
     def update_tool_maps(self):
         outfile_path = self.get_content_map_paths()['tool_maps']

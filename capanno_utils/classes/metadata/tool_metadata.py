@@ -138,11 +138,15 @@ class ParentToolMetadata(CommonPropsMixin, ToolMetadataBase):
     @classmethod
     def create_from_biotools(cls, biotools_id, version_name, subtools, **kwargs):
         biotools_kwargs = make_tool_metadata_kwargs_from_biotools(biotools_id)
-        kwargs = biotools_kwargs.update(kwargs)  # Overwrite any biotools kwargs with kwargs that were provided.
-        kwargs['featureList'] = list(subtools)  # A lot more to do here.
-        kwargs['softwareVersion'] = {}
-        kwargs['softwareVersion']['versionName'] = version_name
-        return cls(**kwargs)
+        biotools_kwargs.update(kwargs)  # Overwrite any biotools kwargs with kwargs that were provided.
+        try:
+            biotools_kwargs['featureList'] = subtools # A lot more to do here.
+        except TypeError:
+            assert True
+            raise
+        biotools_kwargs['softwareVersion'] = {}
+        biotools_kwargs['softwareVersion']['versionName'] = version_name
+        return cls(**biotools_kwargs)
 
     def mk_file(self, base_dir, keys=None, replace_none=True):
         file_path = get_tool_metadata(self.name, self.softwareVersion.versionName, subtool_name=None, parent=True, base_dir=base_dir)

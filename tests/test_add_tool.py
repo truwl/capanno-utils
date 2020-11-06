@@ -32,6 +32,7 @@ class TestAddTool(TestBase):
 
     def test_add_parent_then_subtool(self):
         with TemporaryDirectory() as tmp_dir:
+            self.make_empty_tools_map_file(tmp_dir)
             tool_name = 'test_tool'
             tool_version = '0.1'
             add_tool(tool_name, tool_version, root_repo_path=tmp_dir)
