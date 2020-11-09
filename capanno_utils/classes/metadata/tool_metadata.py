@@ -36,10 +36,10 @@ class ToolMetadataBase(MetadataBase):
         :param new_identifier:
         :return:
         """
-        if not self.repo_map_dict and self.root_repo_path:  # Can look for pre-built map-file:
-            tools_map_path = Path(self.root_repo_path) / tools_map_name
-            with tools_map_path.open('r') as tm:
-                self.repo_map_dict = safe_load(tm)
+        if not self.tool_identifiers and self.root_repo_path:  # Populate self.tool_identifiers if possible.
+            tools_index_path = Path(self.root_repo_path) / tool_index_path
+            with tools_index_path.open('r') as tm:
+                self.tool_identifiers = safe_load(tm)
         if new_identifier:
             identifier = self._check_identifier(new_identifier) # Let it error if duplicate identifier explicitly passed.
 
@@ -82,7 +82,7 @@ class ParentToolMetadata(CommonPropsMixin, ToolMetadataBase):
             ('name', None),
             ('softwareVersion', None),
             ('root_repo_path', None),  # These need to be set before identifier.
-            ('repo_map_dict', None),
+            ('tool_identifiers', None),
             ('identifier', None),
             ('featureList', None),
             ('metadataStatus', 'Incomplete'),
@@ -101,11 +101,20 @@ class ParentToolMetadata(CommonPropsMixin, ToolMetadataBase):
             ('extra', None)
         ])
 
+    def _loop_mk_identifier(self, name_hash, version_hash, name_hash_start_index=0, version_hash_start_index=1):
+        # Very unlikely that main part of an identifier will be repeated. Version hash is most likely culprit. Can refine later if that's a problem.
+        identifier = f"{tool_identifier_prefix}_{name_hash[name_hash_start_index: name_hash_start_index+6]}.{version_hash[version_hash_start_index:version_hash_start_index+2]}"
+        try:
+            self._check_identifier(identifier)
+        except AssertionError:
+            identifier = self._loop_mk_identifier(name_hash, version_hash, name_hash_start_index=0, version_hash_start_index=version_hash_start_index+1)
+        return identifier
+
     def _check_identifier(self, identifier):
         if not parent_tool_identifier_pattern.match(identifier):
             raise ValueError(f"Tool identifier not formatted correctly: {identifier}")
-        if self.repo_map_dict:
-            assert identifier not in self.repo_map_dict
+        if self.tool_identifiers:
+            assert identifier not in self.tool_identifiers
         elif self.root_repo_path:
             pass
         else:
@@ -118,6 +127,10 @@ class ParentToolMetadata(CommonPropsMixin, ToolMetadataBase):
             raise ValueError(f"Name and softwareVersion must be provided to make an identifier.")
         name_hash, version_hash = _mk_hashes(self.name, self.softwareVersion.versionName)
         identifier = f"{tool_identifier_prefix}_{name_hash[name_hash_start_index:name_hash_start_index + 6]}.{version_hash[version_hash_start_index:version_hash_start_index + 2]}"
+        try:
+            self._check_identifier(identifier)
+        except AssertionError:
+            identifier = self._loop_mk_identifier(name_hash, version_hash)
         return identifier
 
     def make_subtool_metadata(self, subtool_name, **kwargs):
@@ -139,18 +152,18 @@ class ParentToolMetadata(CommonPropsMixin, ToolMetadataBase):
     def create_from_biotools(cls, biotools_id, version_name, subtools, **kwargs):
         biotools_kwargs = make_tool_metadata_kwargs_from_biotools(biotools_id)
         biotools_kwargs.update(kwargs)  # Overwrite any biotools kwargs with kwargs that were provided.
-        try:
-            biotools_kwargs['featureList'] = subtools # A lot more to do here.
-        except TypeError:
-            assert True
-            raise
+        biotools_kwargs['featureList'] = subtools # A lot more to do here.
         biotools_kwargs['softwareVersion'] = {}
         biotools_kwargs['softwareVersion']['versionName'] = version_name
         return cls(**biotools_kwargs)
 
     def mk_file(self, base_dir, keys=None, replace_none=True):
         file_path = get_tool_metadata(self.name, self.softwareVersion.versionName, subtool_name=None, parent=True, base_dir=base_dir)
-        return super().mk_file(file_path, keys, replace_none)
+        returned_path = super().mk_file(file_path, keys, replace_none)
+        index_file_path = self.root_repo_path / tool_index_path
+        with index_file_path.open('a') as index_file:
+            index_file.write(self.identifier)
+        return returned_path
 
 
 class SubtoolMetadata(CommonPropsMixin, ToolMetadataBase):
@@ -163,7 +176,7 @@ class SubtoolMetadata(CommonPropsMixin, ToolMetadataBase):
             ('cwlStatus', 'Incomplete'),
             ('version', '0.1'),
             ('root_repo_path', None),  # These need to be set before identifier.
-            ('repo_map_dict', None),
+            ('tool_identifiers', None),
             ('identifier', None),
             ('description', None),
             ('keywords', None),
@@ -241,7 +254,6 @@ class SubtoolMetadata(CommonPropsMixin, ToolMetadataBase):
     def _loop_mk_identifier(self, parent_name_str, version_str, subtool_name_hash, tools_map_dict, hash_split_index=1):
         subtool_hash = subtool_name_hash[hash_split_index][
                        :hash_split_index + 2]  # shift hash slice if identifier already exists.
-        import pdb; pdb.set_trace()
         identifier = f"{parent_name_str}_{subtool_hash}.{version_str}"
         try:
             self._check_identifier(identifier, tools_map_dict=tools_map_dict)
@@ -292,15 +304,20 @@ class SubtoolMetadata(CommonPropsMixin, ToolMetadataBase):
         tool_instance_metadata = ToolInstanceMetadata(**tool_instance_dict, **kwargs)
         return tool_instance_metadata
 
-    def mk_file(self, base_dir, keys=None, replace_none=True):
+    def mk_file(self, keys=None, replace_none=True):
         try:
-            file_path = get_tool_metadata(self._parentMetadata.name, self._parentMetadata.softwareVersion.versionName, subtool_name=self.name, parent=False, base_dir=base_dir)
+            file_path = get_tool_metadata(self._parentMetadata.name, self._parentMetadata.softwareVersion.versionName, subtool_name=self.name, parent=False, base_dir=self.root_repo_path)
         except AttributeError:
             print(self)
             raise
         if not file_path.parent.exists():
             file_path.parent.mkdir()
-        return super().mk_file(file_path, keys, replace_none)
+        returned_path = super().mk_file(file_path, keys, replace_none)  # File is made here. Now need to add the key to the identifiers.
+        index_file_path = self.root_repo_path / tool_index_path
+        with index_file_path.open('a') as index_file:
+            index_file.write(self.identifier)
+            index_file.write('\n')
+        return returned_path
 
 
 class ToolInstanceMetadata(MetadataBase):

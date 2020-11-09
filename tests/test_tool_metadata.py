@@ -43,9 +43,3 @@ class TestMakeSubtoolMetadata(TestBase):
             add_tool('test1', '1.0', 'subtool1', root_repo_path=tmpdir)
             assert True
         return
-
-    # def test_handle_duplicate_identifier(self):
-    #     tool_name= 'samtools'
-    #     tool_version = '1.x'
-    #     subtool_name = 'dict'
-    #     add_subtool(tool_name, tool_version, subtool_name, root_repo_path=self.test_content_dir)

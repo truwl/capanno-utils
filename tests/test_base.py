@@ -40,6 +40,14 @@ class TestBase(TestCase):
         outfile_path = self.get_content_map_paths()['workflow_maps']
         make_workflow_maps(outfile_path)
 
+    def make_empty_tools_index(self, output_dir):
+        output_dir = Path(output_dir)
+        tools_index_dir = output_dir / repo_config.identifier_index_dir
+        tools_index_dir.mkdir()
+        tool_index_path = output_dir / repo_config.tool_index_path
+        tool_index_path.touch()
+        return
+
     def setUp(self):
         self.test_dir = tempfile.TemporaryDirectory()
 
