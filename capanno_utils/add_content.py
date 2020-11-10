@@ -6,7 +6,7 @@
 import sys
 import argparse
 from pathlib import Path
-from capanno_utils import config
+from capanno_utils import repo_config
 from capanno_utils.add.add_tools import add_tool, add_subtool, add_tool_instance
 from capanno_utils.add.add_scripts import add_script, add_common_script_metadata
 from capanno_utils.add.add_workflows import add_workflow
@@ -43,8 +43,8 @@ def get_parser():
     addtoolinstance = subparsers.add_parser('tool-instance', help='Add a tool instance.')
     addtoolinstance.add_argument('tool_name', type=str, help="The name of the tool.")
     addtoolinstance.add_argument('version_name', type=str, help="The version of the tool.")
-    addtoolinstance.add_argument('subtool_name', type=str, nargs='?', default=config.main_tool_subtool_name,
-                         help="The subtool name for the instance.")
+    addtoolinstance.add_argument('subtool_name', type=str, nargs='?', default=repo_config.main_tool_subtool_name,
+                                 help="The subtool name for the instance.")
 
     # add_common_script_parser
     addscriptcommon = subparsers.add_parser('common-script', help='add script metadata that other scripts can inherit from')

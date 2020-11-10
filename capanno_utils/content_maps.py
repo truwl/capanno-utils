@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 from ruamel.yaml import safe_load, YAML
-from capanno_utils.config import config
+from capanno_utils.repo_config import *
 from capanno_utils.classes.metadata.script_metadata import ScriptMetadata
 from capanno_utils.classes.metadata.tool_metadata import ParentToolMetadata, SubtoolMetadata
 from capanno_utils.classes.metadata.workflow_metadata import WorkflowMetadata
@@ -15,6 +15,19 @@ from capanno_utils.helpers.get_paths import *
 #     get_root_scripts_dir, get_workflows_root_dir, get_cwl_workflow
 
 # Todo before stable release: update function names to be consistent.
+
+def make_tool_identifiers_list(base_dir=None):
+    tools_map = make_tools_map_dict(base_dir=base_dir)
+    tool_identifiers = list(tools_map.keys())
+    return tool_identifiers
+
+def make_tools_index(base_dir, index_path=tool_index_path):
+    tool_identifiers = make_tool_identifiers_list(base_dir=base_dir)
+    index_path = Path(base_dir) / index_path
+    with index_path.open('w') as index_file:
+        index_file.writelines(f"{identifier}\n" for identifier in tool_identifiers)
+    return index_path.resolve()
+
 
 def make_tools_map_dict(base_dir=None):
     cwl_tools_dir = get_root_tools_dir(base_dir=base_dir)

@@ -5,7 +5,7 @@ from tempfile import TemporaryDirectory
 from tests.test_base import TestBase
 from capanno_utils.add.add_tools import add_tool_instance
 from capanno_utils.helpers.get_paths import get_tool_version_dir
-import capanno_utils.config as config
+import capanno_utils.repo_config as config
 
 
 class TestAddToolInstance(TestBase):

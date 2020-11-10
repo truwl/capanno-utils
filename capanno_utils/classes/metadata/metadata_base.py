@@ -53,6 +53,27 @@ class MetadataBase(ABC):
         self._version = str(v)
 
     @property
+    def root_repo_path(self):
+        return self._root_repo_path
+
+    @root_repo_path.setter
+    def root_repo_path(self, new_root_repo_path):
+        if new_root_repo_path:
+            self._root_repo_path = Path(new_root_repo_path)
+        else:
+            self._root_repo_path = None
+        return
+
+    @property
+    def repo_map_dict(self):
+        return self._repo_map_dict
+
+    @repo_map_dict.setter
+    def repo_map_dict(self, new_repo_map_dict):
+        self._repo_map_dict = new_repo_map_dict
+        return
+
+    @property
     def metadataStatus(self):
         return self._metadataStatus
 
@@ -74,16 +95,11 @@ class MetadataBase(ABC):
         init_metadata = self._init_metadata()
         ignore_empties = kwargs.pop('ignore_empties', None)  # if not there will be None which is falsey so default is not to ignore.
         # kwargs.pop('ignore_empties', None)
-        base_dir = kwargs.pop('base_dir', None)
         for k, v in kwargs.items():
             if not k in init_metadata:
                 raise AttributeError(f"{k} is not a valid key for {type(self)}")
 
         for k, v in init_metadata.items():
-            # Special handling of identifiers to check for duplicates. Only works with access to content repo identifiers.
-            if k == 'identifier':
-                if base_dir:  # base_dir is known.
-                    raise NotImplementedError
             if k in kwargs:
                 setattr(self, k, kwargs[k])  # Highest priority.
             else:
@@ -118,6 +134,8 @@ class MetadataBase(ABC):
             keys = self._get_metafile_keys()
         for key in keys:
             if key.startswith('_'):
+                continue
+            if key in ('root_repo_path', 'repo_map_dict'):
                 continue
             if getattr(self, key) is None:
                 if replace_none:

@@ -214,12 +214,6 @@ TL_ec2a8d_2d.0b:
   metadataStatus: Released
   cwlStatus: Incomplete
   type: subtool
-TL_ec2a8d_b4.0b:
-  path: cwl-tools/samtools/1.x/samtools_dict/samtools-dict.cwl
-  name: dict
-  metadataStatus: Released
-  cwlStatus: Incomplete
-  type: subtool
 TL_ec2a8d_7e.0b:
   path: cwl-tools/samtools/1.x/samtools_phase/samtools-phase.cwl
   name: phase

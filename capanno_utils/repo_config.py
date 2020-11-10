@@ -4,9 +4,9 @@ import re
 import tempfile
 from pathlib import Path
 
-test_rel_content_path = Path.cwd() / 'tests' / 'test_files' / 'cwl-source'
+test_rel_content_path = Path.cwd() / 'tests' / 'test_files' / 'capanno'
 if os.environ.get('TRAVIS_BUILD_DIR'):
-    travis_root = Path(os.environ['TRAVIS_BUILD_DIR']) / 'tests' / 'test_files' / 'cwl-source'
+    travis_root = Path(os.environ['TRAVIS_BUILD_DIR']) / 'tests' / 'test_files' / 'capanno'
 else:
     travis_root = Path.cwd()
 
@@ -48,11 +48,17 @@ script_identifier_prefix = 'ST'
 
 worklfow_identifier_prefix = 'WF'
 
-tools_map_name = '.tools_maps.yaml'
+tools_map_name = '.tools_map.yaml'
 
 scripts_maps_name = '.scripts_map.yaml'
 
 workflow_maps_name = 'workflows_map.yaml'
+
+identifier_index_dir = Path('.cache')
+
+tool_index_file_name = 'tools_index'
+
+tool_index_path = identifier_index_dir / tool_index_file_name
 
 def make_config_dict(base_path):
     base_path = Path(base_path)  # Make sure any string values are turned into Path objects.

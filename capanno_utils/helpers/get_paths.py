@@ -2,7 +2,7 @@ import os
 import re
 from pathlib import Path
 
-from capanno_utils.config import *
+from capanno_utils.repo_config import *
 
 
 # IDEA: Using Path class, it might be better to generate the get methods by getting longest path, then using Path.parents
@@ -427,7 +427,7 @@ def get_base_method_type_from_path(abs_path, cwl_root_repo_name=content_repo_nam
 def get_dir_type_from_path(abs_dir_path, cwl_root_repo_name=content_repo_name):
     """
     Get the type of a directory
-    Allow optional parameter cwl_root_repo_name in case repo is called something other than `content_repo_name`(cwl-source at this time).
+    Allow optional parameter cwl_root_repo_name in case repo is called something other than `content_repo_name`(capanno at this time).
     Returns
      str: '' | ''
     """

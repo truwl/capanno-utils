@@ -1,16 +1,17 @@
 import os
+import unittest
 import shutil
 from pathlib import Path
 from tempfile import NamedTemporaryFile, TemporaryDirectory
 from ruamel.yaml import safe_load
 from tests.test_base import TestBase, test_constants
-from capanno_utils.config import config
+from capanno_utils.repo_config import config
 from capanno_utils.helpers.get_paths import get_tool_metadata
 from capanno_utils.classes.metadata.tool_metadata import ParentToolMetadata, SubtoolMetadata
 from capanno_utils.add.add_tools import add_tool, add_subtool
 
 
-
+# @unittest.skip('')
 class TestMakeParentToolMetadata(TestBase):
     test_dict = {'name': 'parent_name', 'bad': 'A bad key or value.'}
 

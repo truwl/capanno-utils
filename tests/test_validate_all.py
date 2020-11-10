@@ -1,7 +1,7 @@
 
 import os
 from tests.test_base import TestBase
-from capanno_utils.config import config
+from capanno_utils.repo_config import config
 from capanno_utils.validate import validate_tools_dir, validate_scripts_dir, validate_repo
 
 

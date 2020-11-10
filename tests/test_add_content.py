@@ -3,7 +3,7 @@ from shutil import copytree, move
 from tempfile import TemporaryDirectory
 from pathlib import Path
 from unittest import skip
-from capanno_utils.config import tools_dir_name
+from capanno_utils.repo_config import tools_dir_name
 from tests.test_base import TestBase
 from capanno_utils.add_content import main as add_content_main
 from capanno_utils.helpers.get_paths import *
@@ -31,6 +31,7 @@ class TestAddToolMain(TestBase):
     # @skip('')
     def test_add_tool_with_biotools_id(self):
         with TemporaryDirectory(prefix='with_biotools_') as tmp_dir:
+            self.make_empty_tools_map_file(tmp_dir)
             tool_name = 'test_biotools'
             tool_version = 'fake.3'
             biotools_id = 'malvirus'
@@ -42,6 +43,7 @@ class TestAddToolMain(TestBase):
     # @skip('')
     def test_add_subtool(self):
         with TemporaryDirectory(prefix='add_subtool_') as tmp_dir:
+            self.make_empty_tools_map_file(tmp_dir)
             tool_name = 'test_4'
             tool_version = 'fake.4'
             subtool_name = 'new_subtool'
@@ -50,13 +52,13 @@ class TestAddToolMain(TestBase):
         return
 
     def test_add_tool_with_existing_cwl_url(self):
-
         cwl_url = 'https://raw.githubusercontent.com/common-workflow-library/bio-cwl-tools/release/bandage/bandage-image.cwl'
         biotools_id = 'bandage'
         tool_name = 'bandage'
         tool_version = 'fake.6'
         subtool_name = 'image'
         with TemporaryDirectory(prefix='add_tool_with_cwl_') as tmp_dir:
+            self.make_empty_tools_map_file(tmp_dir)
             add_content_main(['-p', tmp_dir, 'tool', tool_name, tool_version, '--biotoolsID', biotools_id])
             add_content_main(['-p', tmp_dir, 'subtool', tool_name, tool_version, subtool_name, '-u', '--init-cwl', cwl_url])
             assert True
