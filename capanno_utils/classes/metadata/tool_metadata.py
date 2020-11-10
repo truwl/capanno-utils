@@ -37,13 +37,13 @@ class ToolMetadataBase(MetadataBase):
         :return:
         """
         if not self.tool_identifiers and self.root_repo_path:  # Populate self.tool_identifiers if possible.
-            tools_index_path = Path(self.root_repo_path) / tool_index_path
-            with tools_index_path.open('r') as tm:
-                self.tool_identifiers = safe_load(tm)
+            self.populate_repo_identifiers_list()
+        elif not self.tool_identifiers and not self.root_repo_path:
+            pass  # Might want to put a debug message here. metadata instance is not 'repo aware' (can't make sure identifier is unique)
+        else: # self.tool_identifiers is already set.
+            pass  # debug message
         if new_identifier:
             identifier = self._check_identifier(new_identifier) # Let it error if duplicate identifier explicitly passed.
-
-
         else:
             identifier = self._mk_identifier()
         self._identifier = identifier
@@ -67,6 +67,13 @@ class ToolMetadataBase(MetadataBase):
         else:
             keywords = None
         self._keywords = keywords
+
+    def populate_repo_identifiers_list(self):
+        if not self.root_repo_path:
+            raise AttributeError(f"{self} does not have a root_repo_path set.")
+        identifiers_index_path = Path(self.root_repo_path) / tool_index_path
+        with identifiers_index_path.open('r') as identifiers_index:
+            self.tool_identifiers = identifiers_index.read().splitlines()
 
 
 
@@ -100,6 +107,7 @@ class ParentToolMetadata(CommonPropsMixin, ToolMetadataBase):
             ('downloadURL', None),
             ('extra', None)
         ])
+
 
     def _loop_mk_identifier(self, name_hash, version_hash, name_hash_start_index=0, version_hash_start_index=1):
         # Very unlikely that main part of an identifier will be repeated. Version hash is most likely culprit. Can refine later if that's a problem.
@@ -142,10 +150,11 @@ class ParentToolMetadata(CommonPropsMixin, ToolMetadataBase):
         return subtool_metadata
 
     @classmethod
-    def load_from_file(cls, file_path, ignore_empties=False):
+    def load_from_file(cls, file_path, ignore_empties=False, **kwargs):
         file_path = Path(file_path)
         with file_path.open('r') as file:
             file_dict = safe_load(file)
+        file_dict.update(kwargs)
         return cls(**file_dict, ignore_empties=ignore_empties)
 
     @classmethod
@@ -157,12 +166,13 @@ class ParentToolMetadata(CommonPropsMixin, ToolMetadataBase):
         biotools_kwargs['softwareVersion']['versionName'] = version_name
         return cls(**biotools_kwargs)
 
-    def mk_file(self, base_dir, keys=None, replace_none=True):
+    def mk_file(self, base_dir, keys=None, replace_none=True, update_index=True):
         file_path = get_tool_metadata(self.name, self.softwareVersion.versionName, subtool_name=None, parent=True, base_dir=base_dir)
         returned_path = super().mk_file(file_path, keys, replace_none)
-        index_file_path = self.root_repo_path / tool_index_path
-        with index_file_path.open('a') as index_file:
-            index_file.write(self.identifier)
+        if update_index:
+            index_file_path = self.root_repo_path / tool_index_path
+            with index_file_path.open('a') as index_file:
+                index_file.write(self.identifier)
         return returned_path
 
 

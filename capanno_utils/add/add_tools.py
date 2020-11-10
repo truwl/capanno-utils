@@ -88,11 +88,11 @@ def add_subtool(tool_name, tool_version, subtool_name, root_repo_path=Path.cwd()
         else:
             if not subtool_name in parent_meta.featureList:
                 parent_meta.featureList.append(subtool_name)
-        parent_meta.mk_file(base_dir=root_repo_path)  # Remake the file. Needs to be remade if updated.
+        parent_meta.mk_file(base_dir=root_repo_path, update_index=False)  # Remake the file. Needs to be remade if updated. Identifier will already be in index.
     if not isinstance(init_cwl, bool):  # initialized from a url.
         subtool_kwargs['extra'] = {'cwlDocument': {'isBasedOn': init_cwl, 'dateCreated': str(date.today())}}
     subtool_meta = parent_meta.make_subtool_metadata(subtool_name, root_repo_path=root_repo_path, **subtool_kwargs)
-    subtool_meta.mk_file(base_dir=root_repo_path)
+    subtool_meta.mk_file()
     instances_dir = subtool_dir / 'instances'
     instances_dir.mkdir()
     git_keep_file = instances_dir / '.gitkeep'

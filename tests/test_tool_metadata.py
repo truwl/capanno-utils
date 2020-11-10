@@ -25,7 +25,7 @@ class TestMakeParentToolMetadata(TestBase):
             parent_metadata_path = get_tool_metadata(TestMakeParentToolMetadata.test_dict['name'], test_constants['test_software_version']['versionName'], parent=True, base_dir=tmpdir)
             if not parent_metadata_path.exists():
                 parent_metadata_path.parent.mkdir(parents=True)
-            p_metadata.mk_file(base_dir=tmpdir, replace_none=True)
+            p_metadata.mk_file(base_dir=tmpdir, replace_none=True, update_index=False)  # Don't try to update an index file. There isn't one.
             with parent_metadata_path.open('r') as file:
                 test_file_dict = safe_load(file)
         self.assertEqual(test_file_dict['name'], TestMakeParentToolMetadata.test_dict['name'])
@@ -40,6 +40,7 @@ class TestMakeSubtoolMetadata(TestBase):
 
     def test_make_file(self):
         with TemporaryDirectory(prefix="xD_test") as tmpdir:
-            add_tool('test1', '1.0', 'subtool1', root_repo_path=tmpdir)
+            self.make_empty_tools_index(tmpdir)
+            add_tool('test1', '1.0', 'subtool1', root_repo_path=tmpdir, refresh_index=False)
             assert True
         return
