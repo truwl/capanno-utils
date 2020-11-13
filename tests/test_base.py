@@ -4,7 +4,6 @@ import os
 from pathlib import Path
 from capanno_utils import repo_config
 from capanno_utils.content_maps import make_tools_map, make_workflow_maps, make_script_maps
-from capanno_utils.helpers.file_management import dump_dict_to_yaml_output
 
 test_constants = {'script_group1': 'ENCODE-DCC', 'script_version1': '1.1.x', 'script_project1': 'atac-seq-pipeline',
                   'test_software_version': {'versionName': 'test_version'}}
@@ -41,6 +40,12 @@ class TestBase(TestCase):
         tools_index_dir.mkdir()
         tool_index_path = output_dir / repo_config.tool_index_path
         tool_index_path.touch()
+        return
+
+    def make_empty_tools_dir(self, root_repo_path):
+        output_dir = Path(root_repo_path)
+        tools_dir = output_dir / repo_config.tools_dir_name
+        tools_dir.mkdir()
         return
 
     def setUp(self):

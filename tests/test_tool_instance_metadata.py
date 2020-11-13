@@ -14,6 +14,7 @@ class TestMakeToolInstanceMetadata(TestBase):
         subtool_name = 'subtoolName'
         tool_version = 'test_version'
         with TemporaryDirectory(prefix='tool_instance_metadata') as tmpdir:
+            self.make_empty_tools_dir(tmpdir)
             add_content(['-p', tmpdir, 'tool', parent_tool_name, tool_version, subtool_name])
             subtool_path = get_tool_metadata(parent_tool_name, tool_version, subtool_name, base_dir=tmpdir)
             subtool_metadata = SubtoolMetadata.load_from_file(subtool_path)

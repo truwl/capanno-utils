@@ -33,6 +33,7 @@ def suite_full():
     suite.addTest(suite_input_templates())
     suite.addTest(suite_script_metadata())
     suite.addTest(suite_tool_metadata())
+    suite.addTest(suite_tool_instance_metadata())
     suite.addTest(suite_validate())
     suite.addTest(suite_validate_all_metadata_in_maps())
     suite.addTest(suite_validate_content())

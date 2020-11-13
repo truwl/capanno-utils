@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 from ruamel.yaml import safe_load, YAML
-from capanno_utils.repo_config import *
+from capanno_utils.repo_config import identifier_index_dir, tool_index_path
 from capanno_utils.classes.metadata.script_metadata import ScriptMetadata
 from capanno_utils.classes.metadata.tool_metadata import ParentToolMetadata, SubtoolMetadata
 from capanno_utils.classes.metadata.workflow_metadata import WorkflowMetadata
@@ -23,6 +23,10 @@ def make_tool_identifiers_list(base_dir=None):
 
 def make_tools_index(base_dir, index_path=tool_index_path):
     tool_identifiers = make_tool_identifiers_list(base_dir=base_dir)
+    root_repo_path = Path(base_dir)
+    identifier_index_path = root_repo_path / identifier_index_dir
+    if not identifier_index_path.exists():
+        identifier_index_path.mkdir()
     index_path = Path(base_dir) / index_path
     with index_path.open('w') as index_file:
         index_file.writelines(f"{identifier}\n" for identifier in tool_identifiers)
