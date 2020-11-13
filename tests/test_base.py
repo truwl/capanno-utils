@@ -22,11 +22,6 @@ class TestBase(TestCase):
                 'script_maps': repo_config.config[os.environ.get('CONFIG_KEY')]['content_maps_dir'] / 'script-maps.yaml',
                 'workflow_maps': repo_config.config[os.environ.get('CONFIG_KEY')]['content_maps_dir'] / 'workflow-maps.yaml'}
 
-    def make_empty_tools_map_file(self, output_dir):
-        empty_dict = {}
-        output_path = Path(output_dir) / repo_config.tools_map_name
-        dump_dict_to_yaml_output(empty_dict, output_path)
-
 
     def update_tool_maps(self):
         outfile_path = self.get_content_map_paths()['tool_maps']

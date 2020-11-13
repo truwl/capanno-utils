@@ -15,6 +15,10 @@ def get_inputs_schema_template():
 
     return schema_template_path
 
+def get_tools_index(base_dir=None):
+    base_dir = get_base_dir(base_dir)
+    tools_index = base_dir / tool_index_path
+
 
 def get_base_dir(base_dir=None):
     if not base_dir:
