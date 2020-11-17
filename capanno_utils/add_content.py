@@ -19,6 +19,7 @@ logger.setLevel(logging.WARNING)
 def get_parser():
     parser = argparse.ArgumentParser(description='Initialize metadata and directories for a tool, script, or workflow.')
     parser.add_argument('-p','--root-repo-path', dest='root_path', type=Path, default=Path.cwd(), help="Specify the root path of your cwl content repo if it is not the current working directory.")
+    parser.add_argument('--no-refresh-index', dest='refresh_index', action='store_false', help="If specified, will use an already made index file that contains identifiers rather than assembling a new one.")
     subparsers = parser.add_subparsers(description='Specify the command to run.', dest='command')
 
     # add_tool parser
@@ -90,7 +91,7 @@ def main(argsl=None):
 
     if args.command == 'tool':
         logger.debug("subtool names:{}".format(args.subtool_names))
-        add_tool(args.tool_name, args.version_name, subtool_names=args.subtool_names, biotools_id=args.biotoolsID, has_primary=args.has_primary, init_cwl=args.init_cwl, root_repo_path=args.root_path)
+        add_tool(args.tool_name, args.version_name, subtool_names=args.subtool_names, biotools_id=args.biotoolsID, has_primary=args.has_primary, init_cwl=args.init_cwl, root_repo_path=args.root_path, refresh_index=args.refresh_index)
     elif args.command == 'subtool':
         add_subtool(args.tool_name, args.version_name, args.subtool_name, update_featureList=args.update_featureList, init_cwl=args.init_cwl, root_repo_path=args.root_path)
     elif args.command == 'tool-instance':

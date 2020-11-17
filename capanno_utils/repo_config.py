@@ -1,4 +1,5 @@
-import configparser
+# Someday these files will be stored in the content repo themselves.
+
 import os
 import re
 import tempfile

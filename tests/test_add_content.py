@@ -13,41 +13,42 @@ class TestAddToolMain(TestBase):
     # @skip('')
     def test_add_tool(self):
         with TemporaryDirectory(prefix='test_add_tool_') as tmp_dir:
+            self.make_empty_tools_index(tmp_dir)
             tool_name = 'test_1'
             tool_version = 'fake.1'
-            add_content_main(['-p', tmp_dir, 'tool', tool_name, tool_version, "--has-primary"])
+            add_content_main(['--no-refresh-index', '-p', tmp_dir, 'tool', tool_name, tool_version, "--has-primary"])
         return
 
     # @skip('')
     def test_add_tool_with_subtools(self):
         with TemporaryDirectory(prefix='test_add_w_subtools_') as tmp_dir:
+            self.make_empty_tools_index(tmp_dir)
             tool_name = 'test_2'
             tool_version = 'fake.2'
             subtools = ['subtool1', 'subtool2', 'subtool3']
-
-            add_content_main(['-p', tmp_dir, 'tool', tool_name, tool_version] + subtools)
+            add_content_main(['--no-refresh-index', '-p', tmp_dir, 'tool', tool_name, tool_version] + subtools)
         return
 
     # @skip('')
     def test_add_tool_with_biotools_id(self):
         with TemporaryDirectory(prefix='with_biotools_') as tmp_dir:
-            self.make_empty_tools_map_file(tmp_dir)
+            self.make_empty_tools_index(tmp_dir)
             tool_name = 'test_biotools'
             tool_version = 'fake.3'
             biotools_id = 'malvirus'
             subtools = ['subtool1', 'subtool2', 'subtool3']
             options = ['--biotoolsID', biotools_id]
-            add_content_main(['-p', tmp_dir, 'tool', tool_name, tool_version] + subtools + options)
+            add_content_main(['--no-refresh-index', '-p', tmp_dir, 'tool', tool_name, tool_version] + subtools + options)
         return
 
     # @skip('')
     def test_add_subtool(self):
         with TemporaryDirectory(prefix='add_subtool_') as tmp_dir:
-            self.make_empty_tools_map_file(tmp_dir)
+            self.make_empty_tools_index(tmp_dir)
             tool_name = 'test_4'
             tool_version = 'fake.4'
             subtool_name = 'new_subtool'
-            add_content_main(['-p', tmp_dir, 'tool', tool_name, tool_version])
+            add_content_main(['--no-refresh-index', '-p', tmp_dir, 'tool', tool_name, tool_version])
             add_content_main(['-p', tmp_dir, 'subtool', tool_name, tool_version, subtool_name, '-u'])
         return
 
@@ -58,8 +59,8 @@ class TestAddToolMain(TestBase):
         tool_version = 'fake.6'
         subtool_name = 'image'
         with TemporaryDirectory(prefix='add_tool_with_cwl_') as tmp_dir:
-            self.make_empty_tools_map_file(tmp_dir)
-            add_content_main(['-p', tmp_dir, 'tool', tool_name, tool_version, '--biotoolsID', biotools_id])
+            self.make_empty_tools_index(tmp_dir)
+            add_content_main(['--no-refresh-index', '-p', tmp_dir, 'tool', tool_name, tool_version, '--biotoolsID', biotools_id])
             add_content_main(['-p', tmp_dir, 'subtool', tool_name, tool_version, subtool_name, '-u', '--init-cwl', cwl_url])
             assert True
         return
