@@ -5,6 +5,7 @@ from tests.test_base import TestBase
 from capanno_utils.add.add_tools import add_tool, add_subtool
 from capanno_utils.classes.metadata.tool_metadata import ParentToolMetadata, SubtoolMetadata
 from capanno_utils.helpers.get_paths import get_tool_metadata
+from capanno_utils.exceptions import InIndexError
 
 class TestAddTool(TestBase):
 
@@ -16,10 +17,10 @@ class TestAddTool(TestBase):
             add_tool(tool_name, tool_version, root_repo_path=tmp_dir, refresh_index=False)  # Index is not refreshed because there is nothing in the content repo. Will throw FileNotFound error when trying to traverse directories.
             # the tool added should be the only identifier in the index.
             parent_metadata_path = get_tool_metadata(tool_name, tool_version, parent=True, base_dir=tmp_dir)
-            with self.assertRaises(AssertionError):  # This should fail because trying to assign identifier that is already uses (by itself).
+            with self.assertRaises(InIndexError):  # This should fail because trying to assign identifier that is already uses (by itself).
                 parent_metadata = ParentToolMetadata.load_from_file(parent_metadata_path, _in_index=False,
                                                                     root_repo_path=tmp_dir)
-            parent_metadata = ParentToolMetadata.load_from_file(parent_metadata_path, root_repo_path=tmp_dir) # this should succeed with the _in_index flag.
+            parent_metadata = ParentToolMetadata.load_from_file(parent_metadata_path, root_repo_path=tmp_dir, _in_index=True) # this should succeed with the _in_index flag.
             assert True
         return
 
@@ -73,7 +74,7 @@ class TestAddTool(TestBase):
             add_tool(tool_name, tool_version, subtool_name, root_repo_path=temp_dir, refresh_index=False)
             add_subtool(tool_name, tool_version, subtool_name_2, root_repo_path=temp_dir, update_featureList=True)
             subtool_1_metadata_path = get_tool_metadata(tool_name, tool_version, subtool_name, base_dir=temp_dir)
-            with self.assertRaises(AssertionError):
+            with self.assertRaises(InIndexError):
                 subtool_1_metadata = SubtoolMetadata.load_from_file(subtool_1_metadata_path, _in_index=False, root_repo_path=temp_dir)
             subtool_1_metadata = SubtoolMetadata.load_from_file(subtool_1_metadata_path, _in_index=True, root_repo_path=temp_dir)
         return

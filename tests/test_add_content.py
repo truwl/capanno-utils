@@ -71,6 +71,7 @@ class TestAddToolMain(TestBase):
         subtool_name = 'alignReads'
         tool_directory = get_main_tool_dir(tool_name, base_dir=self.test_content_dir)
         with TemporaryDirectory() as tmp_dir:
+            self.make_empty_tools_index(tmp_dir)
             tool_temp_path = Path(tmp_dir) / tools_dir_name / tool_name
             copytree(tool_directory, tool_temp_path)
             add_content_main(['-p', tmp_dir, 'tool-instance', tool_name, tool_version, subtool_name])

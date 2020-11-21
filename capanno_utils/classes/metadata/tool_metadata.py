@@ -6,6 +6,7 @@ import re
 import uuid
 from ruamel.yaml import safe_load
 from capanno_utils.repo_config import *
+from capanno_utils.exceptions import InIndexError, NotInIndexError
 from ...helpers.get_paths import *
 from ...classes.metadata.metadata_base import MetadataBase
 from ...classes.metadata.shared_properties import CodeRepository, Person, WebSite, Keyword, IOObjectItem, IOArrayItem
@@ -36,12 +37,13 @@ class ToolMetadataBase(MetadataBase):
         :param new_identifier:
         :return:
         """
-        if not self.tool_identifiers and self.root_repo_path:  # Populate self.tool_identifiers if possible.
-            self.populate_repo_identifiers_list()
-        elif not self.tool_identifiers and not self.root_repo_path:
-            pass  # Might want to put a debug message here. metadata instance is not 'repo aware' (can't make sure identifier is unique)
-        else: # self.tool_identifiers is already set.
-            pass  # debug message
+        if self.check_index:
+            if not self.tool_identifiers and self.root_repo_path:  # Populate self.tool_identifiers if possible.
+                self.populate_repo_identifiers_list()
+            elif not self.tool_identifiers and not self.root_repo_path:
+                raise AttributeError(f"Cannot check identifiers without a root_repo_path or list of identifiers.")
+            else: # self.tool_identifiers is already set.
+                pass  # debug message
         if new_identifier:
             identifier = self._check_identifier(new_identifier) # Let it error if duplicate identifier explicitly passed.
         else:
@@ -90,6 +92,7 @@ class ParentToolMetadata(CommonPropsMixin, ToolMetadataBase):
             ('_in_index', False),  # Specify if a supplied identifier when initializing is already expected to be in the index file. If so, it will avoid an error when using _check_identifier
             ('softwareVersion', None),
             ('root_repo_path', None),  # These need to be set before identifier.
+            ('check_index', False),
             ('tool_identifiers', None),
             ('identifier', None),
             ('featureList', None),
@@ -122,16 +125,13 @@ class ParentToolMetadata(CommonPropsMixin, ToolMetadataBase):
     def _check_identifier(self, identifier):
         if not parent_tool_identifier_pattern.match(identifier):
             raise ValueError(f"Tool identifier not formatted correctly: {identifier}")
-        if self.tool_identifiers:
+        if self.check_index:
             if self._in_index:
-                assert identifier in self.tool_identifiers
+                if not identifier in self.tool_identifiers:
+                    raise NotInIndexError(f"{identifier} not found in {self.tool_identifiers}")
             else:
-                assert identifier not in self.tool_identifiers
-        elif self.root_repo_path:
-            pass
-        else:
-            pass # Nothing to check against.
-
+                if identifier in self.tool_identifiers:
+                    raise InIndexError(f"")
         return identifier
 
     def _mk_identifier(self, name_hash_start_index=0, version_hash_start_index=0):
@@ -188,7 +188,8 @@ class SubtoolMetadata(CommonPropsMixin, ToolMetadataBase):
     def _init_metadata():
         return OrderedDict([
             ('name', None),
-            ('_in_index', False),
+            ('check_index', False),
+            ('_in_index', False),  # Only used if check_index is True
             ('metadataStatus', 'Incomplete'),
             ('cwlStatus', 'Incomplete'),
             ('version', '0.1'),
@@ -206,7 +207,7 @@ class SubtoolMetadata(CommonPropsMixin, ToolMetadataBase):
             ('_primary_file_attrs', None), # Keep track of attributes that are set directly from kwargs and not inherited from parent.
         ])
 
-    def __init__(self, _metadata_file_path=None, parent_in_index=True, **kwargs):
+    def __init__(self, _metadata_file_path=None, check_index_parent=True, **kwargs):
         """
         Initialize SubtoolMetadata.
         :param _metadata_file_path(Path):  Path of yaml file that SubtoolMetadata is loaded from. Should not be used directly. Only used if class is initiated using 'load_from_file' method.
@@ -214,11 +215,13 @@ class SubtoolMetadata(CommonPropsMixin, ToolMetadataBase):
         """
         ignore_empties = kwargs.pop('ignore_empties', None)
         self._parentMetadata = kwargs.get('_parentMetadata')
+        check_index = kwargs.get('check_index', True)
+        in_index = kwargs.get('_in_index', True)
         if self._parentMetadata:
             assert isinstance(self._parentMetadata, ParentToolMetadata)
         else:
             self.parentMetadata = kwargs['parentMetadata']  # must have a path if it isn't set directly.
-            self._load_parent_metadata(_metadata_file_path, ignore_empties=ignore_empties, parent_in_index=parent_in_index)  # sets self._parentMetadata
+            self._load_parent_metadata(_metadata_file_path, root_repo_path=kwargs.get('root_repo_path'), ignore_empties=ignore_empties, check_index_parent=check_index, parent_in_index=in_index)  # sets self._parentMetadata
         self._primary_file_attrs = []
         for k, value in kwargs.items():  # populate _primary_file_attrs
             if value:
@@ -248,10 +251,16 @@ class SubtoolMetadata(CommonPropsMixin, ToolMetadataBase):
         with file_path.open('r') as file:
             file_dict = safe_load(file)
         file_dict.update(kwargs)
+        try:
+            file_dict['root_repo_path'] = kwargs['root_repo_path']
+        except KeyError:
+            if kwargs.get('check_index'):
+                file_dict['root_repo_path'] = get_base_dir_from_abs_path(file_path)
+        file_dict['check_index'] = kwargs.get('check_index', True)  # Usually expect the identifier to be in the index already if loading from file.
         file_dict['_in_index'] = kwargs.get('_in_index', True)  # Usually expect the identifier to be in the index already if loading from file.
         return cls(**file_dict, _metadata_file_path=file_path, ignore_empties=ignore_empties)
 
-    def _load_parent_metadata(self, subtool_metadata_file_path, ignore_empties=False, parent_in_index=True):
+    def _load_parent_metadata(self, subtool_metadata_file_path, root_repo_path, ignore_empties=False, check_index_parent=True, parent_in_index=True):
         """
         Populate SubtoolMetadata._parentMetadata
         :param subtool_metadata_file_path(Path):
@@ -260,9 +269,11 @@ class SubtoolMetadata(CommonPropsMixin, ToolMetadataBase):
         """
         dir_name = subtool_metadata_file_path.parent
         full_path = dir_name / self.parentMetadata
-        with full_path.resolve().open('r') as f:
+        full_path = full_path.resolve()
+        with full_path.open('r') as f:
             parent_metadata_dict = safe_load(f)
-        self._parentMetadata = ParentToolMetadata(**parent_metadata_dict, ignore_empties=ignore_empties, _in_index=parent_in_index)
+        parent_metadata_dict['root_repo_path'] = root_repo_path
+        self._parentMetadata = ParentToolMetadata(**parent_metadata_dict, ignore_empties=ignore_empties, check_index=check_index_parent, _in_index=parent_in_index)
 
     def _load_attrs_from_parent(self):
         # initialize everything from parent. Will be overwritten anything supplied in kwargs. Doesn't do much anymore.
@@ -288,16 +299,24 @@ class SubtoolMetadata(CommonPropsMixin, ToolMetadataBase):
         identifier = f"{parent_name_str}_{subtool_hash}.{version_str}"
         try:
             self._check_identifier(identifier)  # Can only hit AssertionError if tool_map_dict provided.
-        except AssertionError:
+        except InIndexError:
             identifier = self._loop_mk_identifier(parent_name_str, version_str, subtool_name_hash)
         return identifier
 
     def _check_identifier(self, identifier):
-        if self.tool_identifiers:  # Check to make sure identifiers are not duplicated.
-            if self._in_index:
-                assert identifier in self.tool_identifiers
-            else:
-                assert identifier not in self.tool_identifiers
+        if self.check_index:
+            if self.tool_identifiers:  # Check to make sure identifiers are not duplicated.
+                if self._in_index:
+                    try:
+                        assert identifier in self.tool_identifiers
+                    except AssertionError:
+                        raise NotInIndexError
+                else:
+                    try:
+                        assert identifier not in self.tool_identifiers
+                    except AssertionError:
+                        raise InIndexError
+
         parent_identifier = self._parentMetadata.identifier
         if not identifier.startswith(parent_identifier[:9]):
             raise ValueError(f"Subtool identifier {identifier} does not properly correspond to parent identifier {parent_identifier}")
@@ -381,7 +400,7 @@ class ToolInstanceMetadata(MetadataBase):
             raise
         subtool_metadata_path = get_subtool_metadata_path_from_tool_instance_metadata_path(tool_instance_metadata_path, base_dir=base_dir)
 
-        self._subtoolMetadata = SubtoolMetadata.load_from_file(subtool_metadata_path)
+        self._subtoolMetadata = SubtoolMetadata.load_from_file(subtool_metadata_path, root_repo_path=base_dir)
 
         # with subtool_metadata_path.open('r') as f:
         #     subtool_metadata_dict = safe_load(f)
