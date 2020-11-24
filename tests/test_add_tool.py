@@ -5,6 +5,7 @@ from tests.test_base import TestBase
 from capanno_utils.add.add_tools import add_tool, add_subtool
 from capanno_utils.classes.metadata.tool_metadata import ParentToolMetadata, SubtoolMetadata
 from capanno_utils.helpers.get_paths import get_tool_metadata
+from capanno_utils.content_maps import make_tools_index
 from capanno_utils.exceptions import InIndexError
 
 class TestAddTool(TestBase):
@@ -20,7 +21,8 @@ class TestAddTool(TestBase):
             with self.assertRaises(InIndexError):  # This should fail because trying to assign identifier that is already uses (by itself).
                 parent_metadata = ParentToolMetadata.load_from_file(parent_metadata_path, _in_index=False,
                                                                     root_repo_path=tmp_dir)
-            parent_metadata = ParentToolMetadata.load_from_file(parent_metadata_path, root_repo_path=tmp_dir, _in_index=True) # this should succeed with the _in_index flag.
+                assert True
+            parent_metadata = ParentToolMetadata.load_from_file(parent_metadata_path, root_repo_path=tmp_dir) # this should succeed with the _in_index flag.
             assert True
         return
 

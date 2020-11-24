@@ -4,6 +4,7 @@ import shutil
 from pathlib import Path
 from ruamel.yaml import safe_load, dump
 from tests.test_base import TestBase
+from capanno_utils.content_maps import make_tools_index
 from capanno_utils.helpers.get_paths import get_tool_version_dir, get_root_tools_dir, get_tool_common_dir, get_script_version_dir, get_root_scripts_dir
 
 
@@ -39,12 +40,15 @@ def copy_tools():
         src_tool_dir = get_tool_version_dir(*tool_args, base_dir=src_content_dir)
         dest_tool_dir = get_tool_version_dir(*tool_args, base_dir=test_content_dir)
         shutil.copytree(src_tool_dir, dest_tool_dir)
+    make_tools_index(base_dir=test_content_dir)
+    return
 
 def copy_to_invalid_tools():
     for tool_args in tool_args_list:
         src_tool_dir = get_tool_version_dir(*tool_args, base_dir=src_content_dir)
         invalid_tool_dir = get_tool_version_dir(*tool_args, base_dir=invalid_content_dir)
         shutil.copytree(src_tool_dir, invalid_tool_dir)
+    make_tools_index(base_dir=invalid_content_dir)
     return
 
 

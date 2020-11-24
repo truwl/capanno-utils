@@ -74,8 +74,11 @@ class ToolMetadataBase(MetadataBase):
         if not self.root_repo_path:
             raise AttributeError(f"{self} does not have a root_repo_path set.")
         identifiers_index_path = Path(self.root_repo_path) / tool_index_path
-        with identifiers_index_path.open('r') as identifiers_index:
-            self.tool_identifiers = identifiers_index.read().splitlines()
+        try:
+            with identifiers_index_path.open('r') as identifiers_index:
+                self.tool_identifiers = identifiers_index.read().splitlines()
+        except FileNotFoundError:
+            raise
 
 
 
@@ -159,7 +162,13 @@ class ParentToolMetadata(CommonPropsMixin, ToolMetadataBase):
         with file_path.open('r') as file:
             file_dict = safe_load(file)
         file_dict.update(kwargs)
+        file_dict['check_index'] = kwargs.get('check_index', True)
         file_dict['_in_index'] = kwargs.get('_in_index', True)  # Expect is to already be indexed when loading from a file.
+        try:
+            file_dict['root_repo_path'] = kwargs['root_repo_path']
+        except KeyError:
+            if file_dict.get('check_index'):
+                file_dict['root_repo_path'] = Path(*file_path.parts[:-5])
         return cls(**file_dict, ignore_empties=ignore_empties)
 
     @classmethod
@@ -251,13 +260,17 @@ class SubtoolMetadata(CommonPropsMixin, ToolMetadataBase):
         with file_path.open('r') as file:
             file_dict = safe_load(file)
         file_dict.update(kwargs)
+        file_dict['check_index'] = kwargs.get('check_index',
+                                              True)  # Usually expect the identifier to be in the index already if loading from file.
+        file_dict['_in_index'] = kwargs.get('_in_index',
+                                            True)  # Usually expect the identifier to be in the index already if loading from file.
         try:
             file_dict['root_repo_path'] = kwargs['root_repo_path']
         except KeyError:
-            if kwargs.get('check_index'):
-                file_dict['root_repo_path'] = get_base_dir_from_abs_path(file_path)
-        file_dict['check_index'] = kwargs.get('check_index', True)  # Usually expect the identifier to be in the index already if loading from file.
-        file_dict['_in_index'] = kwargs.get('_in_index', True)  # Usually expect the identifier to be in the index already if loading from file.
+            if file_dict.get('check_index'):
+                # file_dict['root_repo_path'] = get_base_dir_from_abs_path(file_path)
+                file_dict['root_repo_path'] = Path(*file_path.parts[:-5])
+
         return cls(**file_dict, _metadata_file_path=file_path, ignore_empties=ignore_empties)
 
     def _load_parent_metadata(self, subtool_metadata_file_path, root_repo_path, ignore_empties=False, check_index_parent=True, parent_in_index=True):
