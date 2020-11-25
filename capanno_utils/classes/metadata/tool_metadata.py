@@ -230,7 +230,7 @@ class SubtoolMetadata(CommonPropsMixin, ToolMetadataBase):
             assert isinstance(self._parentMetadata, ParentToolMetadata)
         else:
             self.parentMetadata = kwargs['parentMetadata']  # must have a path if it isn't set directly.
-            self._load_parent_metadata(_metadata_file_path, root_repo_path=kwargs.get('root_repo_path'), ignore_empties=ignore_empties, check_index_parent=check_index, parent_in_index=in_index)  # sets self._parentMetadata
+            self._load_parent_metadata(_metadata_file_path, root_repo_path=kwargs.get('root_repo_path'), ignore_empties=ignore_empties, check_index_parent=kwargs.get('check_index'), parent_in_index=kwargs.get('_in_index'))  # sets self._parentMetadata
         self._primary_file_attrs = []
         for k, value in kwargs.items():  # populate _primary_file_attrs
             if value:

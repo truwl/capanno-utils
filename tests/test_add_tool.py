@@ -67,6 +67,10 @@ class TestAddTool(TestBase):
         return
 
     def test_handle_duplicate_subtool_identifier(self):
+        """
+        Add subtools one at a time.
+        :return:
+        """
         tool_name = 'samtools'
         tool_version = '1.x'
         subtool_name = 'dict'  # both subtool identifiers start with 'bb'
@@ -76,7 +80,31 @@ class TestAddTool(TestBase):
             add_tool(tool_name, tool_version, subtool_name, root_repo_path=temp_dir, refresh_index=False)
             add_subtool(tool_name, tool_version, subtool_name_2, root_repo_path=temp_dir, update_featureList=True)
             subtool_1_metadata_path = get_tool_metadata(tool_name, tool_version, subtool_name, base_dir=temp_dir)
+            subtool_2_metadata_path = get_tool_metadata(tool_name, tool_version, subtool_name_2, base_dir=temp_dir)
             with self.assertRaises(InIndexError):
                 subtool_1_metadata = SubtoolMetadata.load_from_file(subtool_1_metadata_path, _in_index=False, root_repo_path=temp_dir)
             subtool_1_metadata = SubtoolMetadata.load_from_file(subtool_1_metadata_path, _in_index=True, root_repo_path=temp_dir)
+            subtool_2_metadata = SubtoolMetadata.load_from_file(subtool_2_metadata_path, _in_index=True,
+                                                            root_repo_path=temp_dir)
+        self.assertNotEqual(subtool_1_metadata.identifier, subtool_2_metadata.identifier)
+
+        return
+
+    def test_handle_duplicate_subtool_identifier_2(self):
+        """
+        Add two subtools and parent with one command.
+        :return:
+        """
+        tool_name = 'samtools'
+        tool_version = '1.x'
+        subtool_name = 'dict'  # both subtool identifiers start with 'bb'
+        subtool_name_2 = 'faidx'
+        with TemporaryDirectory() as temp_dir:
+            self.make_empty_tools_index(temp_dir)
+            add_tool(tool_name, tool_version, [subtool_name, subtool_name_2], root_repo_path=temp_dir, refresh_index=False)
+            subtool_1_metadata_path = get_tool_metadata(tool_name, tool_version, subtool_name, base_dir=temp_dir)
+            subtool_2_metadata_path = get_tool_metadata(tool_name, tool_version, subtool_name_2, base_dir=temp_dir)
+            subtool_1_metadata = SubtoolMetadata.load_from_file(subtool_1_metadata_path)
+            subtool_2_metadata = SubtoolMetadata.load_from_file(subtool_2_metadata_path)
+        self.assertNotEqual(subtool_1_metadata.identifier, subtool_2_metadata.identifier)
         return

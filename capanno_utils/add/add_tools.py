@@ -46,12 +46,12 @@ def add_tool(tool_name, version_name, subtool_names=None, biotools_id=None, has_
         if parent_metadata is None:
             parent_metadata = ParentToolMetadata(name=tool_name,
                                                  softwareVersion={'versionName': version_name, 'includedVersions': []},
-                                                 featureList=subtool_names)
+                                                 featureList=subtool_names, check_index=True, _in_index=False)
     else:
-        parent_metadata = ParentToolMetadata(name=tool_name, softwareVersion={'versionName': version_name, 'includedVersions': []}, featureList=subtool_names, root_repo_path=root_repo_path)
+        parent_metadata = ParentToolMetadata(name=tool_name, softwareVersion={'versionName': version_name, 'includedVersions': []}, featureList=subtool_names, root_repo_path=root_repo_path, check_index=True, _in_index=False)
     if parent_metadata.featureList:
         for subtool in parent_metadata.featureList:
-            subtool_obj = parent_metadata.make_subtool_metadata(subtool_name=subtool, root_repo_path=root_repo_path)
+            subtool_obj = parent_metadata.make_subtool_metadata(subtool_name=subtool, root_repo_path=root_repo_path, check_index=True)
             subtool_obj.mk_file()
             subtool_dir = get_tool_dir(tool_name, version_name, subtool, base_dir=root_repo_path)
             instances_dir = subtool_dir / 'instances'
@@ -92,7 +92,7 @@ def add_subtool(tool_name, tool_version, subtool_name, root_repo_path=Path.cwd()
         parent_meta.mk_file(base_dir=root_repo_path, update_index=False)  # Remake the file. Needs to be remade if updated. Identifier will already be in index. No place to update the identifier in this function.
     if not isinstance(init_cwl, bool):  # initialized from a url.
         subtool_kwargs['extra'] = {'cwlDocument': {'isBasedOn': init_cwl, 'dateCreated': str(date.today())}}
-    subtool_meta = parent_meta.make_subtool_metadata(subtool_name, root_repo_path=root_repo_path, **subtool_kwargs)
+    subtool_meta = parent_meta.make_subtool_metadata(subtool_name, root_repo_path=root_repo_path, check_index=True, **subtool_kwargs)
     subtool_meta.mk_file()
     instances_dir = subtool_dir / 'instances'
     instances_dir.mkdir()
