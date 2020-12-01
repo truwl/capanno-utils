@@ -135,7 +135,7 @@ class MetadataBase(ABC):
         for key in keys:
             if key.startswith('_'):
                 continue
-            if key in ('root_repo_path', 'repo_map_dict'):
+            if key in ('root_repo_path', 'repo_map_dict', 'check_index', 'tool_identifiers'):
                 continue
             if getattr(self, key) is None:
                 if replace_none:

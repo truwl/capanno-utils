@@ -15,6 +15,10 @@ def get_inputs_schema_template():
 
     return schema_template_path
 
+def get_tools_index(base_dir=None):
+    base_dir = get_base_dir(base_dir)
+    tools_index = base_dir / tool_index_path
+
 
 def get_base_dir(base_dir=None):
     if not base_dir:
@@ -22,14 +26,14 @@ def get_base_dir(base_dir=None):
     return Path(base_dir)
 
 
-def get_base_dir_from_abs_path(absolute_path):
+def get_base_dir_from_abs_path(absolute_path, bas_dir_name=content_repo_name):
     absolute_path = Path(absolute_path)
     if not absolute_path.is_absolute():
         raise ValueError(f"{absolute_path} is not an absolute path")
     absolute_path_parts = absolute_path.parts
-    if not absolute_path_parts.count(content_repo_name) == 1:
-        raise ValueError(f"Expected the root repo name ({content_repo_name}) to be path one time.")
-    root_path_part_index = absolute_path_parts.index(content_repo_name)
+    if not absolute_path_parts.count(bas_dir_name) == 1:
+        raise ValueError(f"Expected the root repo name '{bas_dir_name}' to be path one time.")
+    root_path_part_index = absolute_path_parts.index(bas_dir_name)
     base_dir = Path(*absolute_path_parts[:root_path_part_index + 1])
     return base_dir
 

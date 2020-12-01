@@ -4,7 +4,6 @@ import os
 from pathlib import Path
 from capanno_utils import repo_config
 from capanno_utils.content_maps import make_tools_map, make_workflow_maps, make_script_maps
-from capanno_utils.helpers.file_management import dump_dict_to_yaml_output
 
 test_constants = {'script_group1': 'ENCODE-DCC', 'script_version1': '1.1.x', 'script_project1': 'atac-seq-pipeline',
                   'test_software_version': {'versionName': 'test_version'}}
@@ -21,11 +20,6 @@ class TestBase(TestCase):
         return {'tool_maps': repo_config.config[os.environ.get('CONFIG_KEY')]['content_maps_dir'] / repo_config.tools_map_name,
                 'script_maps': repo_config.config[os.environ.get('CONFIG_KEY')]['content_maps_dir'] / 'script-maps.yaml',
                 'workflow_maps': repo_config.config[os.environ.get('CONFIG_KEY')]['content_maps_dir'] / 'workflow-maps.yaml'}
-
-    def make_empty_tools_map_file(self, output_dir):
-        empty_dict = {}
-        output_path = Path(output_dir) / repo_config.tools_map_name
-        dump_dict_to_yaml_output(empty_dict, output_path)
 
 
     def update_tool_maps(self):
@@ -46,6 +40,12 @@ class TestBase(TestCase):
         tools_index_dir.mkdir()
         tool_index_path = output_dir / repo_config.tool_index_path
         tool_index_path.touch()
+        return
+
+    def make_empty_tools_dir(self, root_repo_path):
+        output_dir = Path(root_repo_path)
+        tools_dir = output_dir / repo_config.tools_dir_name
+        tools_dir.mkdir()
         return
 
     def setUp(self):

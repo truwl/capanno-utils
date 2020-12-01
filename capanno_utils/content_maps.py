@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 from ruamel.yaml import safe_load, YAML
-from capanno_utils.repo_config import *
+from capanno_utils.repo_config import identifier_index_dir, tool_index_path
 from capanno_utils.classes.metadata.script_metadata import ScriptMetadata
 from capanno_utils.classes.metadata.tool_metadata import ParentToolMetadata, SubtoolMetadata
 from capanno_utils.classes.metadata.workflow_metadata import WorkflowMetadata
@@ -23,6 +23,10 @@ def make_tool_identifiers_list(base_dir=None):
 
 def make_tools_index(base_dir, index_path=tool_index_path):
     tool_identifiers = make_tool_identifiers_list(base_dir=base_dir)
+    root_repo_path = Path(base_dir)
+    identifier_index_path = root_repo_path / identifier_index_dir
+    if not identifier_index_path.exists():
+        identifier_index_path.mkdir()
     index_path = Path(base_dir) / index_path
     with index_path.open('w') as index_file:
         index_file.writelines(f"{identifier}\n" for identifier in tool_identifiers)
@@ -72,7 +76,7 @@ def make_tool_version_dir_map(tool_name, tool_version, base_dir=None):
     subdir_names = [subdir.name for subdir in tool_version_dir.iterdir()]
 
     parent_metadata_path = get_tool_metadata(tool_name, tool_version, parent=True, base_dir=base_dir)
-    parent_metadata = ParentToolMetadata.load_from_file(parent_metadata_path)
+    parent_metadata = ParentToolMetadata.load_from_file(parent_metadata_path, check_index=False)
     parent_rel_path = get_relative_path(parent_metadata_path, base_path=base_dir)
     tool_version_map[parent_metadata.identifier] = {'path': str(parent_rel_path),
                                                     'metadataStatus': parent_metadata.metadataStatus,
@@ -96,7 +100,7 @@ def make_subtool_map(tool_name, tool_version, subtool_name, base_dir=None):
     subtool_rel_path = get_relative_path(subtool_cwl_path, base_path=base_dir)
     subtool_metadata_path = get_tool_metadata(tool_name, tool_version, subtool_name=subtool_name, parent=False,
                                               base_dir=base_dir)
-    subtool_metadata = SubtoolMetadata.load_from_file(subtool_metadata_path)
+    subtool_metadata = SubtoolMetadata.load_from_file(subtool_metadata_path, check_index=False)
     subdir_map = {}
     subdir_map[subtool_metadata.identifier] = {'path': str(subtool_rel_path), 'name': subtool_metadata.name,
                                                'metadataStatus': subtool_metadata.metadataStatus,
@@ -106,7 +110,7 @@ def make_subtool_map(tool_name, tool_version, subtool_name, base_dir=None):
 
 def make_tool_common_dir_map(tool_name, tool_version, base_dir):
     common_metadata_path = get_tool_common_dir(tool_name, tool_version, base_dir=base_dir) / common_tool_metadata_name
-    common_metadata = ParentToolMetadata.load_from_file(common_metadata_path)
+    common_metadata = ParentToolMetadata.load_from_file(common_metadata_path, check_index=False)
     common_dir_map = {}
     common_dir_map[common_metadata.identifier] = {'path': str(common_metadata_path),
                                                   'metadataStatus': common_metadata.metadataStatus,
