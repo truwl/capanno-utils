@@ -158,29 +158,44 @@ class ParentToolMetadata(CommonPropsMixin, ToolMetadataBase):
 
     @classmethod
     def load_from_file(cls, file_path, ignore_empties=False, **kwargs):
+        """
+
+        :param file_path (Path/str): path to the file to load ParentMetadata from.
+        :param ignore_empties (bool): If specified, will set empty attributes (those with subkeys but no values) to None.
+        :param kwargs:
+        :return:
+        """
         file_path = Path(file_path)
         with file_path.open('r') as file:
             file_dict = safe_load(file)
         file_dict.update(kwargs)
-        file_dict['check_index'] = kwargs.get('check_index', True)
+        file_dict['check_index'] = kwargs.get('check_index', True)  # If not provided in kwargs. Assume metadata loaded from a file is already in the index.
         file_dict['_in_index'] = kwargs.get('_in_index', True)  # Expect is to already be indexed when loading from a file.
         try:
             file_dict['root_repo_path'] = kwargs['root_repo_path']
         except KeyError:
             if file_dict.get('check_index'):
-                file_dict['root_repo_path'] = Path(*file_path.parts[:-5])
+                file_dict['root_repo_path'] = Path(*file_path.parts[:-5])  # This should be the root_repo_path relative to a parent metadata file.
         return cls(**file_dict, ignore_empties=ignore_empties)
 
     @classmethod
     def create_from_biotools(cls, biotools_id, version_name, subtools, **kwargs):
         biotools_kwargs = make_tool_metadata_kwargs_from_biotools(biotools_id)
         biotools_kwargs.update(kwargs)  # Overwrite any biotools kwargs with kwargs that were provided.
-        biotools_kwargs['featureList'] = subtools # A lot more to do here.
+        biotools_kwargs['featureList'] = subtools
         biotools_kwargs['softwareVersion'] = {}
         biotools_kwargs['softwareVersion']['versionName'] = version_name
         return cls(**biotools_kwargs)
 
     def mk_file(self, base_dir, keys=None, replace_none=True, update_index=True):
+        """
+
+        :param base_dir: The root repo path of the repository to make the file in.
+        :param keys: If specified, only the indicated keys will be written to the file.
+        :param replace_none: If specified, None values will be replaced with default field such as an
+        :param update_index: If specified, then the identifier will be added the index file when the file is made.
+        :return:
+        """
         file_path = get_tool_metadata(self.name, self.softwareVersion.versionName, subtool_name=None, parent=True, base_dir=base_dir)
         returned_path = super().mk_file(file_path, keys, replace_none)
         if update_index:
@@ -197,8 +212,8 @@ class SubtoolMetadata(CommonPropsMixin, ToolMetadataBase):
     def _init_metadata():
         return OrderedDict([
             ('name', None),
-            ('check_index', False),
-            ('_in_index', False),  # Only used if check_index is True
+            ('check_index', None),  # Will be set to False (default) in __init__
+            ('_in_index', False),  # Only used if check_index is True. Will be set to False (default) in __init__
             ('metadataStatus', 'Incomplete'),
             ('cwlStatus', 'Incomplete'),
             ('version', '0.1'),
@@ -216,7 +231,7 @@ class SubtoolMetadata(CommonPropsMixin, ToolMetadataBase):
             ('_primary_file_attrs', None), # Keep track of attributes that are set directly from kwargs and not inherited from parent.
         ])
 
-    def __init__(self, _metadata_file_path=None, check_index_parent=True, **kwargs):
+    def __init__(self, _metadata_file_path=None, **kwargs):
         """
         Initialize SubtoolMetadata.
         :param _metadata_file_path(Path):  Path of yaml file that SubtoolMetadata is loaded from. Should not be used directly. Only used if class is initiated using 'load_from_file' method.
@@ -224,9 +239,9 @@ class SubtoolMetadata(CommonPropsMixin, ToolMetadataBase):
         """
         ignore_empties = kwargs.pop('ignore_empties', None)
         self._parentMetadata = kwargs.get('_parentMetadata')
-        check_index = kwargs.get('check_index', True)
-        in_index = kwargs.get('_in_index', True)
-        if self._parentMetadata:
+        check_index = kwargs.get('check_index', False)  # default value needs to be set to same as in _init_metadata.
+        in_index = kwargs.get('_in_index', False)
+        if self._parentMetadata:  # Will be the case if Subtool is intialized from ParentMetadata.make_subtool_metadata().
             assert isinstance(self._parentMetadata, ParentToolMetadata)
         else:
             self.parentMetadata = kwargs['parentMetadata']  # must have a path if it isn't set directly.
