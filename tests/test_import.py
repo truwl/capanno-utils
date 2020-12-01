@@ -25,7 +25,7 @@ class TestImport(unittest.TestCase):
     def test_import_noversion(self):
         mybio = bioCwl()
         lancetres=mybio.getCwlInfo('Lancet','Lancet.cwl')
-        assert(lancetres['docker']=='sinaiiidgst/lancet:latest')
+        assert(lancetres['docker']=='truwl/lancet:latest')
 
     def test_import(self):
         mybio = bioCwl()
