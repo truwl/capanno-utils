@@ -1,6 +1,6 @@
 from unittest import skip
 from tests.test_base import TestBase
-from capanno_utils.config import config
+from capanno_utils.repo_config import config
 from capanno_utils.helpers.get_paths import *
 from capanno_utils.validate_content import main as validate_content
 

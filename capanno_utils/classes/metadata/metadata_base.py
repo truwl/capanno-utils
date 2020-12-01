@@ -53,6 +53,27 @@ class MetadataBase(ABC):
         self._version = str(v)
 
     @property
+    def root_repo_path(self):
+        return self._root_repo_path
+
+    @root_repo_path.setter
+    def root_repo_path(self, new_root_repo_path):
+        if new_root_repo_path:
+            self._root_repo_path = Path(new_root_repo_path)
+        else:
+            self._root_repo_path = None
+        return
+
+    @property
+    def repo_map_dict(self):
+        return self._repo_map_dict
+
+    @repo_map_dict.setter
+    def repo_map_dict(self, new_repo_map_dict):
+        self._repo_map_dict = new_repo_map_dict
+        return
+
+    @property
     def metadataStatus(self):
         return self._metadataStatus
 
@@ -72,8 +93,8 @@ class MetadataBase(ABC):
 
     def __init__(self, **kwargs):
         init_metadata = self._init_metadata()
-        ignore_empties = kwargs.get('ignore_empties')  # if not there will be None which is falsey so default is not to ignore.
-        kwargs.pop('ignore_empties', None)
+        ignore_empties = kwargs.pop('ignore_empties', None)  # if not there will be None which is falsey so default is not to ignore.
+        # kwargs.pop('ignore_empties', None)
         for k, v in kwargs.items():
             if not k in init_metadata:
                 raise AttributeError(f"{k} is not a valid key for {type(self)}")
@@ -91,7 +112,7 @@ class MetadataBase(ABC):
                         raise NotImplementedError(f"Figure out what's happening here and fix it.")
                 except AttributeError:
                     setattr(self, k, v)  # Set to default value provided in self._init_metadata. Last resort.
-            if ignore_empties:
+            if ignore_empties:   # Set attribute to None rather than have empty subfields.
                 attribute = getattr(self, k)
                 if is_attr_empty(attribute):
                     # print(f"Setting {k} to None for {self.name}")
@@ -113,6 +134,8 @@ class MetadataBase(ABC):
             keys = self._get_metafile_keys()
         for key in keys:
             if key.startswith('_'):
+                continue
+            if key in ('root_repo_path', 'repo_map_dict', 'check_index', 'tool_identifiers'):
                 continue
             if getattr(self, key) is None:
                 if replace_none:

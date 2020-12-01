@@ -6,7 +6,7 @@
 import sys
 import argparse
 from pathlib import Path
-from capanno_utils import config
+from capanno_utils import repo_config
 from capanno_utils.add.add_tools import add_tool, add_subtool, add_tool_instance
 from capanno_utils.add.add_scripts import add_script, add_common_script_metadata
 from capanno_utils.add.add_workflows import add_workflow
@@ -19,6 +19,7 @@ logger.setLevel(logging.WARNING)
 def get_parser():
     parser = argparse.ArgumentParser(description='Initialize metadata and directories for a tool, script, or workflow.')
     parser.add_argument('-p','--root-repo-path', dest='root_path', type=Path, default=Path.cwd(), help="Specify the root path of your cwl content repo if it is not the current working directory.")
+    parser.add_argument('--no-refresh-index', dest='refresh_index', action='store_false', help="If specified, will use an already made index file that contains identifiers rather than assembling a new one.")
     subparsers = parser.add_subparsers(description='Specify the command to run.', dest='command')
 
     # add_tool parser
@@ -43,8 +44,8 @@ def get_parser():
     addtoolinstance = subparsers.add_parser('tool-instance', help='Add a tool instance.')
     addtoolinstance.add_argument('tool_name', type=str, help="The name of the tool.")
     addtoolinstance.add_argument('version_name', type=str, help="The version of the tool.")
-    addtoolinstance.add_argument('subtool_name', type=str, nargs='?', default=config.main_tool_subtool_name,
-                         help="The subtool name for the instance.")
+    addtoolinstance.add_argument('subtool_name', type=str, nargs='?', default=repo_config.main_tool_subtool_name,
+                                 help="The subtool name for the instance.")
 
     # add_common_script_parser
     addscriptcommon = subparsers.add_parser('common-script', help='add script metadata that other scripts can inherit from')
@@ -90,7 +91,7 @@ def main(argsl=None):
 
     if args.command == 'tool':
         logger.debug("subtool names:{}".format(args.subtool_names))
-        add_tool(args.tool_name, args.version_name, subtool_names=args.subtool_names, biotools_id=args.biotoolsID, has_primary=args.has_primary, init_cwl=args.init_cwl, root_repo_path=args.root_path)
+        add_tool(args.tool_name, args.version_name, subtool_names=args.subtool_names, biotools_id=args.biotoolsID, has_primary=args.has_primary, init_cwl=args.init_cwl, root_repo_path=args.root_path, refresh_index=args.refresh_index)
     elif args.command == 'subtool':
         add_subtool(args.tool_name, args.version_name, args.subtool_name, update_featureList=args.update_featureList, init_cwl=args.init_cwl, root_repo_path=args.root_path)
     elif args.command == 'tool-instance':

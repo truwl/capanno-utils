@@ -5,7 +5,7 @@
 import os
 from pathlib import Path
 from ruamel.yaml import safe_load
-from capanno_utils.config import config
+from capanno_utils.repo_config import config
 from tests.test_base import TestBase, test_constants
 from capanno_utils.classes.metadata.script_metadata import ScriptMetadata
 from capanno_utils.helpers.get_paths import get_cwl_script, get_metadata_path

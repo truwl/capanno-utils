@@ -6,7 +6,7 @@ import os
 from pathlib import Path
 from ruamel.yaml import safe_load
 from tests.test_base import TestBase, test_constants
-from capanno_utils.config import config
+from capanno_utils.repo_config import config
 from capanno_utils.helpers.get_paths import get_workflow_metadata
 from capanno_utils.classes.metadata.workflow_metadata import WorkflowMetadata
 
