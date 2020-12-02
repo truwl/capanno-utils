@@ -211,7 +211,13 @@ class CommandInputParameterMixin:
                 if isinstance(_type, str):
                     input_type.append(self._handle_str_input_type(_type, schema_def_requirement))
                 else:  # Need to handle record, enum, and array types here.
-                    input_type.append(_type.save())
+                    if hasattr(_type, 'type'):
+                        if _type.type == 'array':
+                            type_field_without_name = _type.save()
+                            del type_field_without_name['name']
+                            input_type.append(type_field_without_name)
+                    else:
+                        input_type.append(_type.save())
         else:
             input_type = type_field.save()  # Takes care of CommandInput[Array/Enum/Record]Schmema. Can deal with separately later if we want to.
 
