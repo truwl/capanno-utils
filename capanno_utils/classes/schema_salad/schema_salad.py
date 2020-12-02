@@ -226,7 +226,7 @@ class InputsSchema:
 
     @property
     def cwl_schema_def_requirement(self):
-        return self._cwl_schema_def_requirement
+        return self._cwl_schema_def_requirement # set in __init__
 
     def validate_inputs(self, document_path):
         """
@@ -235,7 +235,7 @@ class InputsSchema:
         :return:
         """
         with tempfile.NamedTemporaryFile(prefix='metaschema_base', suffix='.yml') as tmp_meta_base:
-            dump_dict_to_yaml_output(SaladSchemaBase.metaschema_base, tmp_meta_base.name)
+            dump_dict_to_yaml_output(SaladSchemaBase.metaschema_base, tmp_meta_base.name)  # Convenient to put it in tmp directory where inputs schema will live.
             with tempfile.NamedTemporaryFile(prefix='inputs_schema', suffix='.yml') as tmp:
                 self._make_inputs_schema_file(tmp_meta_base.name, tmp.name)
                 self._schema_salad_validate(tmp.name, document_path)
@@ -244,7 +244,7 @@ class InputsSchema:
     def _make_inputs_schema_dict(self):
         """
         Make the schema from inputs to validate job file with.
-        :return:
+        :return (dict):
         """
         inputs_fields = {}
         for input in self.cwl_inputs:  # inputs is a list of CommandInputParameter
