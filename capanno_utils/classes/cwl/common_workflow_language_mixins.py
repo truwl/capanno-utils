@@ -195,12 +195,26 @@ class CommandInputParameterMixin:
 
     def _handle_input_type_field(self, schema_def_requirement):
         """
-        Returns the type, replacing any schema_def_requirement types with the actual type.
+        Returns the type, replacing any schema_def_requirement types with the actual type. Also removes 'name' keys for array types.
         Does not handle records and enums yet.
 
         :param schema_def_requirement:
         :return:
         """
+        def format_complex_type(complex_type_field):
+            """
+            Deal with record, enum, and array types here. Convert these to map types (OrderedDict) without extra stuff (name fields)
+            :param complex_type_field:
+            :return:
+            """
+            if hasattr(complex_type_field, 'type'):
+                complex_type_field_dict = complex_type_field.save()
+                if complex_type_field.type == 'array':
+                    del complex_type_field_dict['name']
+            else:
+                complex_type_field_dict = complex_type_field.save()
+            return complex_type_field_dict
+
         type_field = self.type
         if isinstance(type_field, str):
             input_type = self._handle_str_input_type(type_field, schema_def_requirement)
@@ -211,15 +225,9 @@ class CommandInputParameterMixin:
                 if isinstance(_type, str):
                     input_type.append(self._handle_str_input_type(_type, schema_def_requirement))
                 else:  # Need to handle record, enum, and array types here.
-                    if hasattr(_type, 'type'):
-                        if _type.type == 'array':
-                            type_field_without_name = _type.save()
-                            del type_field_without_name['name']
-                            input_type.append(type_field_without_name)
-                    else:
-                        input_type.append(_type.save())
+                    input_type.append(format_complex_type(_type))
         else:
-            input_type = type_field.save()  # Takes care of CommandInput[Array/Enum/Record]Schmema. Can deal with separately later if we want to.
+            input_type = format_complex_type(type_field)  # Takes care of CommandInput[Array/Enum/Record]Schmema. Can deal with separately later if we want to.
 
         return input_type
 
