@@ -20,7 +20,7 @@ perl -p -i -e 's/SchemaDefRequirement\(/SchemaDefRequirement(SchemaDefRequiremen
                s/CommandOutputParameter\(/CommandOutputParameter(CommandOutputParameterMixin,/; \
                s/CommandLineTool\(/CommandLineTool(CommandLineToolMixin,/; \
                s/Workflow\(/Workflow(WorkflowMixin,/; \
-               s/InputParameter\(/InputParameter(InputParameterMixin,/; \
+               s/class InputParameter\(/class InputParameter(InputParameterMixin,/; \
                s/WorkflowOutput\(/WorkflowOutput(WorkflowOutputParameterMixin,/; \
                s/WorkflowStep\(/WorkflowStep(WorkflowStepMixin,/;' capanno_utils/classes/cwl/common_workflow_language.py
 ```

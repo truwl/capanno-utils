@@ -6401,7 +6401,7 @@ class CommandOutputArraySchema(OutputArraySchema):
     attrs = frozenset(['items', 'type', 'label', 'doc', 'name'])
 
 
-class CommandInputParameter(InputParameterMixin,CommandInputParameterMixin,InputParameter):
+class CommandInputParameter(CommandInputParameterMixin,InputParameter):
     """
 An input parameter for a CommandLineTool.
     """
@@ -9360,7 +9360,7 @@ class ExpressionToolOutputParameter(OutputParameter):
     attrs = frozenset(['label', 'secondaryFiles', 'streamable', 'doc', 'id', 'format', 'type'])
 
 
-class WorkflowInputParameter(InputParameterMixin,InputParameter):
+class WorkflowInputParameter(InputParameter):
     def __init__(
         self,
         type,  # type: Any
@@ -11926,7 +11926,7 @@ of [WorkflowStepInput](#WorkflowStepInput).
     attrs = frozenset(['class'])
 
 
-class OperationInputParameter(InputParameterMixin,InputParameter):
+class OperationInputParameter(InputParameter):
     """
 Describe an input parameter of an operation.
 
