@@ -10,9 +10,30 @@ curl https://raw.githubusercontent.com/common-workflow-language/cwl-utils/main/c
 ```
 ## Add the mixins by hand
 ```
-perl -p -i -e 'print "from .common_workflow_language_mixins import CommandLineToolMixin, CommandInputParameterMixin, SchemaDefRequirementMixin, CommandLineBindingMixin, CommandOutputParameterMixin\n" if $. == 1' capanno_utils/classes/cwl/common_workflow_language.py
-perl -p -i -e 's/SchemaDefRequirement\(/SchemaDefRequirement(SchemaDefRequirementMixin,/;s/CommandLineBinding\(/CommandLineBinding(CommandLineBindingMixin,/;s/CommandInputParameter\(/CommandInputParameter(CommandInputParameterMixin,/;s/CommandOutputParameter\(/CommandOutputParameter(CommandOutputParameterMixin,/;s/CommandLineTool\(/CommandLineTool(CommandLineToolMixin,/' capanno_utils/classes/cwl/common_workflow_language.py
+perl -p -i -e 'print "from capanno_utils.classes.cwl.common_workflow_language_mixins import CommandLineToolMixin, \\
+CommandInputParameterMixin, SchemaDefRequirementMixin, CommandLineBindingMixin, \\
+CommandOutputParameterMixin, WorkflowMixin, InputParameterMixin, WorkflowOutputParameterMixin, \\
+WorkflowStepMixin, WorkflowStepInputMixin\n" if $. == 1' capanno_utils/classes/cwl/common_workflow_language.py
+perl -p -i -e 's/SchemaDefRequirement\(/SchemaDefRequirement(SchemaDefRequirementMixin,/; \
+               s/CommandLineBinding\(/CommandLineBinding(CommandLineBindingMixin,/; \
+               s/CommandInputParameter\(/CommandInputParameter(CommandInputParameterMixin,/; \
+               s/CommandOutputParameter\(/CommandOutputParameter(CommandOutputParameterMixin,/; \
+               s/CommandLineTool\(/CommandLineTool(CommandLineToolMixin,/; \
+               s/Workflow\(/Workflow(WorkflowMixin,/; \
+               s/InputParameter\(/InputParameter(InputParameterMixin,/; \
+               s/WorkflowOutput\(/WorkflowOutput(WorkflowOutputParameterMixin,/; \
+               s/WorkflowStep\(/WorkflowStep(WorkflowStepMixin,/;' capanno_utils/classes/cwl/common_workflow_language.py
 ```
+
+
+
+
+
+WorkflowMixin
+InputParameterMixin
+WorkflowOutputParameterMixin
+WorkflowStepMixin
+WorkflowStepInputMixin
 
 ## Adding a tool
 Usage:
