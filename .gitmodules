@@ -1,3 +1,6 @@
 [submodule "bio-cwl-tools-submodule"]
 	path = bio-cwl-tools-submodule
 	url = https://github.com/common-workflow-library/bio-cwl-tools.git
+[submodule "pgap-submodule"]
+	path = pgap-submodule
+	url = https://github.com/ncbi/pgap.git
