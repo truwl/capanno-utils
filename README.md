@@ -8,10 +8,12 @@ or
 ```
 curl https://raw.githubusercontent.com/common-workflow-language/cwl-utils/main/cwl_utils/parser_v1_2.py > capanno_utils/classes/cwl/common_workflow_language.py
 ```
-## Add the mixins by hand
+## Add the 10 mixins by hand
 ```
-perl -p -i -e 'print "from .common_workflow_language_mixins import CommandLineToolMixin, CommandInputParameterMixin, SchemaDefRequirementMixin, CommandLineBindingMixin, CommandOutputParameterMixin\n" if $. == 1' capanno_utils/classes/cwl/common_workflow_language.py
+perl -p -i -e 'print "from .common_workflow_language_mixins import CommandLineToolMixin, CommandInputParameterMixin, SchemaDefRequirementMixin, CommandLineBindingMixin, CommandOutputParameterMixin, WorkflowMixin, InputParameterMixin, WorkflowOutputParameterMixin, WorkflowStepMixin, WorkflowStepInputMixin\n" if $. == 1' capanno_utils/classes/cwl/common_workflow_language.py
 perl -p -i -e 's/SchemaDefRequirement\(/SchemaDefRequirement(SchemaDefRequirementMixin,/;s/CommandLineBinding\(/CommandLineBinding(CommandLineBindingMixin,/;s/CommandInputParameter\(/CommandInputParameter(CommandInputParameterMixin,/;s/CommandOutputParameter\(/CommandOutputParameter(CommandOutputParameterMixin,/;s/CommandLineTool\(/CommandLineTool(CommandLineToolMixin,/' capanno_utils/classes/cwl/common_workflow_language.py
+perl -p -i -e 's/SchemaDefRequirement\(/SchemaDefRequirement(SchemaDefRequirementMixin,/;s/CommandLineBinding\(/CommandLineBinding(CommandLineBindingMixin,/;s/CommandInputParameter\(/CommandInputParameter(CommandInputParameterMixin,/;s/CommandOutputParameter\(/CommandOutputParameter(CommandOutputParameterMixin,/;s/CommandLineTool\(/CommandLineTool(CommandLineToolMixin,/' capanno_utils/classes/cwl/common_workflow_language.py
+
 ```
 
 ## Adding a tool
