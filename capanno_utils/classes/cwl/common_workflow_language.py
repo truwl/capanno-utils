@@ -10009,7 +10009,7 @@ or allowed.
     attrs = frozenset(['id', 'label', 'doc', 'inputs', 'outputs', 'requirements', 'hints', 'cwlVersion', 'intent', 'class', 'expression'])
 
 
-class WorkflowOutputParameter(OutputParameter):
+class WorkflowOutputParameter(WorkflowOutputParameterMixin,OutputParameter):
     """
 Describe an output parameter of a workflow.  The parameter must be
 connected to one or more parameters defined in the workflow that
@@ -10332,7 +10332,7 @@ class Sink(Savable):
     pass
 
 
-class WorkflowStepInput(Identified, Sink, LoadContents, Labeled):
+class WorkflowStepInput(WorkflowStepInputMixin,Identified, Sink, LoadContents, Labeled):
     """
 The input of a workflow step connects an upstream parameter (from the
 workflow inputs, or the outputs of other workflows steps) with the input
