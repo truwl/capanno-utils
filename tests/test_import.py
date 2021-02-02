@@ -28,5 +28,5 @@ class TestImport(unittest.TestCase):
         assert(lancetres['docker']=='truwl/lancet:latest')
 
     def test_import(self):
-        mybio = bioCwl()
+        mybio = bioCwl(path="bio-cwl-tools-submodule")
         allres=mybio.getCwlInfos()
