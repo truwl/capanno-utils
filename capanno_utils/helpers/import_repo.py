@@ -24,7 +24,7 @@ from capanno_utils.classes.cwl.common_workflow_language import load_document
 
 logging.basicConfig(stream=sys.stderr)
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 
 
 class repoImporter(object):
@@ -80,7 +80,7 @@ class bioCwl(repoImporter):
     def __init__(
             self,
             *,
-            path: str = "bio-cwl-tools-submodule",
+            path: str,
             denylist: Optional[list] = ['pca','util','graph-genome-segmentation', 'prefetch_fastq.cwl']
             #pca is half-baked, util is just rename, ggs has a Dockerfile but no image, prefetch_fastq.cwl is a workflow
     ) -> None:
@@ -105,7 +105,9 @@ class bioCwl(repoImporter):
         versions_reported = []
         dockers_reported = []
         biotools_reported = []
-        for subtoolcwl in glob.glob(self.path+"/"+tool+'/*cwl'):
+        searchterm=self.path+"/"+tool+'/*cwl'
+        for subtoolcwl in glob.glob(searchterm):
+            logger.info("subtoolcwl: {}".format(subtoolcwl))
             if os.path.basename(subtoolcwl) not in self.denylist:
                 logger.info("\tsub:{}".format(os.path.basename(subtoolcwl)))
                 subtooldict=self.getCwlInfo(tool,str(os.path.basename(subtoolcwl)))
@@ -224,6 +226,8 @@ class bioCwl(repoImporter):
                             except KeyError as e:
                                 logger.debug("keyerror:{}".format(e))
                     elif hintkey == 'SoftwareRequirement':
+                        if not tool in result['hints']['SoftwareRequirement']['packages']:
+                            raise ValueError("Check that the packages block of your hints in cwl actually uses {} as key".format(tool))
                         sftreq = result['hints']['SoftwareRequirement']['packages'][tool]
                     elif hintkey == 'DockerRequirement':
                         # see picard_AddOrReplaceReadGroups
