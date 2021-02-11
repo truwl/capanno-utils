@@ -8,7 +8,7 @@ or
 ```
 curl https://raw.githubusercontent.com/common-workflow-language/cwl-utils/main/cwl_utils/parser_v1_2.py > capanno_utils/classes/cwl/common_workflow_language.py
 ```
-## Add the mixins by hand
+## Add the 10 mixins by hand
 ```
 perl -p -i -e 'print "from capanno_utils.classes.cwl.common_workflow_language_mixins import CommandLineToolMixin, \\
 CommandInputParameterMixin, SchemaDefRequirementMixin, CommandLineBindingMixin, \\
@@ -26,16 +26,6 @@ perl -p -i -e 's/SchemaDefRequirement\(/SchemaDefRequirement(SchemaDefRequiremen
                s/class WorkflowStep\(/class WorkflowStep(WorkflowStepMixin,/; \
                s/class WorkflowStepInput\(/class WorkflowStepInput(WorkflowStepInputMixin,/;' capanno_utils/classes/cwl/common_workflow_language.py
 ```
-
-
-
-
-
-WorkflowMixin
-InputParameterMixin
-WorkflowOutputParameterMixin
-WorkflowStepMixin
-WorkflowStepInputMixin
 
 ## Adding a tool
 Usage:
