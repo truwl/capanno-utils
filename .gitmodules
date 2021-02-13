@@ -3,4 +3,11 @@
 	url = https://github.com/common-workflow-library/bio-cwl-tools.git
 [submodule "cwl-ngs-workflows-cbb"]
 	path = cwl-ngs-workflows-cbb
-	url = https://github.com/ncbi/cwl-ngs-workflows-cbb.git
+	url = git@github.com:leipzig/cwl-ngs-workflows-cbb.git
+
+[submodule "ebi-metagenomics-cwl"]
+	path = ebi-metagenomics-cwl
+	url = git@github.com:truwl/ebi-metagenomics-cwl.git
+[submodule "d3b-research-workflows"]
+	path = d3b-research-workflows
+	url = https://github.com/d3b-center/d3b-research-workflows
