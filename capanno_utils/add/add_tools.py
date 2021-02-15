@@ -8,6 +8,7 @@ from capanno_utils.classes.schema_salad.schema_salad import InputsSchema
 from capanno_utils.content_maps import make_tools_index
 from capanno_utils.helpers.get_paths import *
 import logging, sys
+import hashlib
 
 logging.basicConfig(stream=sys.stderr)
 logger = logging.getLogger(__name__)
@@ -91,7 +92,7 @@ def add_subtool(tool_name, tool_version, subtool_name, root_repo_path=Path.cwd()
                 parent_meta.featureList.append(subtool_name)
         parent_meta.mk_file(base_dir=root_repo_path, update_index=False)  # Remake the file. Needs to be remade if updated. Identifier will already be in index. No place to update the identifier in this function.
     if not isinstance(init_cwl, bool):  # initialized from a url.
-        subtool_kwargs['extra'] = {'cwlDocument': {'isBasedOn': init_cwl, 'dateCreated': str(date.today())}}
+        subtool_kwargs['extra'] = {'cwlDocument': {'isBasedOn': init_cwl, 'dateCreated': str(date.today()), 'sha1': get_sha1_from_file(init_cwl)}}
     subtool_meta = parent_meta.make_subtool_metadata(subtool_name, root_repo_path=root_repo_path, check_index=True, **subtool_kwargs)
     subtool_meta.mk_file()
     instances_dir = subtool_dir / 'instances'
@@ -101,6 +102,18 @@ def add_subtool(tool_name, tool_version, subtool_name, root_repo_path=Path.cwd()
     initialize_command_line_tool_file_tool(tool_name, tool_version, subtool_name, init_cwl=init_cwl, base_dir=root_repo_path)
     return
 
+def get_sha1_from_file(path):
+    #https: // stackoverflow.com / a / 22058673 / 264696
+    BUF_SIZE = 65536  # lets read stuff in 64kb chunks!
+    sha1 = hashlib.sha1()
+
+    with open(path, 'rb') as f:
+        while True:
+            data = f.read(BUF_SIZE)
+            if not data:
+                break
+            sha1.update(data)
+    return sha1.hexdigest()
 
 def add_tool_instance(tool_name, tool_version, subtool_name, init_job_file=True, root_repo_path=Path.cwd()):
     subtool_path = get_tool_metadata(tool_name, tool_version, subtool_name, base_dir=root_repo_path)
