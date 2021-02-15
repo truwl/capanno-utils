@@ -25,3 +25,6 @@
 [submodule "EBI-Elixir"]
 	path = EBI-Elixir
 	url = git@github.com:truwl/EBI-Elixir.git
+[submodule "VIRTUS"]
+	path = VIRTUS
+	url = git@github.com:truwl/VIRTUS.git
