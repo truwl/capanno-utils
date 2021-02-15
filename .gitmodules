@@ -28,3 +28,6 @@
 [submodule "VIRTUS"]
 	path = VIRTUS
 	url = git@github.com:truwl/VIRTUS.git
+[submodule "h3abionet16S"]
+	path = h3abionet16S
+	url = git@github.com:truwl/h3abionet16S
