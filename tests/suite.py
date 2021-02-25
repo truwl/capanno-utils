@@ -6,6 +6,7 @@ from unittest import defaultTestLoader, TestSuite
 from tests.test_add_content import TestAddToolMain, TestAddScriptMain
 from tests.test_add_tool import TestAddTool
 from tests.test_add_tool_instance import TestAddToolInstance
+from tests.test_add_workflows import TestAddWorkflow
 from tests.test_dict_tools import TestDictTools
 from tests.test_dump_cwl import TestDumpCwlTool
 from tests.test_input_templates import TestMakeCommandLineToolInputsTemplate
@@ -25,7 +26,8 @@ from tests.test_validate_tool_inputs import TestValidateInputs
 def suite_full():
     suite = TestSuite()
     suite.addTest(suite_add_content())
-    suite.addTest((suite_add_tool()))
+    suite.addTest(suite_add_tool())
+    suite.addTest(suite_add_workflow())
     suite.addTest(suite_add_tool_instance())
     suite.addTest(suite_content_maps())
     suite.addTest(suite_dict_tools()),
@@ -58,6 +60,9 @@ def suite_add_tool_instance():
     suite = defaultTestLoader.loadTestsFromTestCase(TestAddToolInstance)
     return suite
 
+def suite_add_workflow():
+    suite = defaultTestLoader.loadTestsFromTestCase(TestAddWorkflow)
+    return suite
 
 def suite_content_maps():
     suite = defaultTestLoader.loadTestsFromTestCase(TestToolMaps)
@@ -134,6 +139,7 @@ def suite_workflow_metadata():
 def suite_dict():
     suite_dict = {'add_content': suite_add_content(),
                   'add_tool': suite_add_tool(),
+                  'add_workflow': suite_add_workflow(),
                   'add_tool_instance': suite_add_tool_instance(),
                   'content_maps': suite_content_maps(),
                   'dict_tools': suite_dict_tools(),
