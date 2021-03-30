@@ -43,8 +43,8 @@ class TestGetTypesFromPath(TestBase):
         common_tool_type_tuple = get_types_from_path(common_metadata_path)
         self.assertEqual(common_tool_type_tuple, ('tool', 'common_metadata'))
 
-        tool_cwl_path = get_tool_sources(tool_name, tool_version, subtool_name)
-        cwl_tool_type_tuple = get_types_from_path(tool_cwl_path)
+        tool_sources = get_tool_sources(tool_name, tool_version, subtool_name)
+        cwl_tool_type_tuple = get_types_from_path(tool_sources['cwl'])
         self.assertEqual(cwl_tool_type_tuple, ('tool', 'cwl'))
 
         tool_metadata_path = get_tool_metadata(tool_name, tool_version)

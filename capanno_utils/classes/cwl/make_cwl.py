@@ -53,13 +53,13 @@ def initialize_command_line_tool_file_tool(tool_name, version_name, subtool_name
     if init_cwl == False:
         pass
     else:
-        cwl_tool_path = get_tool_sources(tool_name, version_name, subtool_name=subtool_name, base_dir=base_dir)
+        tool_sources = get_tool_sources(tool_name, version_name, subtool_name=subtool_name, base_dir=base_dir)
         if init_cwl == True:
             base_command = f"{tool_name} {subtool_name}" if subtool_name != main_tool_subtool_name else tool_name
-            _initialize_command_line_tool_file_yaml(base_command, cwl_tool_path)
+            _initialize_command_line_tool_file_yaml(base_command, tool_sources['cwl'])
         else:
             assert isinstance(init_cwl, str)  # expect this to be a url.
-            _initialize_command_line_tool_from_url(init_cwl, cwl_tool_path)
+            _initialize_command_line_tool_from_url(init_cwl, tool_sources['cwl'])
     return
 
 def initialize_command_line_tool_file_script(group_name, project_name, script_version, script_name, base_dir):

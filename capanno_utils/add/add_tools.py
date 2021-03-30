@@ -110,8 +110,8 @@ def add_tool_instance(tool_name, tool_version, subtool_name, init_job_file=True,
     input_hash = instance_meta.identifier[-4:]
     job_file_path = None
     if init_job_file:
-        tool_cwl_path = get_tool_sources(tool_name, tool_version, subtool_name, base_dir=root_repo_path)
+        tool_sources = get_tool_sources(tool_name, tool_version, subtool_name, base_dir=root_repo_path)
         job_file_path = get_tool_instance_path(tool_name, tool_version, input_hash=input_hash, subtool_name=subtool_name, base_dir=root_repo_path)
-        tool_inputs_schema = InputsSchema(tool_cwl_path)
+        tool_inputs_schema = InputsSchema(tool_sources['cwl'])
         tool_inputs_schema.make_template_file(job_file_path)
     return instance_metadata_path, job_file_path

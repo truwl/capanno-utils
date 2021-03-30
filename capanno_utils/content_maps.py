@@ -96,17 +96,19 @@ def make_tool_version_dir_map(tool_name, tool_version, base_dir=None):
 
 
 def make_subtool_map(tool_name, tool_version, subtool_name, base_dir=None):
-    subtool_cwl_path = get_tool_sources(tool_name, tool_version, subtool_name=subtool_name, base_dir=base_dir)
-    subtool_rel_path = get_relative_path(subtool_cwl_path, base_path=base_dir)
+    tool_sources = get_tool_sources(tool_name, tool_version, subtool_name=subtool_name, base_dir=base_dir)
+    sourcePaths = {}
+    for sourcetype in tool_sources:
+        sourcePaths[sourcetype] = str(get_relative_path(tool_sources[sourcetype], base_path=base_dir))
     subtool_metadata_path = get_tool_metadata(tool_name, tool_version, subtool_name=subtool_name, parent=False,
                                               base_dir=base_dir)
     subtool_metadata = SubtoolMetadata.load_from_file(subtool_metadata_path, check_index=False)
     subdir_map = {}
-    subdir_map[subtool_metadata.identifier] = {'path': str(subtool_rel_path), 'name': subtool_metadata.name,
+    # TODO: cwlStatus->sourceStatus
+    subdir_map[subtool_metadata.identifier] = {'sourcePaths': sourcePaths, 'name': subtool_metadata.name,
                                                'metadataStatus': subtool_metadata.metadataStatus,
                                                'cwlStatus': subtool_metadata.cwlStatus, 'type': 'subtool'}
     return subdir_map
-
 
 def make_tool_common_dir_map(tool_name, tool_version, base_dir):
     common_metadata_path = get_tool_common_dir(tool_name, tool_version, base_dir=base_dir) / common_tool_metadata_name

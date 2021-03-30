@@ -13,8 +13,8 @@ class TestMakeCommandLineToolInputsTemplate(TestBase):
         tool_name = 'STAR'
         version_name = '2.5'
         subtool_name = 'alignReads'
-        cwl_tool = get_tool_sources(tool_name, version_name, subtool_name, base_dir=self.test_content_dir)
-        inputs_schema = InputsSchema(cwl_tool)
+        tool_sources = get_tool_sources(tool_name, version_name, subtool_name, base_dir=self.test_content_dir)
+        inputs_schema = InputsSchema(tool_sources['cwl'])
         template = inputs_schema.make_template()
         yaml = YAML()
         with NamedTemporaryFile(delete=True, prefix=f"{tool_name + subtool_name + version_name}template_", suffix='.yml') as tmp:
