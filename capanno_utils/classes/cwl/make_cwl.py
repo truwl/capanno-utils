@@ -4,7 +4,7 @@ from urllib import request
 import requests
 from ruamel.yaml import YAML, tokens, error
 from ruamel.yaml.comments import CommentedMap
-from capanno_utils.helpers.get_paths import get_cwl_tool, get_cwl_script, main_tool_subtool_name
+from capanno_utils.helpers.get_paths import get_tool_sources, get_cwl_script, main_tool_subtool_name
 from capanno_utils.classes.cwl.common_workflow_language import load_document
 import logging, sys
 
@@ -53,7 +53,7 @@ def initialize_command_line_tool_file_tool(tool_name, version_name, subtool_name
     if init_cwl == False:
         pass
     else:
-        cwl_tool_path = get_cwl_tool(tool_name, version_name, subtool_name=subtool_name, base_dir=base_dir)
+        cwl_tool_path = get_tool_sources(tool_name, version_name, subtool_name=subtool_name, base_dir=base_dir)
         if init_cwl == True:
             base_command = f"{tool_name} {subtool_name}" if subtool_name != main_tool_subtool_name else tool_name
             _initialize_command_line_tool_file_yaml(base_command, cwl_tool_path)

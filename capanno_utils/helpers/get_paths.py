@@ -1,6 +1,7 @@
 import os
 import re
 from pathlib import Path
+from typing import List, Set, Dict, Tuple, Optional
 
 from capanno_utils.repo_config import *
 
@@ -71,15 +72,17 @@ def get_tool_dir(tool_name, tool_version, subtool_name=None, base_dir=None):
     return tool_dir
 
 
-def get_cwl_tool(tool_name, tool_version, subtool_name=None, base_dir=None):
+def get_tool_sources(tool_name, tool_version, subtool_name=None, base_dir=None) -> Dict[str]:
     """Return cwl file for tool. If subtool_name not specfied, return main tool."""
-    if not subtool_name or subtool_name == main_tool_subtool_name:
-        tool_dir = get_tool_dir(tool_name, tool_version, subtool_name=main_tool_subtool_name, base_dir=base_dir)
-        cwl_tool_path = tool_dir / f"{tool_name}.cwl"
-    else:
-        tool_dir = get_tool_dir(tool_name, tool_version, subtool_name, base_dir=base_dir)
-        cwl_tool_path = tool_dir / f"{tool_name}-{subtool_name}.cwl"
-    return cwl_tool_path
+    tool_path_dict = {}
+    for sourceType in ['cwl','wdl','sm','nf']:
+        if not subtool_name or subtool_name == main_tool_subtool_name:
+            tool_dir = get_tool_dir(tool_name, tool_version, subtool_name=main_tool_subtool_name, base_dir=base_dir)
+            tool_path_dict[sourceType] = tool_dir / f"{tool_name}.{sourceType}"
+        else:
+            tool_dir = get_tool_dir(tool_name, tool_version, subtool_name, base_dir=base_dir)
+            tool_path_dict[sourceType] = tool_dir / f"{tool_name}-{subtool_name}.{sourceType}"
+    return tool_path_dict
 
 
 def get_tool_common_dir(tool_name, tool_version, base_dir=None):
