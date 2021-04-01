@@ -72,7 +72,7 @@ def get_tool_dir(tool_name, tool_version, subtool_name=None, base_dir=None):
     return tool_dir
 
 
-def get_tool_sources(tool_name, tool_version, subtool_name=None, base_dir=None) -> Dict[str]:
+def get_tool_sources(tool_name, tool_version, subtool_name=None, base_dir=None) -> Dict[str,str]:
     """Return cwl file for tool. If subtool_name not specfied, return main tool."""
     tool_path_dict = {}
     for sourceType in ['cwl','wdl','sm','nf']:

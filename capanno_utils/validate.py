@@ -42,7 +42,7 @@ def validate_tool_content_from_map(tool_map_dict, base_dir=None):
     if base_dir is None:
         base_dir = get_base_dir()
     for identifier, values in tool_map_dict.items():
-        tool_path = base_dir / values['path']
+        tool_path = base_dir / values['sourcePaths']['cwl']
         tool_type = values['type']
 
         if tool_type == 'parent':  # could now also get type directly from path.

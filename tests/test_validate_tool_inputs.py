@@ -26,7 +26,6 @@ class TestValidateInputs(TestBase):
         subtool = 'flagstat'
         instance_hash = '395d'
         tool_sources = get_tool_sources(tool_name, tool_version, subtool_name=subtool, base_dir=self.test_content_dir)
-        tool_sources = tool_sources['cwl']
         instance_path = get_tool_instance_path(tool_name, tool_version, instance_hash, subtool_name=subtool, base_dir=self.test_content_dir)
         validate_inputs_for_instance(instance_path, tool_sources['cwl'])
         return
