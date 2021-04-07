@@ -42,22 +42,20 @@ def validate_tool_content_from_map(tool_map_dict, base_dir=None):
     if base_dir is None:
         base_dir = get_base_dir()
     for identifier, values in tool_map_dict.items():
-        tool_path = base_dir / values['sourcePaths']['cwl']
+        metadata_path = base_dir / values['metadataPath']
         tool_type = values['type']
 
         if tool_type == 'parent':  # could now also get type directly from path.
-            if not 'common' in tool_path.parts:
+            if not 'common' in metadata_path.parts:
                 raise ValueError(f"")
-            validate_parent_tool_metadata(tool_path)
+            validate_parent_tool_metadata(metadata_path)
         else:  # is a subtool
-            cwl_status = values['cwlStatus']
-            metadata_path = get_metadata_path(tool_path)
             validate_subtool_metadata(metadata_path)
-
+            cwl_status = values['cwlStatus']
             if cwl_status in ('Draft', 'Released'):
-                validate_cwl_doc(tool_path)
+                validate_cwl_doc(metadata_path)
 
-                validate_all_inputs_for_tool(tool_path)
+                validate_all_inputs_for_tool(metadata_path)
     return
 
 

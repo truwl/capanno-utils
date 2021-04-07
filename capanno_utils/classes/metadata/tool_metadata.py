@@ -216,6 +216,9 @@ class SubtoolMetadata(CommonPropsMixin, ToolMetadataBase):
             ('_in_index', False),  # Only used if check_index is True. Will be set to False (default) in __init__
             ('metadataStatus', 'Incomplete'),
             ('cwlStatus', 'Incomplete'),
+            ('nextflowStatus', 'Incomplete'),
+            ('snakemakeStatus', 'Incomplete'),
+            ('wdlStatus', 'Incomplete'),
             ('version', '0.1'),
             ('root_repo_path', None),  # These need to be set before identifier.
             ('tool_identifiers', None),

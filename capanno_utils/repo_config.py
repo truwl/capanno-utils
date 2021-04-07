@@ -37,11 +37,11 @@ instances_dir_name = 'instances'
 
 content_repo_name = 'capanno'
 
-tools_dir_name = 'cwl-tools'
+tools_dir_name = 'tools'
 
-scripts_dir_name = 'cwl-scripts'
+scripts_dir_name = 'scripts'
 
-workflows_dir_name = 'cwl-workflows'
+workflows_dir_name = 'workflows'
 
 tool_identifier_prefix = 'TL'
 
@@ -66,7 +66,7 @@ def make_config_dict(base_path):
     config_dict = {
         'base_path': base_path,
         'content_maps_dir': base_path / content_maps_dir_name,
-        'temp_dir': tempfile.TemporaryDirectory(prefix='cwlTest_'),
+        'temp_dir': tempfile.TemporaryDirectory(prefix=f"{content_repo_name}_Test_"),
     }
     return config_dict
 

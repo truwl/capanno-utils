@@ -15,7 +15,7 @@ def get_parser():
     parser.add_argument('path', type=Path,
                         help='Provide the path to validate. If a directory is specified, all content in the directory will be validated. If a file is specified, only that file will be validated.')
     parser.add_argument('-p', '--root-repo-path', dest='root_path', type=Path, default=Path.cwd(),
-                        help="Specify the root path of your cwl content repo if it is not the current working directory.")
+                        help="Specify the root path of your content repo if it is not the current working directory.")
     parser.add_argument('-q', '--quiet', dest='quiet', action='store_true', help="Silence messages to stdout")
 
     return parser

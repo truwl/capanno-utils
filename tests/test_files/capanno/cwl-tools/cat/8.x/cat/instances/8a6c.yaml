@@ -1,7 +1,0 @@
-inFiles:
-  - class: File
-    path: samtools-viewOut1.txt
-  - class: File
-    path: trOutput.txt
-
-outputName: outCat.txt

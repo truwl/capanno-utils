@@ -73,7 +73,7 @@ def get_tool_dir(tool_name, tool_version, subtool_name=None, base_dir=None):
 
 
 def get_tool_sources(tool_name, tool_version, subtool_name=None, base_dir=None) -> Dict[str,str]:
-    """Return cwl file for tool. If subtool_name not specfied, return main tool."""
+    """Return path dict for cwl, wdl, sm, and nf files. If subtool_name not specfied, return path dict for main tool."""
     tool_path_dict = {}
     for sourceType in ['cwl','wdl','sm','nf']:
         if not subtool_name or subtool_name == main_tool_subtool_name:
