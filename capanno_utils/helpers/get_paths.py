@@ -84,6 +84,26 @@ def get_tool_sources(tool_name, tool_version, subtool_name=None, base_dir=None) 
             tool_path_dict[sourceType] = tool_dir / f"{tool_name}-{subtool_name}.{sourceType}"
     return tool_path_dict
 
+def get_tool_sources_from_metadata_path(metadata_path, base_dir=None):
+    """
+    Return the path dict for cwl, wdl, sm, and nf files from a metadata file path.
+    """
+    tool_path_dict = {}
+    metadata_path = Path(metadata_path)
+    metadata_name = metadata_path.name
+    if not metadata_file_pattern.match(metadata_name):
+        raise ValueError(f"{metadata_path} is not a metadata file or is named incorrectly.")
+    if metadata_path.is_absolute():
+        pass
+    else:
+       raise NotImplementedError
+    source_path_dir = metadata_path.parent
+    source_path_root_name = re.sub(r'-metadata\.ya?ml', '', metadata_name)
+    for source_type in ['cwl', 'wdl', 'sm', 'nf']:
+        tool_path_dict[source_type] = source_path_dir / f"{source_path_root_name}.{source_type}"
+    return tool_path_dict
+
+
 
 def get_tool_common_dir(tool_name, tool_version, base_dir=None):
     version_dir = get_tool_version_dir(tool_name, tool_version, base_dir=base_dir)
@@ -383,7 +403,7 @@ def check_common_metadata_file_name(file_path, method_type):
         if not file_path.name == common_tool_metadata_name:
             raise ValueError(f"common metadadata files for tools must be named '{common_tool_metadata_name}'")
     elif method_type == 'script':
-        if not script_common_metadata_file_pattern.match(file_path.name):
+        if not metadata_file_pattern.match(file_path.name):
             raise ValueError(f"common metadadata files for scripts must be named")
     return
 

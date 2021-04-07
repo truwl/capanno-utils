@@ -9,7 +9,7 @@ from capanno_utils.classes.metadata.workflow_metadata import WorkflowMetadata
 from .content_maps import make_tools_map, make_main_tool_map, make_tool_version_dir_map, make_tool_common_dir_map, \
     make_subtool_map, make_script_maps, make_group_script_map, make_project_script_map, make_script_version_map, \
     make_script_map, make_workflow_maps
-from .helpers.get_paths import get_metadata_path, get_base_dir
+from .helpers.get_paths import get_metadata_path, get_base_dir, get_tool_sources_from_metadata_path
 from .helpers.validate_cwl import validate_cwl_doc
 from .validate_inputs import validate_all_inputs_for_tool
 
@@ -51,11 +51,11 @@ def validate_tool_content_from_map(tool_map_dict, base_dir=None):
             validate_parent_tool_metadata(metadata_path)
         else:  # is a subtool
             validate_subtool_metadata(metadata_path)
+            source_paths = get_tool_sources_from_metadata_path(metadata_path)
             cwl_status = values['cwlStatus']
             if cwl_status in ('Draft', 'Released'):
-                validate_cwl_doc(metadata_path)
-
-                validate_all_inputs_for_tool(metadata_path)
+                validate_cwl_doc(source_paths['cwl'])
+                validate_all_inputs_for_tool(source_paths['cwl'])
     return
 
 

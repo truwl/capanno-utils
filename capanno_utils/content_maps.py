@@ -117,7 +117,7 @@ def make_tool_common_dir_map(tool_name, tool_version, base_dir):
     common_metadata_path = get_tool_common_dir(tool_name, tool_version, base_dir=base_dir) / common_tool_metadata_name
     common_metadata = ParentToolMetadata.load_from_file(common_metadata_path, check_index=False)
     common_dir_map = {}
-    common_dir_map[common_metadata.identifier] = {'path': str(common_metadata_path),
+    common_dir_map[common_metadata.identifier] = {'metadataPath': str(common_metadata_path),
                                                   'metadataStatus': common_metadata.metadataStatus,
                                                   'name': common_metadata.name,
                                                   'versionName': common_metadata.softwareVersion.versionName,
