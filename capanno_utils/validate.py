@@ -8,7 +8,7 @@ from capanno_utils.classes.metadata.script_metadata import ScriptMetadata, Commo
 from capanno_utils.classes.metadata.workflow_metadata import WorkflowMetadata
 from .content_maps import make_tools_map, make_main_tool_map, make_tool_version_dir_map, make_tool_common_dir_map, \
     make_subtool_map, make_script_maps, make_group_script_map, make_project_script_map, make_script_version_map, \
-    make_script_map, make_workflow_maps
+    make_script_map, make_workflow_maps, make_tools_map_dict
 from .helpers.get_paths import get_metadata_path, get_base_dir, get_tool_sources_from_metadata_path
 from .helpers.validate_cwl import validate_cwl_doc
 from .validate_inputs import validate_all_inputs_for_tool
@@ -61,14 +61,11 @@ def validate_tool_content_from_map(tool_map_dict, base_dir=None):
 
 def validate_tools_dir(base_dir=None):
     """
-    Validate all cwl files, metadata files, instances and instance metadata in a cwl-tools directory
+    Validate all cwl files, metadata files, instances and instance metadata in a tools directory
     :return:
     """
-    tool_map_temp_file = tempfile.NamedTemporaryFile(prefix='tools_map', suffix='.yaml',
-                                                     delete=True)  # Change to False if file doesn't persist long enough.
-    make_tools_map(tool_map_temp_file.name, base_dir=base_dir)
-    with tool_map_temp_file as tool_map:
-        tool_map_dict = safe_load(tool_map)
+
+    tool_map_dict = make_tools_map_dict(base_dir=base_dir)
     validate_tool_content_from_map(tool_map_dict, base_dir)
 
     return
@@ -89,7 +86,7 @@ def validate_tool_version_dir(tool_name, tool_version, base_dir=None):
     return
 
 
-def validate_tool_comomon_dir(tool_name, tool_version, base_dir=None):
+def validate_tool_common_dir(tool_name, tool_version, base_dir=None):
     common_tool_map = make_tool_common_dir_map(tool_name, tool_version, base_dir=base_dir)
     validate_tool_content_from_map(common_tool_map, base_dir=base_dir)
     return

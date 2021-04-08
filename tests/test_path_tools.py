@@ -95,28 +95,28 @@ class TestGetTypesFromPath(TestBase):
         cwl_root_repo_name = self.test_content_dir.stem
 
         root_tools_dir = get_root_tools_dir()
-        root_tools_dir_type_tuple = get_types_from_path(root_tools_dir, cwl_root_repo_name=cwl_root_repo_name)
+        root_tools_dir_type_tuple = get_types_from_path(root_tools_dir, root_repo_name=cwl_root_repo_name)
         self.assertEqual(root_tools_dir_type_tuple, ('tool', 'base_dir'))
 
 
         tool_dir = get_main_tool_dir(tool_name)
-        tool_dir_type_tuple = get_types_from_path(tool_dir, cwl_root_repo_name=cwl_root_repo_name)
+        tool_dir_type_tuple = get_types_from_path(tool_dir, root_repo_name=cwl_root_repo_name)
         self.assertEqual(tool_dir_type_tuple, ('tool', 'tool_dir'))
 
         tool_version_dir = get_tool_version_dir(tool_name, tool_version)
-        tool_version_dir_type_tuple = get_types_from_path(tool_version_dir, cwl_root_repo_name=cwl_root_repo_name)
+        tool_version_dir_type_tuple = get_types_from_path(tool_version_dir, root_repo_name=cwl_root_repo_name)
         self.assertEqual(tool_version_dir_type_tuple, ('tool', 'version_dir'))
 
         tool_common_dir = get_tool_common_dir(tool_name, tool_version)
-        tool_common_dir_type_tuple = get_types_from_path(tool_common_dir, cwl_root_repo_name=cwl_root_repo_name)
+        tool_common_dir_type_tuple = get_types_from_path(tool_common_dir, root_repo_name=cwl_root_repo_name)
         self.assertEqual(tool_common_dir_type_tuple, ('tool', 'common_dir'))
 
         subtool_dir = get_tool_dir(tool_name, tool_version)
-        subtool_dir_type_tuple = get_types_from_path(subtool_dir, cwl_root_repo_name=cwl_root_repo_name)
+        subtool_dir_type_tuple = get_types_from_path(subtool_dir, root_repo_name=cwl_root_repo_name)
         self.assertEqual(subtool_dir_type_tuple, ('tool', 'subtool_dir'))
 
         tool_instance_dir = get_tool_instances_dir(tool_name, tool_version)
-        tool_instance_dir_type_tuple = get_types_from_path(tool_instance_dir, cwl_root_repo_name=cwl_root_repo_name)
+        tool_instance_dir_type_tuple = get_types_from_path(tool_instance_dir, root_repo_name=cwl_root_repo_name)
         self.assertEqual(tool_instance_dir_type_tuple, ('tool', 'instance_dir'))
         return
 
@@ -129,27 +129,27 @@ class TestGetTypesFromPath(TestBase):
         cwl_root_repo_name = self.test_content_dir.stem
 
         root_scripts_dir = get_root_scripts_dir()
-        root_scripts_dir_tuple_type = get_types_from_path(root_scripts_dir, cwl_root_repo_name=cwl_root_repo_name)
+        root_scripts_dir_tuple_type = get_types_from_path(root_scripts_dir, root_repo_name=cwl_root_repo_name)
         self.assertEqual(root_scripts_dir_tuple_type, ('script', 'base_dir'))
 
         script_group_dir = get_script_group_dir(group_name)
-        script_group_dir_type_tuple = get_types_from_path(script_group_dir, cwl_root_repo_name=cwl_root_repo_name)
+        script_group_dir_type_tuple = get_types_from_path(script_group_dir, root_repo_name=cwl_root_repo_name)
         self.assertEqual(script_group_dir_type_tuple, ('script', 'group_dir'))
 
         script_project_dir = get_script_project_dir(group_name, project_name)
-        script_project_dir_type_tuple = get_types_from_path(script_project_dir, cwl_root_repo_name=cwl_root_repo_name)
+        script_project_dir_type_tuple = get_types_from_path(script_project_dir, root_repo_name=cwl_root_repo_name)
         self.assertEqual(script_project_dir_type_tuple, ('script', 'project_dir'))
 
         script_version_dir = get_script_version_dir(group_name, project_name, script_version)
-        script_version_type_tuple = get_types_from_path(script_version_dir, cwl_root_repo_name=cwl_root_repo_name)
+        script_version_type_tuple = get_types_from_path(script_version_dir, root_repo_name=cwl_root_repo_name)
         self.assertEqual(script_version_type_tuple, ('script', 'version_dir'))
 
         script_dir = get_script_dir(group_name, project_name, script_version, script_name)
-        script_dir_type_tuple = get_types_from_path(script_dir, cwl_root_repo_name=cwl_root_repo_name)
+        script_dir_type_tuple = get_types_from_path(script_dir, root_repo_name=cwl_root_repo_name)
         self.assertEqual(script_dir_type_tuple, ('script', 'script_dir'))
 
         script_instance_dir = get_script_instance_dir(group_name, project_name, script_version, script_name)
-        script_instance_dir_tuple = get_types_from_path(script_instance_dir, cwl_root_repo_name=cwl_root_repo_name)
+        script_instance_dir_tuple = get_types_from_path(script_instance_dir, root_repo_name=cwl_root_repo_name)
         self.assertEqual(script_instance_dir_tuple, ('script', 'instance_dir'))
 
 

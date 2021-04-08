@@ -14,6 +14,7 @@ from tests.test_tool_instance_metadata import TestMakeToolInstanceMetadata
 from tests.test_tool_metadata import TestMakeParentToolMetadata, TestMakeSubtoolMetadata
 from tests.test_script_metadata import TestScriptMetadata
 from tests.test_content_maps import TestToolMaps
+from tests.test_modify_yaml_files import TestModifyYamlFiles
 from tests.test_path_tools import TestGetTypesFromPath
 from tests.test_workflow_metadata import TestWorkflowMetadata
 from tests.test_validate import TestValidateMetadata
@@ -83,6 +84,9 @@ def suite_input_templates():
     suite = defaultTestLoader.loadTestsFromTestCase(TestMakeCommandLineToolInputsTemplate)
     return suite
 
+def suite_modify_yaml_files():
+    suite = defaultTestLoader.loadTestsFromTestCase(TestModifyYamlFiles)
+    return suite
 
 def suite_path_tools():
     suite = defaultTestLoader.loadTestsFromTestCase(TestGetTypesFromPath)
@@ -146,6 +150,7 @@ def suite_dict():
                   'dump_cwl': suite_dump_cwl(),
                   'full': suite_full(),
                   'input_templates': suite_input_templates(),
+                  'modify_yaml': suite_modify_yaml_files(),
                   'path_tools': suite_path_tools(),
                   'script_metadata': suite_script_metadata(),
                   'tool_instance_metadata': suite_tool_instance_metadata(),

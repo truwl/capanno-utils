@@ -34,7 +34,7 @@ def main(argsl=None):
     else:
         full_path = args.root_path / args.path
 
-    base_type, specific_type = get_types_from_path(full_path, cwl_root_repo_name=args.root_path.name,
+    base_type, specific_type = get_types_from_path(full_path, root_repo_name=args.root_path.name,
                                                    base_path=args.root_path)
 
     if not args.quiet:
@@ -63,7 +63,7 @@ def main(argsl=None):
             validate_tool_version_dir(tool_name, version_name, base_dir=args.root_path)
         elif specific_type == 'common_dir':
             tool_name, version_name = full_path.parts[-3:-1]
-            validate_tool_comomon_dir(tool_name, version_name, base_dir=args.root_path)
+            validate_tool_common_dir(tool_name, version_name, base_dir=args.root_path)
         elif specific_type == 'subtool_dir':
             path_parts = full_path.parts
             tool_name, version_name = path_parts[-3:-1]
