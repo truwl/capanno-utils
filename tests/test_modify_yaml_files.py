@@ -32,6 +32,7 @@ class TestModifyYamlFiles(TestBase):
             assert True
         return
 
+    # @skip('')
     def test_modify_tool_metadata(self):
         update_dict = {'snakemakeStatus': 'Incomplete', 'nextflowStatus': 'Incomplete', 'wdlStatus': 'Incomplete'}
 
@@ -39,6 +40,6 @@ class TestModifyYamlFiles(TestBase):
             temp_content_dir = f"{td}/{content_repo_name}"
             copy_tree(str(self.test_content_dir), temp_content_dir)
             test_file_path = Path(temp_content_dir) / tools_dir_name
-            update_subtool_metadata_files(test_file_path, update_dict, after_key='cwlStatus')
+            update_subtool_metadata_files(test_file_path, update_dict, after_key='cwlStatus', base_dir=temp_content_dir)
             assert True
         return
