@@ -1,0 +1,22 @@
+WebSite:
+- {URL: https://www.gnu.org/software/coreutils/manual/html_node/cat-invocation.html,
+  description: null, name: GNU coreutils}
+codeRepository: {URL: https://github.com/coreutils/coreutils/blob/master/src/cat.c,
+  name: GitHub}
+creator:
+- {email: null, identifier: null, name: Torbjorn Granlund}
+- {email: null, identifier: null, name: Richard M Stallman}
+datePublished: 2016, 01, 20
+description: cat - concatenate files and print on the standard output.
+featurList: [__main__]
+identifier: TL_d077f2.47
+keywords:
+- {category: topic, name: GNU}
+license: GPL-3.0-or-later
+metadataStatus: Released
+name: cat
+programmingLanguage: [C]
+publication: []
+softwareVersion:
+  includedVersions: [8.25, 8.26, 8.27, 8.28]
+  versionName: 8.x
