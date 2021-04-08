@@ -100,6 +100,8 @@ def make_subtool_map(tool_name, tool_version, subtool_name, base_dir=None):
     sourcePaths = {}
     for sourcetype in tool_sources:
         sourcePaths[sourcetype] = str(get_relative_path(tool_sources[sourcetype], base_path=base_dir))
+    subtool_cwl_path = sourcePaths[sourcetype]['cwl']
+    subtool_rel_path = get_relative_path(subtool_cwl_path, base_path=base_dir)
     subtool_metadata_path = get_tool_metadata(tool_name, tool_version, subtool_name=subtool_name, parent=False,
                                               base_dir=base_dir)
     subtool_metadata = SubtoolMetadata.load_from_file(subtool_metadata_path, check_index=False)
