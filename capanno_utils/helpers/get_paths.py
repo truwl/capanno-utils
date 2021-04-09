@@ -113,17 +113,18 @@ def get_tool_common_dir(tool_name, tool_version, base_dir=None):
 
 def get_tool_metadata(tool_name, tool_version, subtool_name=None, parent=False, base_dir=None):
     version_dir = get_tool_version_dir(tool_name, tool_version, base_dir=base_dir)
+
     if parent:
         assert not subtool_name
-        cwl_tool_metadata_path = get_tool_common_dir(tool_name, tool_version,
+        tool_metadata_path = get_tool_common_dir(tool_name, tool_version,
                                                      base_dir=base_dir) / common_tool_metadata_name
     else:
         tool_dir = get_tool_dir(tool_name, tool_version, subtool_name, base_dir)
         if subtool_name in (None, main_tool_subtool_name):
-            cwl_tool_metadata_path = tool_dir / f"{tool_name}-metadata.yaml"
+            tool_metadata_path = tool_dir / f"{tool_name}-metadata.yaml"
         else:
-            cwl_tool_metadata_path = tool_dir / f"{tool_name}-{subtool_name}-metadata.yaml"
-    return cwl_tool_metadata_path
+            tool_metadata_path = tool_dir / f"{tool_name}-{subtool_name}-metadata.yaml"
+    return tool_metadata_path
 
 
 def get_parent_tool_relative_path_string():

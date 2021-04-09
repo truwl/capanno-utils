@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 
-from pathlib import Path
 from datetime import date
 from capanno_utils.classes.metadata.tool_metadata import ParentToolMetadata, SubtoolMetadata
-from capanno_utils.classes.cwl.make_cwl import initialize_command_line_tool_file_tool
+from capanno_utils.initialize_wf_files import initialize_tool_wf_file_tool
 from capanno_utils.classes.schema_salad.schema_salad import InputsSchema
 from capanno_utils.content_maps import make_tools_index
 from capanno_utils.helpers.get_paths import *
@@ -13,7 +12,7 @@ logging.basicConfig(stream=sys.stderr)
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
-def add_tool(tool_name, version_name, subtool_names=None, biotools_id=None, has_primary=False, root_repo_path=Path.cwd(), init_cwl=False, no_clobber=False, refresh_index=True):
+def add_tool(tool_name, version_name, subtool_names=None, biotools_id=None, has_primary=False, root_repo_path=Path.cwd(), init_cwl=False, init_wdl=False, no_clobber=False, refresh_index=True):
     """
     Make the correct directory structure for adding a new command line tool. Optionally, create initialized CWL
     and metadata files. Run from cwl-tools directory.
@@ -58,12 +57,12 @@ def add_tool(tool_name, version_name, subtool_names=None, biotools_id=None, has_
             instances_dir.mkdir()
             git_keep_file = instances_dir / '.gitkeep'
             git_keep_file.touch()
-            initialize_command_line_tool_file_tool(tool_name, version_name, subtool, init_cwl=init_cwl, base_dir=root_repo_path)
+            initialize_tool_wf_file_tool(tool_name, version_name, subtool, init_cwl=init_cwl, init_wdl=init_wdl, base_dir=root_repo_path)
     parent_metadata.mk_file(root_repo_path)
     return
 
 
-def add_subtool(tool_name, tool_version, subtool_name, root_repo_path=Path.cwd(), update_featureList=False, init_cwl=False, no_clobber=False, refresh_index=True):
+def add_subtool(tool_name, tool_version, subtool_name, root_repo_path=Path.cwd(), update_featureList=False, init_cwl=False, init_wdl=False, init_sm=False, init_nf=False, no_clobber=False, refresh_index=True):
     """
     Add subtool to already existing ToolLibrary (ParentTool file already exists)
     :param tool_name(str):
@@ -76,7 +75,7 @@ def add_subtool(tool_name, tool_version, subtool_name, root_repo_path=Path.cwd()
     """
     if refresh_index:
         make_tools_index(base_dir=root_repo_path)
-    subtool_kwargs = {}  # initialize to add any additional information about the subtool.
+    subtool_kwargs = {'extra': {}}  # initialize to add any additional information about the subtool.
     parent_path = get_tool_metadata(tool_name, tool_version, parent=True, base_dir=root_repo_path)
     parent_meta = ParentToolMetadata.load_from_file(parent_path, root_repo_path=root_repo_path, _in_index=True)  # When adding a subtool, the ParentTool should already be present and in the index.
 
@@ -91,14 +90,20 @@ def add_subtool(tool_name, tool_version, subtool_name, root_repo_path=Path.cwd()
                 parent_meta.featureList.append(subtool_name)
         parent_meta.mk_file(base_dir=root_repo_path, update_index=False)  # Remake the file. Needs to be remade if updated. Identifier will already be in index. No place to update the identifier in this function.
     if not isinstance(init_cwl, bool):  # initialized from a url.
-        subtool_kwargs['extra'] = {'cwlDocument': {'isBasedOn': init_cwl, 'dateCreated': str(date.today())}}
+        subtool_kwargs['extra'].update({'cwlDocument': {'isBasedOn': init_cwl, 'dateCreated': str(date.today())}})
+    if not isinstance(init_wdl, bool):  # initialized from a url.
+        subtool_kwargs['extra'].update({'wdlDocument': {'isBasedOn': init_wdl, 'dateCreated': str(date.today())}})
+    if not isinstance(init_sm, bool):  # initialized from a url.
+        subtool_kwargs['extra'].update({'snakemakeDocument': {'isBasedOn': init_sm, 'dateCreated': str(date.today())}})
+    if not isinstance(init_nf, bool):  # initialized from a url.
+        subtool_kwargs['extra'].update({'nextflowDocument': {'isBasedOn': init_nf, 'dateCreated': str(date.today())}})
     subtool_meta = parent_meta.make_subtool_metadata(subtool_name, root_repo_path=root_repo_path, check_index=True, **subtool_kwargs)
     subtool_meta.mk_file()
     instances_dir = subtool_dir / 'instances'
     instances_dir.mkdir()
     git_keep_file = instances_dir / '.gitkeep'
     git_keep_file.touch()
-    initialize_command_line_tool_file_tool(tool_name, tool_version, subtool_name, init_cwl=init_cwl, base_dir=root_repo_path)
+    initialize_tool_wf_file_tool(tool_name, tool_version, subtool_name, init_cwl=init_cwl, init_wdl=init_wdl, base_dir=root_repo_path)
     return
 
 

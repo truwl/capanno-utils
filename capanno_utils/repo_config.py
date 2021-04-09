@@ -21,7 +21,7 @@ instance_file_pattern = re.compile(r'[0-9a-f]{4}\.ya?ml')
 
 instance_metadata_file_pattern = re.compile(r'[0-9a-f]{4}-metadata\.ya?ml')
 
-metadata_file_pattern = re.compile(r'[0-9A-Za-z_-]+-metadata\.ya?ml')
+metadata_file_pattern = re.compile(r'[.0-9A-Za-z_-]+-metadata\.ya?ml')
 
 parent_tool_identifier_pattern = re.compile(r'TL_[0-9a-f]{6}\.[0-9a-f]{2}$')
 

@@ -38,7 +38,13 @@ def make_tools_map_dict(base_dir=None):
     tools_map = {}
 
     for tool_dir in tools_dir.iterdir():
+        if tool_dir.name == '.DS_Store':
+            continue
+        assert tool_dir.is_dir()
         for version_dir in tool_dir.iterdir():
+            if version_dir.name == '.DS_Store':
+                continue
+            assert version_dir.is_dir()
             tool_map = make_tool_version_dir_map(tool_dir.name, version_dir.name, base_dir=base_dir)
             no_clobber_update(tools_map, tool_map)
     return tools_map
@@ -73,8 +79,6 @@ def make_tool_version_dir_map(tool_name, tool_version, base_dir=None):
     tool_version_map = {}
 
     tool_version_dir = get_tool_version_dir(tool_name, tool_version, base_dir=base_dir)
-    subdir_names = [subdir.name for subdir in tool_version_dir.iterdir()]
-
     parent_metadata_path = get_tool_metadata(tool_name, tool_version, parent=True, base_dir=base_dir)
     parent_metadata = ParentToolMetadata.load_from_file(parent_metadata_path, check_index=False)
     parent_rel_path = get_relative_path(parent_metadata_path, base_path=base_dir)
@@ -83,11 +87,13 @@ def make_tool_version_dir_map(tool_name, tool_version, base_dir=None):
                                                     'name': parent_metadata.name,
                                                     'versionName': parent_metadata.softwareVersion.versionName,
                                                     'type': 'parent'}
-    subdir_names.remove('common')
-    for subdir_name in subdir_names:
+    for subtool_dir in tool_version_dir.iterdir():
+        if subtool_dir.name in ['.DS_Store', 'common']:
+            continue
+        assert subtool_dir.is_dir()
         tool_name_length = len(
             tool_name)  # Use to get directory name string after 'tool_name'. In case there are underscores in tool_name.
-        subtool_name = subdir_name[tool_name_length + 1:]
+        subtool_name = subtool_dir.name[tool_name_length + 1:]
         if subtool_name == '':
             subtool_name = None
         subdir_map = make_subtool_map(tool_name, tool_version, subtool_name, base_dir=base_dir)
