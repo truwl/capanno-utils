@@ -29,16 +29,29 @@ def get_parser():
     addtool.add_argument('subtool_names', nargs='*', type=str, help="The names subtool names to initialize directories for.")
     addtool.add_argument('--biotoolsID', type=str, help='biotools id from https://bio.tools')
     addtool.add_argument('--has-primary', action='store_true', help='Tool is called directly without a subtool.')
+    addtool.add_argument('--init-wf-files', action='store_true',
+                         help="If specified, all workflow files (cwl, wdl, snakemake, nextflow) will be intiated for the subtools and primary tool if it exists.")
     addtool.add_argument('--init-cwl', action='store_true', help="If specified, CWL CommandLineTool files will be intiated for the subtools and primary tool if it exists.")
+    addtool.add_argument('--init-wdl', action='store_true', help="If specified, wdl task files will be intiated for the subtools and primary tool if it exists.")
+    addtool.add_argument('--init-nf', action='store_true',
+                         help="If specified, nextflow files will be intiated for the subtools and primary tool if it exists.")
+    addtool.add_argument('--init-sm', action='store_true',
+                         help="If specified, snakemake files will be intiated for the subtools and primary tool if it exists.")
 
     # add_subtool parser
     addsubtool = subparsers.add_parser('subtool', help='add a subtool. A parent must exist.')
     addsubtool.add_argument('tool_name', help='The primary name of the tool.')
-    addsubtool.add_argument('version_name', help='The version of the tool.')
+    addsubtool.add_argument('version_name', help='The version name of the tool.')
     addsubtool.add_argument('subtool_name', help="The name of the subtool. The subtool name must be present in the parent's featureList field.")
     addsubtool.add_argument('-u', '--update-featureList', action='store_true', help='Update the featureList of the Application Suite metadata to contain new subtool.')
     addsubtool.add_argument('--init-cwl', nargs='?', type=str, default=False, const=True,
-                         help="If specified, CWL CommandLineTool files will be intiated for the subtools and primary tool if it exists.")
+                         help="If specified, CWL CommandLineTool files will be intiated. If a url is provided, the file will be intialized from the url.")
+    addsubtool.add_argument('--init-wdl', nargs='?', type=str, default=False, const=True,
+                            help="If specified, WDL task file will be intiated . If a url is provided, the file will be intialized from the url.")
+    addsubtool.add_argument('--init-nf', nargs='?', type=str, default=False, const=True,
+                            help="If specified, a nextflow file will be intiated . If a url is provided, the file will be intialized from the url.")
+    addsubtool.add_argument('--init-snakemake', nargs='?', type=str, default=False, const=True,
+                            help="If specified, a snakemake file will be intiated. If a url is provided, the file will be intialized from the url.")
 
     # add_tool instance parser
     addtoolinstance = subparsers.add_parser('tool-instance', help='Add a tool instance.')
@@ -91,9 +104,9 @@ def main(argsl=None):
 
     if args.command == 'tool':
         logger.debug("subtool names:{}".format(args.subtool_names))
-        add_tool(args.tool_name, args.version_name, subtool_names=args.subtool_names, biotools_id=args.biotoolsID, has_primary=args.has_primary, init_cwl=args.init_cwl, root_repo_path=args.root_path, refresh_index=args.refresh_index)
+        add_tool(args.tool_name, args.version_name, subtool_names=args.subtool_names, biotools_id=args.biotoolsID, has_primary=args.has_primary, init_cwl=args.init_cwl, init_wdl=args.init_wdl, root_repo_path=args.root_path, refresh_index=args.refresh_index)
     elif args.command == 'subtool':
-        add_subtool(args.tool_name, args.version_name, args.subtool_name, update_featureList=args.update_featureList, init_cwl=args.init_cwl, root_repo_path=args.root_path)
+        add_subtool(args.tool_name, args.version_name, args.subtool_name, update_featureList=args.update_featureList, init_cwl=args.init_cwl, init_wdl=args.init_wdl,  root_repo_path=args.root_path)
     elif args.command == 'tool-instance':
         add_tool_instance(args.tool_name, args.version_name, args.subtool_name, root_repo_path=args.root_path)
     elif args.command == 'common-script':

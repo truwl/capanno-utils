@@ -1,7 +1,7 @@
 
 from pathlib import Path
 from capanno_utils.classes.metadata.script_metadata import ScriptMetadata, CommonScriptMetadata
-from capanno_utils.classes.cwl.make_cwl import initialize_command_line_tool_file_script
+from capanno_utils.initialize_wf_files import initialize_command_line_tool_file_script
 
 def _get_script_directory(group_name, project_name, script_version, root_repo_path):
     """
