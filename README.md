@@ -31,7 +31,7 @@ perl -p -i -e 's/SchemaDefRequirement\(/SchemaDefRequirement(SchemaDefRequiremen
 Usage:
 ```
 capanno-add tool kallisto 0.45.x --biotoolsID kallisto  #This will initialize a directory for kallisto
-cwl-tools/
+tools/
 └── kallisto
     └── 0.45.x
         ├── common
@@ -43,7 +43,7 @@ cwl-tools/
 If you don't provide a `biotoolsID`, capanno-utils will just make a blank template.
 ```
 capanno-add tool kallisto 0.45.x
-cwl-tools/
+tools/
 └── kallisto
     └── 0.45.x
         └── common
@@ -58,7 +58,7 @@ cwl-tools/
 capanno-add subtool kallisto 0.45.x index -u --init-cwl https://github.com/common-workflow-library/bio-cwl-tools/raw/release/Kallisto/Kallisto-Index.cwl
 #local
 capanno-add subtool kallisto 0.45.x index -u --init-cwl bio-cwl-tools-submodule/Kallisto/Kallisto-Index.cwl 
-cwl-tools/
+tools/
 └── kallisto
     └── 0.45.x
         ├── common

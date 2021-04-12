@@ -35,7 +35,7 @@ def main(argsl=None):
     if not full_path.is_dir():
         raise ValueError(f"{full_path} is not a directory")
 
-    base_type, dir_type = get_dir_type_from_path(full_path, cwl_root_repo_name=base_dir.name)
+    base_type, dir_type = get_dir_type_from_path(full_path, content_root_repo_name=base_dir.name)
 
 
     if base_type == 'base_dir': # Content source root provided.

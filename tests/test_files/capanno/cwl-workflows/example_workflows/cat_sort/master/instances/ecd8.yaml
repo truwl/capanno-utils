@@ -1,6 +1,0 @@
-file1:
-  class: File
-  path: animals.txt
-file2:
-  class: File
-  path: foods.txt

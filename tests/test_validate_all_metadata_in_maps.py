@@ -14,16 +14,16 @@ class TestValidateContent(TestBase):
             tool_map_dict = safe_load(tm)
         base_path = config[os.environ['CONFIG_KEY']]['base_path']
         for identifier, values in tool_map_dict.items():
-            path = base_path / values['path']
+            path = base_path / values['metadataPath']
 
             tool_type = values['type']
             if tool_type == 'parent':
                 if not 'common' in path.parts:  # values[type] would be better test.
                     raise ValueError(f"Have a parent tool that is not in a common directory {path}")
-                meta_path = path
-            else:  # either a subtool or standalone tool.
-                meta_path = get_metadata_path(path)
+            meta_path = path
+
             main([str(meta_path), '-q'])
+
         return
 
     def test_validate_script_metadata(self):

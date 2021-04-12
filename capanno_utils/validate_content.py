@@ -15,7 +15,7 @@ def get_parser():
     parser.add_argument('path', type=Path,
                         help='Provide the path to validate. If a directory is specified, all content in the directory will be validated. If a file is specified, only that file will be validated.')
     parser.add_argument('-p', '--root-repo-path', dest='root_path', type=Path, default=Path.cwd(),
-                        help="Specify the root path of your cwl content repo if it is not the current working directory.")
+                        help="Specify the root path of your content repo if it is not the current working directory.")
     parser.add_argument('-q', '--quiet', dest='quiet', action='store_true', help="Silence messages to stdout")
 
     return parser
@@ -34,7 +34,7 @@ def main(argsl=None):
     else:
         full_path = args.root_path / args.path
 
-    base_type, specific_type = get_types_from_path(full_path, cwl_root_repo_name=args.root_path.name,
+    base_type, specific_type = get_types_from_path(full_path, root_repo_name=args.root_path.name,
                                                    base_path=args.root_path)
 
     if not args.quiet:
@@ -63,7 +63,7 @@ def main(argsl=None):
             validate_tool_version_dir(tool_name, version_name, base_dir=args.root_path)
         elif specific_type == 'common_dir':
             tool_name, version_name = full_path.parts[-3:-1]
-            validate_tool_comomon_dir(tool_name, version_name, base_dir=args.root_path)
+            validate_tool_common_dir(tool_name, version_name, base_dir=args.root_path)
         elif specific_type == 'subtool_dir':
             path_parts = full_path.parts
             tool_name, version_name = path_parts[-3:-1]

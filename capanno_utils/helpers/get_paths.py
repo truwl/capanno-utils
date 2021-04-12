@@ -73,7 +73,7 @@ def get_tool_dir(tool_name, tool_version, subtool_name=None, base_dir=None):
 
 
 def get_tool_sources(tool_name, tool_version, subtool_name=None, base_dir=None) -> Dict[str,str]:
-    """Return cwl file for tool. If subtool_name not specfied, return main tool."""
+    """Return path dict for cwl, wdl, sm, and nf files. If subtool_name not specfied, return path dict for main tool."""
     tool_path_dict = {}
     for sourceType in ['cwl','wdl','sm','nf']:
         if not subtool_name or subtool_name == main_tool_subtool_name:
@@ -83,6 +83,26 @@ def get_tool_sources(tool_name, tool_version, subtool_name=None, base_dir=None) 
             tool_dir = get_tool_dir(tool_name, tool_version, subtool_name, base_dir=base_dir)
             tool_path_dict[sourceType] = tool_dir / f"{tool_name}-{subtool_name}.{sourceType}"
     return tool_path_dict
+
+def get_tool_sources_from_metadata_path(metadata_path, base_dir=None):
+    """
+    Return the path dict for cwl, wdl, sm, and nf files from a metadata file path.
+    """
+    tool_path_dict = {}
+    metadata_path = Path(metadata_path)
+    metadata_name = metadata_path.name
+    if not metadata_file_pattern.match(metadata_name):
+        raise ValueError(f"{metadata_path} is not a metadata file or is named incorrectly.")
+    if metadata_path.is_absolute():
+        pass
+    else:
+       raise NotImplementedError
+    source_path_dir = metadata_path.parent
+    source_path_root_name = re.sub(r'-metadata\.ya?ml', '', metadata_name)
+    for source_type in ['cwl', 'wdl', 'sm', 'nf']:
+        tool_path_dict[source_type] = source_path_dir / f"{source_path_root_name}.{source_type}"
+    return tool_path_dict
+
 
 
 def get_tool_common_dir(tool_name, tool_version, base_dir=None):
@@ -383,7 +403,7 @@ def check_common_metadata_file_name(file_path, method_type):
         if not file_path.name == common_tool_metadata_name:
             raise ValueError(f"common metadadata files for tools must be named '{common_tool_metadata_name}'")
     elif method_type == 'script':
-        if not script_common_metadata_file_pattern.match(file_path.name):
+        if not metadata_file_pattern.match(file_path.name):
             raise ValueError(f"common metadadata files for scripts must be named")
     return
 
@@ -431,7 +451,7 @@ def get_base_method_type_from_path(abs_path, cwl_root_repo_name=content_repo_nam
         raise ValueError(f"{abs_path} does not seem to be a path in a cwl repo.")
     return method_type
 
-def get_dir_type_from_path(abs_dir_path, cwl_root_repo_name=content_repo_name):
+def get_dir_type_from_path(abs_dir_path, content_root_repo_name=content_repo_name):
     """
     Get the type of a directory
     Allow optional parameter cwl_root_repo_name in case repo is called something other than `content_repo_name`(capanno at this time).
@@ -445,50 +465,50 @@ def get_dir_type_from_path(abs_dir_path, cwl_root_repo_name=content_repo_name):
     elif base_type == 'tool':
         # dir type could be base_dir, tool_dir, version_dir, common_dir, subtool_dir, instances_dir
         if path_parts[-1] == tools_dir_name:
-            assert path_parts[-2] == cwl_root_repo_name
+            assert path_parts[-2] == content_root_repo_name
             dir_type = 'base_dir'
         elif path_parts[-2] == tools_dir_name:
-            assert path_parts[-3] == cwl_root_repo_name
+            assert path_parts[-3] == content_root_repo_name
             dir_type = 'tool_dir'
         elif path_parts[-3] == tools_dir_name:
-            assert path_parts[-4] == cwl_root_repo_name
+            assert path_parts[-4] == content_root_repo_name
             dir_type = 'version_dir'
         elif path_parts[-4] == tools_dir_name:
             # could be common or main tool
-            assert path_parts[-5] == cwl_root_repo_name
+            assert path_parts[-5] == content_root_repo_name
             if path_parts[-1] == 'common':
                 dir_type = 'common_dir'
             else:
                 dir_type = 'subtool_dir'
         elif path_parts[-5] == tools_dir_name:
             # Should be instances dir
-            assert path_parts[-6] == cwl_root_repo_name
+            assert path_parts[-6] == content_root_repo_name
             dir_type = 'instance_dir'
         else:
             raise ValueError
     elif base_type == 'script':
         # dir type could be base_dir, group_dir, project_dir, version_dir, common_dir, script_dir, instances_dir
         if path_parts[-1] == scripts_dir_name:
-            assert path_parts[-2] == cwl_root_repo_name
+            assert path_parts[-2] == content_root_repo_name
             dir_type = 'base_dir'
         elif path_parts[-2] == scripts_dir_name:
-            assert path_parts[-3] == cwl_root_repo_name
+            assert path_parts[-3] == content_root_repo_name
             dir_type = 'group_dir'
         elif path_parts[-3] == scripts_dir_name:
-            assert path_parts[-4] == cwl_root_repo_name
+            assert path_parts[-4] == content_root_repo_name
             dir_type = 'project_dir'
         elif path_parts[-4] == scripts_dir_name:
-            assert path_parts[-5] == cwl_root_repo_name
+            assert path_parts[-5] == content_root_repo_name
             dir_type = 'version_dir'
         elif path_parts[-5] == scripts_dir_name:
-            assert path_parts[-6] == cwl_root_repo_name
+            assert path_parts[-6] == content_root_repo_name
             # could be script_dir or common_dir.
             if path_parts[-1] == 'common':
                 dir_type = 'common_dir'
             else:
                 dir_type = 'script_dir'
         elif path_parts[-6] == scripts_dir_name:
-            assert path_parts[-7] == cwl_root_repo_name
+            assert path_parts[-7] == content_root_repo_name
             dir_type = 'instance_dir'
         else:
             raise ValueError
@@ -500,7 +520,7 @@ def get_dir_type_from_path(abs_dir_path, cwl_root_repo_name=content_repo_name):
 
     return base_type, dir_type
 
-def get_types_from_path(path, cwl_root_repo_name=content_repo_name, base_path=None):
+def get_types_from_path(path, root_repo_name=content_repo_name, base_path=None):
     """
     Get the type of file from the path.
 
@@ -514,14 +534,14 @@ def get_types_from_path(path, cwl_root_repo_name=content_repo_name, base_path=No
         path = Path(base_path) / path
     abs_path = path.resolve()
 
-    method_type = get_base_method_type_from_path(abs_path, cwl_root_repo_name=cwl_root_repo_name)
+    method_type = get_base_method_type_from_path(abs_path, cwl_root_repo_name=root_repo_name)
 
     if method_type == 'repo_root':
         file_type = None
 
     else:
         if abs_path.is_dir():
-            _, file_type = get_dir_type_from_path(abs_path, cwl_root_repo_name=cwl_root_repo_name)
+            _, file_type = get_dir_type_from_path(abs_path, content_root_repo_name=root_repo_name)
         elif path.is_file():
             file_type = get_type_from_file_path(abs_path, method_type)
         else:
