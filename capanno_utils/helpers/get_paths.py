@@ -347,6 +347,7 @@ def get_workflow_args_from_path(cwl_workflows_path):
 # helpers
 
 def get_relative_path(full_path, base_path=None):
+    full_path = Path(full_path)
     base_path = get_base_dir(base_dir=base_path)
     return full_path.relative_to(base_path)
 

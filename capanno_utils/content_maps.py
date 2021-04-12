@@ -1,7 +1,4 @@
-import os
-from pathlib import Path
-from ruamel.yaml import safe_load, YAML
-from capanno_utils.repo_config import identifier_index_dir, tool_index_path
+from ruamel.yaml import safe_load
 from capanno_utils.classes.metadata.script_metadata import ScriptMetadata
 from capanno_utils.classes.metadata.tool_metadata import ParentToolMetadata, SubtoolMetadata
 from capanno_utils.classes.metadata.workflow_metadata import WorkflowMetadata
@@ -98,12 +95,6 @@ def make_tool_version_dir_map(tool_name, tool_version, base_dir=None):
 
 
 def make_subtool_map(tool_name, tool_version, subtool_name, base_dir=None):
-    tool_sources = get_tool_sources(tool_name, tool_version, subtool_name=subtool_name, base_dir=base_dir)
-    sourcePaths = {}
-    for sourcetype in tool_sources:
-        sourcePaths[sourcetype] = str(get_relative_path(tool_sources[sourcetype], base_path=base_dir))
-    subtool_cwl_path = sourcePaths[sourcetype]['cwl']
-    subtool_rel_path = get_relative_path(subtool_cwl_path, base_path=base_dir)
     subtool_metadata_path = get_tool_metadata(tool_name, tool_version, subtool_name=subtool_name, parent=False,
                                               base_dir=base_dir)
     subtool_metadata = SubtoolMetadata.load_from_file(subtool_metadata_path, check_index=False)
