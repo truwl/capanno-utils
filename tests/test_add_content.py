@@ -78,6 +78,20 @@ class TestAddToolMain(TestBase):
             assert True  # Just provides a place for a breakpoint to take a look.at tmp_dir
         return
 
+    def test_add_tool_with_wdl_url(self):
+        wdl_url = 'https://github.com/broadinstitute/warp/raw/develop/tasks/skylab/CreateCountMatrix.wdl'
+        tool_name = 'who_cares'
+        tool_version = 'fake.fake'
+        subtool_name = 'test_wdl_subtool'
+        with TemporaryDirectory(prefix='add_tool_with_wdl') as tmp_dir:
+            self.make_empty_tools_index(tmp_dir)
+            add_content_main(
+                ['--no-refresh-index', '-p', tmp_dir, 'tool', tool_name, tool_version])
+            add_content_main(
+                ['-p', tmp_dir, 'subtool', tool_name, tool_version, subtool_name, '-u', '--init-wdl', wdl_url])
+            assert True
+        return
+
 
 
 # @skip('')

@@ -53,7 +53,7 @@ tools_map_name = '.tools_map.yaml'
 
 scripts_maps_name = '.scripts_map.yaml'
 
-workflow_maps_name = 'workflows_map.yaml'
+workflow_maps_name = 'workflows_map.yaml'  # why are the others hidden and this one isn't?
 
 identifier_index_dir = Path('.cache')
 

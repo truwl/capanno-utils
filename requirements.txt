@@ -5,3 +5,4 @@ cwl-utils==0.7 #just make the parser command_line_tool.py from scratch, however
 schema-salad==7.0.20200811075006
 ruamel.yaml
 semantic-version
+miniwdl

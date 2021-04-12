@@ -14,12 +14,11 @@ logger.setLevel(logging.DEBUG)
 
 def add_tool(tool_name, version_name, subtool_names=None, biotools_id=None, has_primary=False, root_repo_path=Path.cwd(), init_cwl=False, init_wdl=False, no_clobber=False, refresh_index=True):
     """
-    Make the correct directory structure for adding a new command line tool. Optionally, create initialized CWL
-    and metadata files. Run from cwl-tools directory.
+    Make the correct directory structure for adding a new command line tool. Optionally, create initialized wf language
+    and metadata files. Run from tools directory.
     :param tool_name(str): Name of the tool
     :param version_name(str): version of the tool
     :param subtool_names(list(str)): list of subtool names if the tool is broken into multiple subtools.
-    :param mk_meta_files(bool): Specify whether to make initial CWL and metadata files.
     :return: None
     """
     version_name = str(version_name) # In case ArgumentParser is bypassed.

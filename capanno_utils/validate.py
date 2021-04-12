@@ -3,6 +3,7 @@ import logging
 from pathlib import Path
 from ruamel.yaml import safe_load
 from semantic_version import Version
+from WDL.CLI import check as check_wdl
 from capanno_utils.classes.metadata.tool_metadata import ParentToolMetadata, SubtoolMetadata
 from capanno_utils.classes.metadata.script_metadata import ScriptMetadata, CommonScriptMetadata
 from capanno_utils.classes.metadata.workflow_metadata import WorkflowMetadata
@@ -56,6 +57,9 @@ def validate_tool_content_from_map(tool_map_dict, base_dir=None):
             if cwl_status in ('Draft', 'Released'):
                 validate_cwl_doc(source_paths['cwl'])
                 validate_all_inputs_for_tool(source_paths['cwl'])
+            if values['wdlStatus'] in ('Draft', 'Released'):
+                check_wdl(path=source_paths['wdl'])
+
     return
 
 

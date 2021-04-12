@@ -10,10 +10,6 @@ from capanno_utils.helpers.file_management import dump_dict_to_yaml_output
 from capanno_utils.helpers.get_paths import *
 
 
-# get_cwl_tool, get_tool_metadata, get_tool_version_dir, \
-#     get_script_version_dir, get_metadata_path, get_relative_path, get_workflow_version_dir, get_root_tools_dir, \
-#     get_root_scripts_dir, get_workflows_root_dir, get_cwl_workflow
-
 # Todo before stable release: update function names to be consistent.
 
 def make_tool_identifiers_list(base_dir=None):
@@ -113,9 +109,9 @@ def make_subtool_map(tool_name, tool_version, subtool_name, base_dir=None):
                                                'name': subtool_metadata.name,
                                                'metadataStatus': subtool_metadata.metadataStatus,
                                                'cwlStatus': subtool_metadata.cwlStatus,
-                                               # 'nextflowStatus': subtool_metadata.nextflowStatus,
-                                               # 'snakemakeStatus': subtool_metadata.snakemakeStatus,
-                                               # 'wdlStatus': subtool_metadata.wdlStatus,
+                                               'nextflowStatus': subtool_metadata.nextflowStatus,
+                                               'snakemakeStatus': subtool_metadata.snakemakeStatus,
+                                               'wdlStatus': subtool_metadata.wdlStatus,
                                                'type': 'subtool'}
     return subdir_map
 
@@ -133,10 +129,10 @@ def make_tool_common_dir_map(tool_name, tool_version, base_dir):
 
 
 def make_scripts_map_dict(base_dir=None):
-    cwl_scripts_dir = get_root_scripts_dir(base_dir=base_dir)
+    scripts_dir = get_root_scripts_dir(base_dir=base_dir)
 
     scripts_map = {}
-    for group_dir in cwl_scripts_dir.iterdir():
+    for group_dir in scripts_dir.iterdir():
         group_script_map = make_group_script_map(group_dir.name, base_dir=base_dir)
         no_clobber_update(scripts_map, group_script_map)
     return scripts_map

@@ -40,7 +40,7 @@ def get_base_dir_from_abs_path(absolute_path, bas_dir_name=content_repo_name):
 
 
 
-# cwl-tools
+# tools
 
 def get_root_tools_dir(base_dir=None):
     if not base_dir:
@@ -134,8 +134,8 @@ def get_parent_tool_relative_path_string():
 
 
 def get_tool_instances_dir(tool_name, tool_version, subtool_name=None, base_dir=None):
-    cwl_tool_dir = get_tool_dir(tool_name, tool_version, subtool_name=subtool_name, base_dir=base_dir)
-    instances_dir = cwl_tool_dir / instances_dir_name
+    tool_dir = get_tool_dir(tool_name, tool_version, subtool_name=subtool_name, base_dir=base_dir)
+    instances_dir = tool_dir / instances_dir_name
     return instances_dir
 
 
@@ -146,8 +146,8 @@ def get_tool_instances_dir_from_cwl_path(cwl_path):
 
 
 def get_tool_instance_path(tool_name, tool_version, input_hash, subtool_name=None, base_dir=None):
-    cwl_tool_inst_dir = get_tool_instances_dir(tool_name, tool_version, subtool_name=subtool_name, base_dir=base_dir)
-    inputs_path = cwl_tool_inst_dir / f"{input_hash}.yaml"
+    tool_inst_dir = get_tool_instances_dir(tool_name, tool_version, subtool_name=subtool_name, base_dir=base_dir)
+    inputs_path = tool_inst_dir / f"{input_hash}.yaml"
 
     return inputs_path
 
@@ -159,8 +159,8 @@ def get_tool_instance_path_from_tool_instance_metadata_path(tool_instance_metada
     return tool_instance_path
 
 def get_tool_instance_metadata_path(tool_name, tool_version, input_hash, subtool_name=None, base_dir=None):
-    cwl_tool_inst_dir = get_tool_instances_dir(tool_name, tool_version, subtool_name=subtool_name, base_dir=base_dir)
-    instance_metadata_path = cwl_tool_inst_dir / f"{input_hash}-metadata.yaml"
+    tool_inst_dir = get_tool_instances_dir(tool_name, tool_version, subtool_name=subtool_name, base_dir=base_dir)
+    instance_metadata_path = tool_inst_dir / f"{input_hash}-metadata.yaml"
     return instance_metadata_path
 
 def get_subtool_metadata_path_from_tool_instance_metadata_path(tool_instance_path, base_dir=None):
@@ -200,7 +200,7 @@ def get_tool_type_from_path(tool_path):
     return tool_type
 
 
-# cwl-scripts
+# scripts
 
 def get_root_scripts_dir(base_dir=None):
     if not base_dir:

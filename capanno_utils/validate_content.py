@@ -11,7 +11,7 @@ from capanno_utils.helpers.get_paths import get_types_from_path
 
 
 def get_parser():
-    parser = argparse.ArgumentParser(description="Validate metadata and cwl files.")
+    parser = argparse.ArgumentParser(description="Validate metadata and workflow language files.")
     parser.add_argument('path', type=Path,
                         help='Provide the path to validate. If a directory is specified, all content in the directory will be validated. If a file is specified, only that file will be validated.')
     parser.add_argument('-p', '--root-repo-path', dest='root_path', type=Path, default=Path.cwd(),
@@ -44,7 +44,7 @@ def main(argsl=None):
         # Check for file types.
         if specific_type == 'common_metadata':
             validate_parent_tool_metadata(full_path)
-        elif specific_type == 'cwl':
+        elif specific_type == 'cwl':  # Todo add validation for other files.
             validate_cwl_doc(full_path)
         elif specific_type == 'metadata':
             validate_subtool_metadata(full_path)
@@ -81,7 +81,7 @@ def main(argsl=None):
         else:
             raise ValueError(f"")
     elif base_type == 'script':
-        if specific_type == 'cwl':
+        if specific_type == 'cwl':  # Todo. Add support for other wf types.
             validate_cwl_doc(full_path)
         elif specific_type == 'metadata':
             validate_script_metadata(full_path)
@@ -111,7 +111,7 @@ def main(argsl=None):
             raise ValueError(f"")
 
     elif base_type == 'workflow':
-        if specific_type == 'cwl':
+        if specific_type == 'cwl':  # Todo. Add other wf language types.
             raise NotImplementedError
         elif specific_type == 'metadata':
             validate_workflow_metadata(full_path)

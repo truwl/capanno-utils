@@ -1,10 +1,10 @@
 
 
 from urllib import request
-import requests
 from pathlib import Path
 from ruamel.yaml import YAML, tokens, error
 from ruamel.yaml.comments import CommentedMap
+from WDL.CLI import check as check_wdl
 from capanno_utils.helpers.get_paths import get_tool_sources, get_cwl_script, main_tool_subtool_name
 from capanno_utils.classes.cwl.common_workflow_language import load_document
 import logging, sys
@@ -58,6 +58,7 @@ def _initialize_command_line_tool_from_url(url, cwl_path):
 def _initialize_wdl_task_from_url(url, wdl_path):
     logger.debug(f"loading wdl for new subtool/task {url}")
     request.urlretrieve(url, wdl_path)
+    check_wdl(path=str(wdl_path)) # check after importing.
     return
 
 def _initialize_nf_from_url(url, nf_path):
@@ -69,7 +70,6 @@ def _initialize_sm_task_from_url(url, wdl_path):
 
 def initialize_tool_wf_file_tool(tool_name, version_name, subtool_name, init_cwl, init_wdl, base_dir, ):
     tool_sources = get_tool_sources(tool_name, version_name, subtool_name=subtool_name, base_dir=base_dir)
-    print(f"{init_cwl}, {init_wdl}")
     if init_cwl == False:  # Why did I do this? Was there a problem with None values...
         pass
     else:

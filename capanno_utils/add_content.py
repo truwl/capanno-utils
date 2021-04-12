@@ -18,7 +18,7 @@ logger.setLevel(logging.WARNING)
 
 def get_parser():
     parser = argparse.ArgumentParser(description='Initialize metadata and directories for a tool, script, or workflow.')
-    parser.add_argument('-p','--root-repo-path', dest='root_path', type=Path, default=Path.cwd(), help="Specify the root path of your cwl content repo if it is not the current working directory.")
+    parser.add_argument('-p','--root-repo-path', dest='root_path', type=Path, default=Path.cwd(), help="Specify the root path of your content repo if it is not the current working directory.")
     parser.add_argument('--no-refresh-index', dest='refresh_index', action='store_false', help="If specified, will use an already made index file that contains identifiers rather than assembling a new one.")
     subparsers = parser.add_subparsers(description='Specify the command to run.', dest='command')
 
