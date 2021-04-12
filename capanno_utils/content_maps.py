@@ -98,9 +98,12 @@ def make_tool_version_dir_map(tool_name, tool_version, base_dir=None):
 
 
 def make_subtool_map(tool_name, tool_version, subtool_name, base_dir=None):
-    # tool_sources = get_tool_sources(tool_name, tool_version, subtool_name=subtool_name, base_dir=base_dir)
-    # for sourcetype in tool_sources:
-    #     sourcePaths[sourcetype] = str(get_relative_path(tool_sources[sourcetype], base_path=base_dir))
+    tool_sources = get_tool_sources(tool_name, tool_version, subtool_name=subtool_name, base_dir=base_dir)
+    sourcePaths = {}
+    for sourcetype in tool_sources:
+        sourcePaths[sourcetype] = str(get_relative_path(tool_sources[sourcetype], base_path=base_dir))
+    subtool_cwl_path = sourcePaths[sourcetype]['cwl']
+    subtool_rel_path = get_relative_path(subtool_cwl_path, base_path=base_dir)
     subtool_metadata_path = get_tool_metadata(tool_name, tool_version, subtool_name=subtool_name, parent=False,
                                               base_dir=base_dir)
     subtool_metadata = SubtoolMetadata.load_from_file(subtool_metadata_path, check_index=False)

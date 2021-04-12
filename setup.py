@@ -35,7 +35,8 @@ setup(
     entry_points={
         'console_scripts': ["capanno-validate=capanno_utils.validate_content:main",
                             "capanno-add=capanno_utils.add_content:main",
-                            "capanno-map=capanno_utils.make_content_maps:main"]
+                            "capanno-map=capanno_utils.make_content_maps:main",
+                            "capanno-id=capanno_utils.make_ids:main"]
     },
     classifiers=[
         "Development Status :: 3 - Alpha",
