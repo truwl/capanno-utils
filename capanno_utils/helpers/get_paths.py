@@ -75,7 +75,7 @@ def get_tool_dir(tool_name, tool_version, subtool_name=None, base_dir=None):
 def get_tool_sources(tool_name, tool_version, subtool_name=None, base_dir=None) -> Dict[str,str]:
     """Return path dict for cwl, wdl, sm, and nf files. If subtool_name not specfied, return path dict for main tool."""
     tool_path_dict = {}
-    for sourceType in ['cwl','wdl','sm','nf']:
+    for sourceType in ['cwl','wdl','snakefile','nf']:
         if not subtool_name or subtool_name == main_tool_subtool_name:
             tool_dir = get_tool_dir(tool_name, tool_version, subtool_name=main_tool_subtool_name, base_dir=base_dir)
             tool_path_dict[sourceType] = tool_dir / f"{tool_name}.{sourceType}"
@@ -144,6 +144,17 @@ def get_tool_instances_dir_from_cwl_path(cwl_path):
     instances_dir = cwl_path.parent / instances_dir_name
     return instances_dir
 
+def get_tool_cwl_from_instance_path(cwl_instance_path):
+    cwl_instance_path = Path(cwl_instance_path)
+    tool_instance_path_parts = Path(cwl_instance_path).parts
+    tool_name = tool_instance_path_parts[-5]
+    tool_version = tool_instance_path_parts[-4]
+    subtool_name = tool_instance_path_parts[-3]
+    if subtool_name == tool_name:
+        subtool_name = main_tool_subtool_name
+    subtool_cwl_path = get_tool_sources(tool_name, tool_version, subtool_name)
+    return subtool_cwl_path
+
 
 def get_tool_instance_path(tool_name, tool_version, input_hash, subtool_name=None, base_dir=None):
     tool_inst_dir = get_tool_instances_dir(tool_name, tool_version, subtool_name=subtool_name, base_dir=base_dir)
@@ -174,10 +185,10 @@ def get_subtool_metadata_path_from_tool_instance_metadata_path(tool_instance_pat
     return subtool_metadata_path
 
 
-def get_tool_args_from_path(cwl_tool_path):
-    cwl_tool_path = Path(cwl_tool_path)
-    tool_type = get_tool_type_from_path(cwl_tool_path)
-    path_parts = cwl_tool_path.parts
+def get_tool_args_from_path(tool_metadata_path):
+    tool_metadata_path = Path(tool_metadata_path)
+    tool_type = get_tool_type_from_metadata_path(tool_metadata_path)
+    path_parts = tool_metadata_path.parts
 
     tool_name = path_parts[-4]
     tool_version = path_parts[-3]
@@ -186,17 +197,16 @@ def get_tool_args_from_path(cwl_tool_path):
     return tool_name, tool_version, subtool_name
 
 
-def get_tool_type_from_path(tool_path):
-    tool_path = Path(tool_path)
-    if tool_path.suffix == '.yaml':
-        if not tool_path.parent.parts[-1] == 'common':
-            raise ValueError(f"Provided a .yaml file {tool_path} for file that is not in a 'common' directory")
-        tool_type = "parent"
-    elif tool_path.suffix == '.cwl':
-        tool_type = 'subtool'
+def get_tool_type_from_metadata_path(tool_metadata_path):
+    """Not very robust, this one."""
+    tool_metadata_path = Path(tool_metadata_path)
+    if tool_metadata_path.suffix == '.yaml':
+        if tool_metadata_path.parent.parts[-1] == 'common':
+            tool_type = "parent"
+        else:
+            tool_type = "subtool"
     else:
-        raise ValueError(f"Do not recognize {tool_path} as a path to a tool.")
-
+        raise ValueError(f"Do not recognize {tool_metadata_path} as a path to a tool.")
     return tool_type
 
 
@@ -362,12 +372,17 @@ def get_metadata_path(cwl_path):
 
 def get_file_type_from_main_dir(file_path):
     """
-    Determine if a file is a metadata file or a cwl file from a subtool, script, or workflow directory.
+    Determine if a file is a metadata file or a wf file (cwl, wdl, nf, sm) from a subtool, script, or workflow directory.
     Raises an error if it doesn't look like either.
     """
     if file_path.suffix == '.cwl':
         file_type = 'cwl'
-
+    elif file_path.suffix == '.wdl':
+        file_type = 'wdl'
+    elif file_path.suffix == '.snakefile':
+        file_type = 'snakemake'
+    elif file_path.suffix == 'nf':
+        file_type = 'nextflow'
     elif file_path.suffix in ('.yaml', '.yml'):
         if '-metadata' in file_path.parts[-1]:  # have a metadata file
             file_type = 'metadata'

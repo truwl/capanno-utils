@@ -12,7 +12,7 @@ logging.basicConfig(stream=sys.stderr)
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
-def add_tool(tool_name, version_name, subtool_names=None, biotools_id=None, has_primary=False, root_repo_path=Path.cwd(), init_cwl=False, init_wdl=False, no_clobber=False, refresh_index=True):
+def add_tool(tool_name, version_name, subtool_names=None, biotools_id=None, has_primary=False, root_repo_path=Path.cwd(), init_cwl=False, init_wdl=False, init_sm=False, init_nf=False, no_clobber=False, refresh_index=True):
     """
     Make the correct directory structure for adding a new command line tool. Optionally, create initialized wf language
     and metadata files. Run from tools directory.
@@ -56,7 +56,7 @@ def add_tool(tool_name, version_name, subtool_names=None, biotools_id=None, has_
             instances_dir.mkdir()
             git_keep_file = instances_dir / '.gitkeep'
             git_keep_file.touch()
-            initialize_tool_wf_file_tool(tool_name, version_name, subtool, init_cwl=init_cwl, init_wdl=init_wdl, base_dir=root_repo_path)
+            initialize_tool_wf_file_tool(tool_name, version_name, subtool, init_cwl=init_cwl, init_wdl=init_wdl, init_sm=init_sm, init_nf=init_nf, base_dir=root_repo_path)
     parent_metadata.mk_file(root_repo_path)
     return
 
@@ -102,7 +102,7 @@ def add_subtool(tool_name, tool_version, subtool_name, root_repo_path=Path.cwd()
     instances_dir.mkdir()
     git_keep_file = instances_dir / '.gitkeep'
     git_keep_file.touch()
-    initialize_tool_wf_file_tool(tool_name, tool_version, subtool_name, init_cwl=init_cwl, init_wdl=init_wdl, base_dir=root_repo_path)
+    initialize_tool_wf_file_tool(tool_name, tool_version, subtool_name, init_cwl=init_cwl, init_wdl=init_wdl, init_sm=init_sm, init_nf=init_nf, base_dir=root_repo_path)
     return
 
 

@@ -1,3 +1,6 @@
+
+
+wdl_task_template = """\
 version 1.0
 
 task task_name {
@@ -22,6 +25,4 @@ task task_name {
 
   }
 }
-
-
-
+"""

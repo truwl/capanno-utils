@@ -7,6 +7,7 @@ from pathlib import Path
 from capanno_utils.validate import *
 from capanno_utils.validate_inputs import validate_inputs_for_instance
 from capanno_utils.helpers.validate_cwl import validate_cwl_doc
+from capanno_utils.helpers.validate_wdl import validate_wdl_doc
 from capanno_utils.helpers.get_paths import get_types_from_path
 
 
@@ -46,6 +47,8 @@ def main(argsl=None):
             validate_parent_tool_metadata(full_path)
         elif specific_type == 'cwl':  # Todo add validation for other files.
             validate_cwl_doc(full_path)
+        elif specific_type == 'wdl':
+            validate_wdl_doc(full_path)
         elif specific_type == 'metadata':
             validate_subtool_metadata(full_path)
         elif specific_type == 'instance':

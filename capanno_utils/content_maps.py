@@ -258,7 +258,7 @@ def get_tool_args_from_identifier(identifier, base_dir=None):
         identifier, instance_hash = identifier[:-4], identifier[-4:]
     if parent_tool_identifier_pattern.match(identifier) | subtool_identifier_pattern.match(identifier):
         tools_map = make_tools_map(base_dir=base_dir)
-        tool_path = tools_map[identifier]['path']
+        tool_path = tools_map[identifier]['metadataPath']
         tool_args = get_tool_args_from_path(tool_path)
     else:
         raise ValueError()

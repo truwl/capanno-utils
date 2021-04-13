@@ -3,7 +3,6 @@ import logging
 from pathlib import Path
 from ruamel.yaml import safe_load
 from semantic_version import Version
-from WDL.CLI import check as check_wdl
 from capanno_utils.classes.metadata.tool_metadata import ParentToolMetadata, SubtoolMetadata
 from capanno_utils.classes.metadata.script_metadata import ScriptMetadata, CommonScriptMetadata
 from capanno_utils.classes.metadata.workflow_metadata import WorkflowMetadata
@@ -12,6 +11,7 @@ from .content_maps import make_tools_map, make_main_tool_map, make_tool_version_
     make_script_map, make_workflow_maps, make_tools_map_dict
 from .helpers.get_paths import get_metadata_path, get_base_dir, get_tool_sources_from_metadata_path
 from .helpers.validate_cwl import validate_cwl_doc
+from .helpers.validate_wdl import validate_wdl_doc
 from .validate_inputs import validate_all_inputs_for_tool
 
 
@@ -38,8 +38,9 @@ validate_workflow_metadata = metadata_validator_factory(WorkflowMetadata)
 
 def validate_tool_content_from_map(tool_map_dict, base_dir=None):
     """
-    tool_map(dict): Keys are identiers, values are dict with path, metadataStatus, name, versionName, and type keys.
+    tool_map(dict): Keys are identifers, values are dict with path, metadataStatus, name, versionName, and type keys.
     """
+    validate_statuses = ('Draft', 'Released')
     if base_dir is None:
         base_dir = get_base_dir()
     for identifier, values in tool_map_dict.items():
@@ -52,14 +53,18 @@ def validate_tool_content_from_map(tool_map_dict, base_dir=None):
             validate_parent_tool_metadata(metadata_path)
         else:  # is a subtool
             validate_subtool_metadata(metadata_path)
-            source_paths = get_tool_sources_from_metadata_path(metadata_path)
+            tool_sources = get_tool_sources_from_metadata_path(metadata_path)
+            cwl_path, wdl_path, sm_path, nf_path = tuple(tool_sources.values())
             cwl_status = values['cwlStatus']
-            if cwl_status in ('Draft', 'Released'):
-                validate_cwl_doc(source_paths['cwl'])
-                validate_all_inputs_for_tool(source_paths['cwl'])
-            if values['wdlStatus'] in ('Draft', 'Released'):
-                check_wdl(path=source_paths['wdl'])
-
+            if cwl_status in validate_statuses:
+                validate_cwl_doc(cwl_path)
+                validate_all_inputs_for_tool(cwl_path)
+            if values['wdlStatus'] in validate_statuses:
+                validate_wdl_doc(wdl_path)
+            if values['nextflowStatus'] in validate_statuses:
+                logging.info(f"Nexflow files are not validated. {nf_path}")
+            if values['snakemakeStatus'] in validate_statuses:
+                logging.info(f"Snakemake files are not validated {sm_path}")
     return
 
 
