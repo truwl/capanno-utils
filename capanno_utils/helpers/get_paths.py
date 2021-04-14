@@ -144,6 +144,14 @@ def get_tool_instances_dir_from_cwl_path(cwl_path):
     instances_dir = cwl_path.parent / instances_dir_name
     return instances_dir
 
+def get_tool_instances_dir_from_metadata_path(metadata_path):
+    metadata_path = Path(metadata_path)
+    if metadata_path.parent == 'common':
+        raise ValueError(f"Parent tools {metadata_path} do not have instance directories. ")
+    instances_dir = metadata_path.parent / instances_dir_name
+    return instances_dir
+
+
 def get_tool_cwl_from_instance_path(cwl_instance_path):
     cwl_instance_path = Path(cwl_instance_path)
     tool_instance_path_parts = Path(cwl_instance_path).parts
