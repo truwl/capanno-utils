@@ -9,7 +9,7 @@ from capanno_utils.classes.metadata.workflow_metadata import WorkflowMetadata
 from .content_maps import make_tools_map, make_main_tool_map, make_tool_version_dir_map, make_tool_common_dir_map, \
     make_subtool_map, make_script_maps, make_group_script_map, make_project_script_map, make_script_version_map, \
     make_script_map, make_workflow_maps, make_tools_map_dict
-from .helpers.get_paths import get_metadata_path, get_base_dir, get_tool_sources_from_metadata_path
+from .helpers.get_paths import get_metadata_path, get_base_dir, get_tool_sources_from_metadata_path, get_workflow_sources_from_metadata_path
 from .helpers.validate_cwl import validate_cwl_doc
 from .helpers.validate_wdl import validate_wdl_doc
 from .validate_inputs import validate_all_inputs_for_tool
@@ -62,8 +62,12 @@ def validate_tool_content_from_map(tool_map_dict, base_dir=None):
             if values['wdlStatus'] in validate_statuses:
                 validate_wdl_doc(wdl_path)
             if values['nextflowStatus'] in validate_statuses:
+                if not nf_path.exists():
+                    raise FileNotFoundError(f"{str(nf_path)} does not exist.")
                 logging.info(f"Nexflow files are not validated. {nf_path}")
             if values['snakemakeStatus'] in validate_statuses:
+                if not sm_path.exists():
+                    raise FileNotFoundError(f"{str(sm_path)} does not exist.")
                 logging.info(f"Snakemake files are not validated {sm_path}")
     return
 
@@ -172,8 +176,10 @@ def validate_workflows_dir(base_dir=None):
 
         cwl_status = values['cwlStatus']
         if cwl_status in ('Draft', 'Released'):
-            print(
-                f"Make sure you validate {workflow_path}")  # Todo. Think I have good way to validate somewhere in biodrafter. Need to port here (needs to be put in a temporary directory with the tools and workflows that it calls.)
+            if not workflow_path.exists():
+                raise FileNotFoundError(f"{str(workflow_path)} does not exist.")
+            logging.debug(
+                f"Make sure you validate {workflow_path}")  # Todo. Think I have good way to validate somewhere. Need to port here (needs to be put in a temporary directory with the tools and workflows that it calls.)
     return
 
 

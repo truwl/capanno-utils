@@ -202,7 +202,7 @@ def make_workflow_maps(outfile_name='workflow-maps', base_dir=None):
 
 def make_workflow_map(group_name, project_name, version, workflow_name, base_dir=None):
     workflow_map = {}
-    workflow_path = get_cwl_workflow(group_name, project_name, version, workflow_name, base_dir=base_dir)
+    workflow_path = get_workflow_sources(group_name, project_name, version, workflow_name, base_dir=base_dir)['cwl']
     workflow_rel_path = get_relative_path(workflow_path, base_path=base_dir)
     workflow_metadata_path = get_metadata_path(workflow_path)
     workflow_metadata = WorkflowMetadata.load_from_file(workflow_metadata_path)
