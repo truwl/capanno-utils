@@ -83,7 +83,7 @@ def make_tool_version_dir_map(tool_name, tool_version, base_dir=None):
     for subtool_dir in tool_version_dir.iterdir():
         if subtool_dir.name in ['.DS_Store', 'common']:
             continue
-        assert subtool_dir.is_dir()
+        assert subtool_dir.is_dir(), subtool_dir.name+" is not a directory. You likely have an extra file."
         tool_name_length = len(
             tool_name)  # Use to get directory name string after 'tool_name'. In case there are underscores in tool_name.
         subtool_name = subtool_dir.name[tool_name_length + 1:]
