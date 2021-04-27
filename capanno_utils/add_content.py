@@ -35,6 +35,7 @@ def get_parser():
                          help="If specified, nextflow files will be intiated for the subtools and primary tool if it exists.")
     addtool.add_argument('--init-sm', action='store_true',
                          help="If specified, snakemake files will be intiated for the subtools and primary tool if it exists.")
+    addtool.add_argument('--no-clobber', action='store_true', help="skip if exists", default=False)
 
     # add_subtool parser
     addsubtool = subparsers.add_parser('subtool', help='add a subtool. A parent must exist.')
@@ -50,6 +51,7 @@ def get_parser():
                             help="If specified, a nextflow file will be intiated . If a url is provided, the file will be intialized from the url.")
     addsubtool.add_argument('--init-sm', nargs='?', type=str, default=False, const=True,
                             help="If specified, a snakemake file will be intiated. If a url is provided, the file will be intialized from the url.")
+    addsubtool.add_argument('--no-clobber', action='store_true', help="skip if exists", default=False)
 
     # add_tool instance parser
     addtoolinstance = subparsers.add_parser('tool-instance', help='Add a tool instance.')
@@ -102,9 +104,9 @@ def main(argsl=None):
 
     if args.command == 'tool':
         logger.debug("subtool names:{}".format(args.subtool_names))
-        add_tool(args.tool_name, args.version_name, subtool_names=args.subtool_names, biotools_id=args.biotoolsID, has_primary=args.has_primary, init_cwl=args.init_cwl, init_wdl=args.init_wdl, init_sm=args.init_sm, init_nf=args.init_nf, root_repo_path=args.root_path, refresh_index=args.refresh_index)
+        add_tool(args.tool_name, args.version_name, subtool_names=args.subtool_names, biotools_id=args.biotoolsID, has_primary=args.has_primary, init_cwl=args.init_cwl, init_wdl=args.init_wdl, init_sm=args.init_sm, init_nf=args.init_nf, root_repo_path=args.root_path, refresh_index=args.refresh_index, no_clobber=args.no_clobber)
     elif args.command == 'subtool':
-        add_subtool(args.tool_name, args.version_name, args.subtool_name, update_featureList=args.update_featureList, init_cwl=args.init_cwl, init_wdl=args.init_wdl, init_sm=args.init_sm, init_nf=args.init_nf, root_repo_path=args.root_path)
+        add_subtool(args.tool_name, args.version_name, args.subtool_name, update_featureList=args.update_featureList, init_cwl=args.init_cwl, init_wdl=args.init_wdl, init_sm=args.init_sm, init_nf=args.init_nf, root_repo_path=args.root_path, no_clobber=args.no_clobber)
     elif args.command == 'tool-instance':
         add_tool_instance(args.tool_name, args.version_name, args.subtool_name, root_repo_path=args.root_path)
     elif args.command == 'common-script':
