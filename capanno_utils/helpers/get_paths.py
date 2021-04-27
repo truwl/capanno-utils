@@ -75,13 +75,13 @@ def get_tool_dir(tool_name, tool_version, subtool_name=None, base_dir=None):
 def get_tool_sources(tool_name, tool_version, subtool_name=None, base_dir=None) -> Dict[str,str]:
     """Return path dict for cwl, wdl, sm, and nf files. If subtool_name not specfied, return path dict for main tool."""
     tool_path_dict = {}
-    for sourceType in ['cwl','wdl','snakefile','nf']:
+    for source_type, extension in [('cwl', 'cwl'),('wdl', 'wdl'),('snakemake', 'snakefile'),('nextflow', 'nf')]:
         if not subtool_name or subtool_name == main_tool_subtool_name:
             tool_dir = get_tool_dir(tool_name, tool_version, subtool_name=main_tool_subtool_name, base_dir=base_dir)
-            tool_path_dict[sourceType] = tool_dir / f"{tool_name}.{sourceType}"
+            tool_path_dict[source_type] = tool_dir / f"{tool_name}.{extension}"
         else:
             tool_dir = get_tool_dir(tool_name, tool_version, subtool_name, base_dir=base_dir)
-            tool_path_dict[sourceType] = tool_dir / f"{tool_name}-{subtool_name}.{sourceType}"
+            tool_path_dict[source_type] = tool_dir / f"{tool_name}-{subtool_name}.{extension}"
     return tool_path_dict
 
 def get_tool_sources_from_metadata_path(metadata_path, base_dir=None):
@@ -99,8 +99,8 @@ def get_tool_sources_from_metadata_path(metadata_path, base_dir=None):
        raise NotImplementedError
     source_path_dir = metadata_path.parent
     source_path_root_name = re.sub(r'-metadata\.ya?ml', '', metadata_name)
-    for source_type in ['cwl', 'wdl', 'sm', 'nf']:
-        tool_path_dict[source_type] = source_path_dir / f"{source_path_root_name}.{source_type}"
+    for source_type, extension in [('cwl', 'cwl'),('wdl', 'wdl'),('snakemake', 'snakefile'),('nextflow', 'nf')]:
+        tool_path_dict[source_type] = source_path_dir / f"{source_path_root_name}.{extension}"
     return tool_path_dict
 
 
@@ -316,11 +316,31 @@ def get_workflow_version_dir(group_name, project_name, version, base_dir=None):
     return workflow_ver_dir
 
 
-def get_cwl_workflow(group_name, project_name, version, workflow_name, base_dir=None):
+def get_workflow_sources(group_name, project_name, version, workflow_name, base_dir=None):
+    workflow_path_dict = {}
     workflow_ver_dir = get_workflow_version_dir(group_name, project_name, version, base_dir=base_dir)
-    workflow_path = workflow_ver_dir / f"{workflow_name}.cwl"
-    return workflow_path
+    for source_type, extension in [('cwl', 'cwl'), ('wdl', 'wdl'), ('snakemake', 'snakefile'), ('nextflow', 'nf')]:
+        workflow_path_dict[source_type] = workflow_ver_dir / f"{workflow_name}.{extension}"
+    return workflow_path_dict
 
+def get_workflow_sources_from_metadata_path(metadata_path, base_dir=None):
+    """
+    Return the path dict for cwl, wdl, sm, and nf files from a metadata file path.
+    """
+    workflow_path_dict = {}
+    metadata_path = Path(metadata_path)
+    metadata_name = metadata_path.name
+    if not metadata_file_pattern.match(metadata_name):
+        raise ValueError(f"{metadata_path} is not a metadata file or is named incorrectly.")
+    if metadata_path.is_absolute():
+        pass
+    else:
+       raise NotImplementedError
+    source_path_dir = metadata_path.parent
+    source_path_root_name = re.sub(r'-metadata\.ya?ml', '', metadata_name)
+    for source_type, extension in [('cwl', 'cwl'), ('wdl', 'wdl'), ('snakemake', 'snakefile'), ('nextflow', 'nf')]:
+        workflow_path_dict[source_type] = source_path_dir / f"{source_path_root_name}.{extension}"
+    return workflow_path_dict
 
 def get_workflow_metadata(group_name, project_name, version, workflow_name, base_dir=None):
     workflow_ver_dir = get_workflow_version_dir(group_name, project_name, version, base_dir=base_dir)

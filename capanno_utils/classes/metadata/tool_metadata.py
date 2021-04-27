@@ -339,7 +339,7 @@ class SubtoolMetadata(CommonPropsMixin, ToolMetadataBase):
                     try:
                         assert identifier in self.tool_identifiers
                     except AssertionError:
-                        raise NotInIndexError
+                        raise NotInIndexError(identifier)
                 else:
                     try:
                         assert identifier not in self.tool_identifiers

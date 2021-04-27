@@ -69,7 +69,7 @@ class TestGetTypesFromPath(TestBase):
         workflow_name = 'cat_sort'
         input_hash = 'ecd8'
 
-        workflow_cwl_path = get_cwl_workflow(group_name, project_name, workflow_version, workflow_name)
+        workflow_cwl_path = get_workflow_sources(group_name, project_name, workflow_version, workflow_name)['cwl']
         cwl_workflow_type_tuple = get_types_from_path(workflow_cwl_path)
         self.assertEqual(cwl_workflow_type_tuple, ('workflow', 'cwl'))
 
