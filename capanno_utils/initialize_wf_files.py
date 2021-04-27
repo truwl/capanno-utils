@@ -5,7 +5,7 @@ from pathlib import Path
 from ruamel.yaml import YAML, tokens, error
 from ruamel.yaml.comments import CommentedMap
 from WDL.CLI import check as check_wdl
-from capanno_utils.templates import wdl_templates, snakemake_templates, nextflow_templates
+from capanno_utils.templates.tool_templates import wdl_templates, snakemake_templates, nextflow_templates
 from capanno_utils.helpers.get_paths import get_tool_sources, get_cwl_script, main_tool_subtool_name
 from capanno_utils.classes.cwl.common_workflow_language import load_document
 import logging, sys
