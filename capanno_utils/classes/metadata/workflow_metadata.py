@@ -96,7 +96,10 @@ class WorkflowMetadata(CommonPropsMixin, WorkflowMetadataBase):
         identifier = f"{worklfow_identifier_prefix}_{name_hash[start:start + 6]}.{version_hash[:2]}"
         return identifier
 
-
+    def _make_workflow_inst_identifier(self):
+        uuid_string = uuid.uuid4().hex[:4]
+        workflowid = self._mk_identifier
+        return f"{workflowid}.{uuid_string}"
 
     @classmethod
     def load_from_file(cls, file_path, ignore_empties=False):
