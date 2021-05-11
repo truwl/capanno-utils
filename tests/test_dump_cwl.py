@@ -2,7 +2,7 @@
 from tests.test_base import TestBase
 from tempfile import NamedTemporaryFile
 from capanno_utils import repo_config
-from capanno_utils.helpers.get_paths import get_cwl_tool
+from capanno_utils.helpers.get_paths import get_tool_sources
 from capanno_utils.classes.cwl.common_workflow_language import load_document
 
 class TestDumpCwlTool(TestBase):
@@ -11,8 +11,8 @@ class TestDumpCwlTool(TestBase):
         tool_name = 'cat'
         tool_version = '8.x'
         subtool_name = repo_config.main_tool_subtool_name
-        command_line_tool_path = get_cwl_tool(tool_name, tool_version, subtool_name, base_dir=self.test_content_dir)
-        command_line_tool = load_document(str(command_line_tool_path))
+        tool_sources = get_tool_sources(tool_name, tool_version, subtool_name, base_dir=self.test_content_dir)
+        command_line_tool = load_document(str(tool_sources['cwl']))
         with NamedTemporaryFile() as tf:
             command_line_tool.dump_cwl(tf.name)
             assert True
@@ -22,8 +22,8 @@ class TestDumpCwlTool(TestBase):
         tool_name = 'cat'
         tool_version = '8.x'
         subtool_name = repo_config.main_tool_subtool_name
-        command_line_tool_path = get_cwl_tool(tool_name, tool_version, subtool_name, base_dir=self.test_content_dir)
-        command_line_tool = load_document(str(command_line_tool_path))
+        tool_sources = get_tool_sources(tool_name, tool_version, subtool_name, base_dir=self.test_content_dir)
+        command_line_tool = load_document(str(tool_sources['cwl']))
         cwl_string = command_line_tool.dump_cwl_str()
         return
 

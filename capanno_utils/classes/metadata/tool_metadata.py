@@ -14,7 +14,6 @@ from ...helpers.get_metadata_from_biotools import make_tool_metadata_kwargs_from
 from ...classes.metadata.common_functions import _mk_hashes, CommonPropsMixin
 
 
-
 class ToolMetadataBase(MetadataBase):
     """Factor stuff out to here."""
 
@@ -42,10 +41,10 @@ class ToolMetadataBase(MetadataBase):
                 self.populate_repo_identifiers_list()
             elif not self.tool_identifiers and not self.root_repo_path:
                 raise AttributeError(f"Cannot check identifiers without a root_repo_path or list of identifiers.")
-            else: # self.tool_identifiers is already set.
+            else:  # self.tool_identifiers is already set.
                 pass  # debug message
         if new_identifier:
-            identifier = self._check_identifier(new_identifier) # Let it error if duplicate identifier explicitly passed.
+            identifier = self._check_identifier(new_identifier)  # Let it error if duplicate identifier explicitly passed.
         else:
             identifier = self._mk_identifier()
         self._identifier = identifier
@@ -81,7 +80,6 @@ class ToolMetadataBase(MetadataBase):
             raise
 
 
-
 class ParentToolMetadata(CommonPropsMixin, ToolMetadataBase):
 
     @staticmethod
@@ -115,14 +113,13 @@ class ParentToolMetadata(CommonPropsMixin, ToolMetadataBase):
             ('extra', None),
         ])
 
-
     def _loop_mk_identifier(self, name_hash, version_hash, name_hash_start_index=0, version_hash_start_index=1):
         # Very unlikely that main part of an identifier will be repeated. Version hash is most likely culprit. Can refine later if that's a problem.
-        identifier = f"{tool_identifier_prefix}_{name_hash[name_hash_start_index: name_hash_start_index+6]}.{version_hash[version_hash_start_index:version_hash_start_index+2]}"
+        identifier = f"{tool_identifier_prefix}_{name_hash[name_hash_start_index: name_hash_start_index + 6]}.{version_hash[version_hash_start_index:version_hash_start_index + 2]}"
         try:
             self._check_identifier(identifier)
         except AssertionError:
-            identifier = self._loop_mk_identifier(name_hash, version_hash, name_hash_start_index=0, version_hash_start_index=version_hash_start_index+1)
+            identifier = self._loop_mk_identifier(name_hash, version_hash, name_hash_start_index=0, version_hash_start_index=version_hash_start_index + 1)
         return identifier
 
     def _check_identifier(self, identifier):
@@ -216,6 +213,9 @@ class SubtoolMetadata(CommonPropsMixin, ToolMetadataBase):
             ('_in_index', False),  # Only used if check_index is True. Will be set to False (default) in __init__
             ('metadataStatus', 'Incomplete'),
             ('cwlStatus', 'Incomplete'),
+            ('nextflowStatus', 'Incomplete'),
+            ('snakemakeStatus', 'Incomplete'),
+            ('wdlStatus', 'Incomplete'),
             ('version', '0.1'),
             ('root_repo_path', None),  # These need to be set before identifier.
             ('tool_identifiers', None),
@@ -223,12 +223,14 @@ class SubtoolMetadata(CommonPropsMixin, ToolMetadataBase):
             ('description', None),
             ('keywords', None),
             ('alternateName', None),
-            ('extra', None),
-            ('sha1', None), #the sha1 hash of the cwlfile associated with this subtool
-            ('dockerImage', None), #the docker image pulled or referenced from this subtool's cwlfile
+            ('extra', OrderedDict(
+                [
+                    ('sha1', None),  # the sha1 hash of the cwlfile associated with this subtool
+                    ('dockerImage', None),  # the docker image pulled or referenced from this subtool's cwlfile
+                ])),
             ('parentMetadata', '../common/common-metadata.yaml'),  # relative path to parentMetadata
             ('_parentMetadata', None),  # ParentMetadata instance. Can be loaded from parentMetadata or set directly.
-            ('_primary_file_attrs', None), # Keep track of attributes that are set directly from kwargs and not inherited from parent.
+            ('_primary_file_attrs', None),  # Keep track of attributes that are set directly from kwargs and not inherited from parent.
         ])
 
     def __init__(self, _metadata_file_path=None, **kwargs):
@@ -245,14 +247,14 @@ class SubtoolMetadata(CommonPropsMixin, ToolMetadataBase):
             assert isinstance(self._parentMetadata, ParentToolMetadata)
         else:
             self.parentMetadata = kwargs['parentMetadata']  # must have a path if it isn't set directly.
-            self._load_parent_metadata(_metadata_file_path, root_repo_path=kwargs.get('root_repo_path'), ignore_empties=ignore_empties, check_index_parent=kwargs.get('check_index'), parent_in_index=kwargs.get('_in_index'))  # sets self._parentMetadata
+            self._load_parent_metadata(_metadata_file_path, root_repo_path=kwargs.get('root_repo_path'), ignore_empties=ignore_empties, check_index_parent=kwargs.get('check_index'),
+                                       parent_in_index=kwargs.get('_in_index'))  # sets self._parentMetadata
         self._primary_file_attrs = []
         for k, value in kwargs.items():  # populate _primary_file_attrs
             if value:
                 self._primary_file_attrs.append(k)  # keep track of kwargs supplied. ignore_empties and base_dir were popped off.
         # self._load_attrs_from_parent()
         super().__init__(**kwargs, ignore_empties=ignore_empties)
-
 
     @property
     def name(self):
@@ -264,7 +266,6 @@ class SubtoolMetadata(CommonPropsMixin, ToolMetadataBase):
         if not value in self._parentMetadata.featureList:
             raise ValueError(f"{value} is not in {self._parentMetadata.name} metadata featureList")
         self._name = value
-
 
     @classmethod
     def load_from_file(cls, file_path, ignore_empties=False, **kwargs):
@@ -317,7 +318,7 @@ class SubtoolMetadata(CommonPropsMixin, ToolMetadataBase):
         try:
             self._check_identifier(identifier)
         except AssertionError:
-            identifier = self._loop_mk_identifier(parent_name_str, version_str, subtool_name_hash, hash_split_index=hash_split_index+1)
+            identifier = self._loop_mk_identifier(parent_name_str, version_str, subtool_name_hash, hash_split_index=hash_split_index + 1)
         return identifier
 
     def _mk_identifier(self):
@@ -338,7 +339,7 @@ class SubtoolMetadata(CommonPropsMixin, ToolMetadataBase):
                     try:
                         assert identifier in self.tool_identifiers
                     except AssertionError:
-                        raise NotInIndexError
+                        raise NotInIndexError(identifier)
                 else:
                     try:
                         assert identifier not in self.tool_identifiers
@@ -396,7 +397,7 @@ class ToolInstanceMetadata(MetadataBase):
             ('name', None),
             ('metadataStatus', 'Incomplete'),
             ('jobStatus', 'Incomplete'),  # Describes status of a job file
-            ('toolIdentifier', None), # Identifier for subtool that this is an instance of.
+            ('toolIdentifier', None),  # Identifier for subtool that this is an instance of.
             ('identifier', None),  # Identifier for the instance
             ('description', None),  # Description of what the instance does.
             ('command', None),  # Generated command. Decide on whether to implement here.
@@ -404,7 +405,7 @@ class ToolInstanceMetadata(MetadataBase):
             ('outputObjects', None),
             ('extra', None),
             ('_tool_instance_file_path', None),  # Populated if class is initialized from a file.
-            ('_subtoolMetadata', None) # Store the SubtoolMetadata instance that this is an instance of.
+            ('_subtoolMetadata', None)  # Store the SubtoolMetadata instance that this is an instance of.
         ])
 
     def __init__(self, _tool_instance_metadata_file_path=None, **kwargs):
@@ -420,7 +421,6 @@ class ToolInstanceMetadata(MetadataBase):
             self._load_subtool_metadata(_tool_instance_metadata_file_path)
         super().__init__(**kwargs)
 
-
     def _load_subtool_metadata(self, tool_instance_metadata_path, ignore_empties=False):
         try:
             base_dir = get_base_dir_from_abs_path(tool_instance_metadata_path)
@@ -433,8 +433,6 @@ class ToolInstanceMetadata(MetadataBase):
         # with subtool_metadata_path.open('r') as f:
         #     subtool_metadata_dict = safe_load(f)
         # self._subtoolMetadata = SubtoolMetadata(**subtool_metadata_dict)
-
-
 
     @classmethod
     def load_from_file(cls, file_path, ignore_empties=False):
@@ -468,7 +466,6 @@ class ToolInstanceMetadata(MetadataBase):
         else:
             identifier = self._mk_identifier()
         self._identifier = identifier
-
 
     @property
     def inputObjects(self):

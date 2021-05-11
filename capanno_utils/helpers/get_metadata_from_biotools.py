@@ -79,8 +79,10 @@ def pop_websites_and_repo(homepage, link, documentation):
 def make_tool_metadata_kwargs_from_biotools(biotools_id):
     logger.debug("Trying to fetch metadata for biotools {}".format(biotools_id))
     meta_dict = get_metadata_from_biotools(biotools_id)
+    if meta_dict is None:
+        logger.error("Error find {} biotools".format(biotools_id))
     if 'list' not in meta_dict:
-        logger.error("{}".format(meta_dict))
+        logger.error("Error {} with ".format(meta_dict,biotools_id))
     meta_data = meta_dict['list'][0]
     tool_kwargs = {}
     tool_kwargs['name'] = meta_data['name']

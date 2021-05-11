@@ -14,7 +14,7 @@ def get_parser():
     parser.add_argument('output_path', type=Path, nargs='?', default=None,
                         help='Provide a file to output the map to.')
     parser.add_argument('-p', '--root-repo-path', dest='root_path', type=Path, default=Path.cwd(),
-                        help="Specify the root path of your cwl content repo if it is not the current working directory.")
+                        help="Specify the root path of your content repo if it is not the current working directory.")
     parser.add_argument('-q', '--quiet', dest='quiet', action='store_true', help="Silence messages to stdout")
 
     return parser
@@ -35,7 +35,7 @@ def main(argsl=None):
     if not full_path.is_dir():
         raise ValueError(f"{full_path} is not a directory")
 
-    base_type, dir_type = get_dir_type_from_path(full_path, cwl_root_repo_name=base_dir.name)
+    base_type, dir_type = get_dir_type_from_path(full_path, content_root_repo_name=base_dir.name)
 
 
     if base_type == 'base_dir': # Content source root provided.

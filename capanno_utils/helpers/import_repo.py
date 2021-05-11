@@ -19,7 +19,7 @@ import subprocess
 from typing import Optional
 from capanno_utils.add.add_tools import add_tool, add_subtool
 from capanno_utils.helpers.get_paths import get_tool_common_dir, main_tool_subtool_name, get_tool_metadata, get_tool_dir
-from capanno_utils.helpers.get_paths import get_cwl_tool, get_cwl_script, main_tool_subtool_name
+from capanno_utils.helpers.get_paths import get_tool_sources, get_cwl_script, main_tool_subtool_name
 from capanno_utils.classes.cwl.common_workflow_language import load_document
 
 logging.basicConfig(stream=sys.stderr)
@@ -76,13 +76,12 @@ class repoImporter(object):
     def getCwlInfo(self, tool: str, subtoolcwl: str) -> dict:
         pass
 
-class bioCwl(repoImporter):
+class bioSnakemakeWrappers(repoImporter):
     def __init__(
             self,
             *,
-            path: str = "bio-cwl-tools-submodule",
-            denylist: Optional[list] = ['pca','util','graph-genome-segmentation', 'prefetch_fastq.cwl']
-            #pca is half-baked, util is just rename, ggs has a Dockerfile but no image, prefetch_fastq.cwl is a workflow
+            path: str = "snakemake-wrappers/bio",
+            denylist: Optional[list] = []
     ) -> None:
         super().__init__(path=path,denylist=denylist)
 
@@ -105,11 +104,11 @@ class bioCwl(repoImporter):
         versions_reported = []
         dockers_reported = []
         biotools_reported = []
-        for subtoolcwl in glob.glob(self.path+"/"+tool+'/*cwl'):
-            if os.path.basename(subtoolcwl) not in self.denylist:
-                logger.info("\tsub:{}".format(os.path.basename(subtoolcwl)))
-                subtooldict=self.getCwlInfo(tool,str(os.path.basename(subtoolcwl)))
-                tooldict[tool]['subtools']+=[subtooldict]
+        for subtoolsource in glob.glob(self.path+"/"+tool+'/wrapper.py'):
+            if os.path.basename(subtoolsource) not in self.denylist:
+                logger.info("\tsub:{}".format(os.path.basename(subtoolsource)))
+                subtooldict=self.getSMWrapInfo(tool,str(os.path.join(os.path.basename(subtoolsource),))
+                tooldict[tool]['subtools']+=[subtoolsource]
 
                 for k,v in subtooldict.items():
                     logger.info("{}:{}".format(k, v))

@@ -2,10 +2,10 @@ import re
 import logging
 from pathlib import Path
 from schema_salad.validate import ValidationException
-from capanno_utils.helpers.get_paths import get_cwl_tool, get_tool_instance_path, get_tool_dir, get_tool_instances_dir_from_cwl_path
+from capanno_utils.helpers.get_paths import get_tool_sources, get_tool_instance_path, get_tool_dir, get_tool_instances_dir_from_cwl_path, get_tool_cwl_from_instance_path
 from capanno_utils.classes.schema_salad.schema_salad import InputsSchema
 
-def validate_inputs_for_instance(instance_path, tool_inputs_info):
+def validate_inputs_for_instance(instance_path, tool_inputs_info=None):
     """
     Need to either provide inputs_schema or cwl_tool_path
     :param instance_path:
@@ -13,6 +13,8 @@ def validate_inputs_for_instance(instance_path, tool_inputs_info):
     :param cwl_tool_path:
     :return:
     """
+    if not tool_inputs_info:
+        tool_inputs_info = get_tool_cwl_from_instance_path(instance_path)
     if isinstance(tool_inputs_info, InputsSchema):
         inputs_schema = tool_inputs_info
     else:  # Should be path to cwl tool file, or CommandLineTool object.

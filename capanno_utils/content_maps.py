@@ -1,7 +1,4 @@
-import os
-from pathlib import Path
-from ruamel.yaml import safe_load, YAML
-from capanno_utils.repo_config import identifier_index_dir, tool_index_path
+from ruamel.yaml import safe_load
 from capanno_utils.classes.metadata.script_metadata import ScriptMetadata
 from capanno_utils.classes.metadata.tool_metadata import ParentToolMetadata, SubtoolMetadata
 from capanno_utils.classes.metadata.workflow_metadata import WorkflowMetadata
@@ -9,10 +6,6 @@ from capanno_utils.helpers.dict_tools import no_clobber_update
 from capanno_utils.helpers.file_management import dump_dict_to_yaml_output
 from capanno_utils.helpers.get_paths import *
 
-
-# get_cwl_tool, get_tool_metadata, get_tool_version_dir, \
-#     get_script_version_dir, get_metadata_path, get_relative_path, get_workflow_version_dir, get_root_tools_dir, \
-#     get_root_scripts_dir, get_workflows_root_dir, get_cwl_workflow
 
 # Todo before stable release: update function names to be consistent.
 
@@ -34,11 +27,17 @@ def make_tools_index(base_dir, index_path=tool_index_path):
 
 
 def make_tools_map_dict(base_dir=None):
-    cwl_tools_dir = get_root_tools_dir(base_dir=base_dir)
+    tools_dir = get_root_tools_dir(base_dir=base_dir)
     tools_map = {}
 
-    for tool_dir in cwl_tools_dir.iterdir():
+    for tool_dir in tools_dir.iterdir():
+        if tool_dir.name == '.DS_Store':
+            continue
+        assert tool_dir.is_dir()
         for version_dir in tool_dir.iterdir():
+            if version_dir.name == '.DS_Store':
+                continue
+            assert version_dir.is_dir()
             tool_map = make_tool_version_dir_map(tool_dir.name, version_dir.name, base_dir=base_dir)
             no_clobber_update(tools_map, tool_map)
     return tools_map
@@ -73,21 +72,21 @@ def make_tool_version_dir_map(tool_name, tool_version, base_dir=None):
     tool_version_map = {}
 
     tool_version_dir = get_tool_version_dir(tool_name, tool_version, base_dir=base_dir)
-    subdir_names = [subdir.name for subdir in tool_version_dir.iterdir()]
-
     parent_metadata_path = get_tool_metadata(tool_name, tool_version, parent=True, base_dir=base_dir)
     parent_metadata = ParentToolMetadata.load_from_file(parent_metadata_path, check_index=False)
     parent_rel_path = get_relative_path(parent_metadata_path, base_path=base_dir)
-    tool_version_map[parent_metadata.identifier] = {'path': str(parent_rel_path),
+    tool_version_map[parent_metadata.identifier] = {'metadataPath': str(parent_rel_path),
                                                     'metadataStatus': parent_metadata.metadataStatus,
                                                     'name': parent_metadata.name,
                                                     'versionName': parent_metadata.softwareVersion.versionName,
                                                     'type': 'parent'}
-    subdir_names.remove('common')
-    for subdir_name in subdir_names:
+    for subtool_dir in tool_version_dir.iterdir():
+        if subtool_dir.name in ['.DS_Store', 'common']:
+            continue
+        assert subtool_dir.is_dir(), subtool_dir.name+" is not a directory. You likely have an extra file."
         tool_name_length = len(
             tool_name)  # Use to get directory name string after 'tool_name'. In case there are underscores in tool_name.
-        subtool_name = subdir_name[tool_name_length + 1:]
+        subtool_name = subtool_dir.name[tool_name_length + 1:]
         if subtool_name == '':
             subtool_name = None
         subdir_map = make_subtool_map(tool_name, tool_version, subtool_name, base_dir=base_dir)
@@ -96,23 +95,25 @@ def make_tool_version_dir_map(tool_name, tool_version, base_dir=None):
 
 
 def make_subtool_map(tool_name, tool_version, subtool_name, base_dir=None):
-    subtool_cwl_path = get_cwl_tool(tool_name, tool_version, subtool_name=subtool_name, base_dir=base_dir)
-    subtool_rel_path = get_relative_path(subtool_cwl_path, base_path=base_dir)
     subtool_metadata_path = get_tool_metadata(tool_name, tool_version, subtool_name=subtool_name, parent=False,
                                               base_dir=base_dir)
     subtool_metadata = SubtoolMetadata.load_from_file(subtool_metadata_path, check_index=False)
     subdir_map = {}
-    subdir_map[subtool_metadata.identifier] = {'path': str(subtool_rel_path), 'name': subtool_metadata.name,
+    subdir_map[subtool_metadata.identifier] = {'metadataPath': str(subtool_metadata_path),
+                                               'name': subtool_metadata.name,
                                                'metadataStatus': subtool_metadata.metadataStatus,
-                                               'cwlStatus': subtool_metadata.cwlStatus, 'type': 'subtool'}
+                                               'cwlStatus': subtool_metadata.cwlStatus,
+                                               'nextflowStatus': subtool_metadata.nextflowStatus,
+                                               'snakemakeStatus': subtool_metadata.snakemakeStatus,
+                                               'wdlStatus': subtool_metadata.wdlStatus,
+                                               'type': 'subtool'}
     return subdir_map
-
 
 def make_tool_common_dir_map(tool_name, tool_version, base_dir):
     common_metadata_path = get_tool_common_dir(tool_name, tool_version, base_dir=base_dir) / common_tool_metadata_name
     common_metadata = ParentToolMetadata.load_from_file(common_metadata_path, check_index=False)
     common_dir_map = {}
-    common_dir_map[common_metadata.identifier] = {'path': str(common_metadata_path),
+    common_dir_map[common_metadata.identifier] = {'metadataPath': str(common_metadata_path),
                                                   'metadataStatus': common_metadata.metadataStatus,
                                                   'name': common_metadata.name,
                                                   'versionName': common_metadata.softwareVersion.versionName,
@@ -122,10 +123,10 @@ def make_tool_common_dir_map(tool_name, tool_version, base_dir):
 
 
 def make_scripts_map_dict(base_dir=None):
-    cwl_scripts_dir = get_root_scripts_dir(base_dir=base_dir)
+    scripts_dir = get_root_scripts_dir(base_dir=base_dir)
 
     scripts_map = {}
-    for group_dir in cwl_scripts_dir.iterdir():
+    for group_dir in scripts_dir.iterdir():
         group_script_map = make_group_script_map(group_dir.name, base_dir=base_dir)
         no_clobber_update(scripts_map, group_script_map)
     return scripts_map
@@ -201,7 +202,7 @@ def make_workflow_maps(outfile_name='workflow-maps', base_dir=None):
 
 def make_workflow_map(group_name, project_name, version, workflow_name, base_dir=None):
     workflow_map = {}
-    workflow_path = get_cwl_workflow(group_name, project_name, version, workflow_name, base_dir=base_dir)
+    workflow_path = get_workflow_sources(group_name, project_name, version, workflow_name, base_dir=base_dir)['cwl']
     workflow_rel_path = get_relative_path(workflow_path, base_path=base_dir)
     workflow_metadata_path = get_metadata_path(workflow_path)
     workflow_metadata = WorkflowMetadata.load_from_file(workflow_metadata_path)
@@ -257,7 +258,7 @@ def get_tool_args_from_identifier(identifier, base_dir=None):
         identifier, instance_hash = identifier[:-4], identifier[-4:]
     if parent_tool_identifier_pattern.match(identifier) | subtool_identifier_pattern.match(identifier):
         tools_map = make_tools_map(base_dir=base_dir)
-        tool_path = tools_map[identifier]['path']
+        tool_path = tools_map[identifier]['metadataPath']
         tool_args = get_tool_args_from_path(tool_path)
     else:
         raise ValueError()

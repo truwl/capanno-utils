@@ -8,9 +8,10 @@ from capanno_utils.classes.metadata.script_metadata import ScriptMetadata, Commo
 from capanno_utils.classes.metadata.workflow_metadata import WorkflowMetadata
 from .content_maps import make_tools_map, make_main_tool_map, make_tool_version_dir_map, make_tool_common_dir_map, \
     make_subtool_map, make_script_maps, make_group_script_map, make_project_script_map, make_script_version_map, \
-    make_script_map, make_workflow_maps
-from .helpers.get_paths import get_metadata_path, get_base_dir
+    make_script_map, make_workflow_maps, make_tools_map_dict
+from .helpers.get_paths import get_metadata_path, get_base_dir, get_tool_sources_from_metadata_path, get_workflow_sources_from_metadata_path
 from .helpers.validate_cwl import validate_cwl_doc
+from .helpers.validate_wdl import validate_wdl_doc
 from .validate_inputs import validate_all_inputs_for_tool
 
 
@@ -37,40 +38,47 @@ validate_workflow_metadata = metadata_validator_factory(WorkflowMetadata)
 
 def validate_tool_content_from_map(tool_map_dict, base_dir=None):
     """
-    tool_map(dict): Keys are identiers, values are dict with path, metadataStatus, name, versionName, and type keys.
+    tool_map(dict): Keys are identifers, values are dict with path, metadataStatus, name, versionName, and type keys.
     """
+    validate_statuses = ('Draft', 'Released')
     if base_dir is None:
         base_dir = get_base_dir()
     for identifier, values in tool_map_dict.items():
-        tool_path = base_dir / values['path']
+        metadata_path = base_dir / values['metadataPath']
         tool_type = values['type']
 
         if tool_type == 'parent':  # could now also get type directly from path.
-            if not 'common' in tool_path.parts:
+            if not 'common' in metadata_path.parts:
                 raise ValueError(f"")
-            validate_parent_tool_metadata(tool_path)
+            validate_parent_tool_metadata(metadata_path)
         else:  # is a subtool
-            cwl_status = values['cwlStatus']
-            metadata_path = get_metadata_path(tool_path)
             validate_subtool_metadata(metadata_path)
-
-            if cwl_status in ('Draft', 'Released'):
-                validate_cwl_doc(tool_path)
-
-                validate_all_inputs_for_tool(tool_path)
+            tool_sources = get_tool_sources_from_metadata_path(metadata_path)
+            cwl_path, wdl_path, sm_path, nf_path = tuple(tool_sources.values())
+            cwl_status = values['cwlStatus']
+            if cwl_status in validate_statuses:
+                validate_cwl_doc(cwl_path)
+                validate_all_inputs_for_tool(cwl_path)
+            if values['wdlStatus'] in validate_statuses:
+                validate_wdl_doc(wdl_path)
+            if values['nextflowStatus'] in validate_statuses:
+                if not nf_path.exists():
+                    raise FileNotFoundError(f"{str(nf_path)} does not exist.")
+                logging.info(f"Nexflow files are not validated. {nf_path}")
+            if values['snakemakeStatus'] in validate_statuses:
+                if not sm_path.exists():
+                    raise FileNotFoundError(f"{str(sm_path)} does not exist.")
+                logging.info(f"Snakemake files are not validated {sm_path}")
     return
 
 
 def validate_tools_dir(base_dir=None):
     """
-    Validate all cwl files, metadata files, instances and instance metadata in a cwl-tools directory
+    Validate all cwl files, metadata files, instances and instance metadata in a tools directory
     :return:
     """
-    tool_map_temp_file = tempfile.NamedTemporaryFile(prefix='tools_map', suffix='.yaml',
-                                                     delete=True)  # Change to False if file doesn't persist long enough.
-    make_tools_map(tool_map_temp_file.name, base_dir=base_dir)
-    with tool_map_temp_file as tool_map:
-        tool_map_dict = safe_load(tool_map)
+
+    tool_map_dict = make_tools_map_dict(base_dir=base_dir)
     validate_tool_content_from_map(tool_map_dict, base_dir)
 
     return
@@ -91,7 +99,7 @@ def validate_tool_version_dir(tool_name, tool_version, base_dir=None):
     return
 
 
-def validate_tool_comomon_dir(tool_name, tool_version, base_dir=None):
+def validate_tool_common_dir(tool_name, tool_version, base_dir=None):
     common_tool_map = make_tool_common_dir_map(tool_name, tool_version, base_dir=base_dir)
     validate_tool_content_from_map(common_tool_map, base_dir=base_dir)
     return
@@ -168,8 +176,10 @@ def validate_workflows_dir(base_dir=None):
 
         cwl_status = values['cwlStatus']
         if cwl_status in ('Draft', 'Released'):
-            print(
-                f"Make sure you validate {workflow_path}")  # Todo. Think I have good way to validate somewhere in biodrafter. Need to port here (needs to be put in a temporary directory with the tools and workflows that it calls.)
+            if not workflow_path.exists():
+                raise FileNotFoundError(f"{str(workflow_path)} does not exist.")
+            logging.debug(
+                f"Make sure you validate {workflow_path}")  # Todo. Think I have good way to validate somewhere. Need to port here (needs to be put in a temporary directory with the tools and workflows that it calls.)
     return
 
 

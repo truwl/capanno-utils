@@ -1,0 +1,378 @@
+TL_c8f1ee.47:
+  metadataPath: tools/md5sum/8.x/common/common-metadata.yaml
+  metadataStatus: Released
+  name: md5sum
+  versionName: 8.x
+  type: parent
+TL_c8f1ee_d4.47:
+  metadataPath: /vagrant/capanno-utils/tests/test_files/capanno/tools/md5sum/8.x/md5sum/md5sum-metadata.yaml
+  name: __main__
+  metadataStatus: Released
+  cwlStatus: Released
+  nextflowStatus: Incomplete
+  snakemakeStatus: Incomplete
+  wdlStatus: Incomplete
+  type: subtool
+TL_c8f1ee_0b.47:
+  metadataPath: /vagrant/capanno-utils/tests/test_files/capanno/tools/md5sum/8.x/md5sum_check/md5sum-check-metadata.yaml
+  name: check
+  metadataStatus: Released
+  cwlStatus: Released
+  nextflowStatus: Incomplete
+  snakemakeStatus: Incomplete
+  wdlStatus: Incomplete
+  type: subtool
+TL_d077f2.47:
+  metadataPath: tools/cat/8.x/common/common-metadata.yaml
+  metadataStatus: Released
+  name: cat
+  versionName: 8.x
+  type: parent
+TL_d077f2_54.47:
+  metadataPath: /vagrant/capanno-utils/tests/test_files/capanno/tools/cat/8.x/cat/cat-metadata.yaml
+  name: __main__
+  metadataStatus: Released
+  cwlStatus: Released
+  nextflowStatus: Incomplete
+  snakemakeStatus: Incomplete
+  wdlStatus: Incomplete
+  type: subtool
+TL_cadc8c.47:
+  metadataPath: tools/sort/8.x/common/common-metadata.yaml
+  metadataStatus: Released
+  name: sort
+  versionName: 8.x
+  type: parent
+TL_cadc8c_54.47:
+  metadataPath: /vagrant/capanno-utils/tests/test_files/capanno/tools/sort/8.x/sort/sort-metadata.yaml
+  name: __main__
+  metadataStatus: Released
+  cwlStatus: Released
+  nextflowStatus: Incomplete
+  snakemakeStatus: Incomplete
+  wdlStatus: Incomplete
+  type: subtool
+TL_8ab263.82:
+  metadataPath: tools/STAR/2.5/common/common-metadata.yaml
+  metadataStatus: Released
+  name: STAR
+  versionName: '2.5'
+  type: parent
+TL_8ab263_95.82:
+  metadataPath: /vagrant/capanno-utils/tests/test_files/capanno/tools/STAR/2.5/STAR_genomeGenerate/STAR-genomeGenerate-metadata.yaml
+  name: genomeGenerate
+  metadataStatus: Released
+  cwlStatus: Released
+  nextflowStatus: Incomplete
+  snakemakeStatus: Incomplete
+  wdlStatus: Incomplete
+  type: subtool
+TL_8ab263_15.82:
+  metadataPath: /vagrant/capanno-utils/tests/test_files/capanno/tools/STAR/2.5/STAR_liftOver/STAR-liftOver-metadata.yaml
+  name: liftOver
+  metadataStatus: Incomplete
+  cwlStatus: Incomplete
+  nextflowStatus: Incomplete
+  snakemakeStatus: Incomplete
+  wdlStatus: Incomplete
+  type: subtool
+TL_8ab263_a4.82:
+  metadataPath: /vagrant/capanno-utils/tests/test_files/capanno/tools/STAR/2.5/STAR_alignReads/STAR-alignReads-metadata.yaml
+  name: alignReads
+  metadataStatus: Released
+  cwlStatus: Released
+  nextflowStatus: Incomplete
+  snakemakeStatus: Incomplete
+  wdlStatus: Incomplete
+  type: subtool
+TL_8ab263_d6.82:
+  metadataPath: /vagrant/capanno-utils/tests/test_files/capanno/tools/STAR/2.5/STAR_inputAlignmentsFromBAM/STAR-inputAlignmentsFromBAM-metadata.yaml
+  name: inputAlignmentsFromBAM
+  metadataStatus: Released
+  cwlStatus: Released
+  nextflowStatus: Incomplete
+  snakemakeStatus: Incomplete
+  wdlStatus: Incomplete
+  type: subtool
+TL_9579db.89:
+  metadataPath: tools/gawk/4.1.x/common/common-metadata.yaml
+  metadataStatus: Released
+  name: gawk
+  versionName: 4.1.x
+  type: parent
+TL_9579db_54.89:
+  metadataPath: /vagrant/capanno-utils/tests/test_files/capanno/tools/gawk/4.1.x/gawk/gawk-metadata.yaml
+  name: __main__
+  metadataStatus: Released
+  cwlStatus: Released
+  nextflowStatus: Incomplete
+  snakemakeStatus: Incomplete
+  wdlStatus: Incomplete
+  type: subtool
+TL_ec2a8d.0b:
+  metadataPath: tools/samtools/1.x/common/common-metadata.yaml
+  metadataStatus: Released
+  name: samtools
+  versionName: 1.x
+  type: parent
+TL_ec2a8d_9a.0b:
+  metadataPath: /vagrant/capanno-utils/tests/test_files/capanno/tools/samtools/1.x/samtools_quickcheck/samtools-quickcheck-metadata.yaml
+  name: quickcheck
+  metadataStatus: Released
+  cwlStatus: Incomplete
+  nextflowStatus: Incomplete
+  snakemakeStatus: Incomplete
+  wdlStatus: Incomplete
+  type: subtool
+TL_ec2a8d_46.0b:
+  metadataPath: /vagrant/capanno-utils/tests/test_files/capanno/tools/samtools/1.x/samtools_view/samtools-view-metadata.yaml
+  name: view
+  metadataStatus: Released
+  cwlStatus: Released
+  nextflowStatus: Incomplete
+  snakemakeStatus: Incomplete
+  wdlStatus: Incomplete
+  type: subtool
+TL_ec2a8d_71.0b:
+  metadataPath: /vagrant/capanno-utils/tests/test_files/capanno/tools/samtools/1.x/samtools_reheader/samtools-reheader-metadata.yaml
+  name: reheader
+  metadataStatus: Released
+  cwlStatus: Incomplete
+  nextflowStatus: Incomplete
+  snakemakeStatus: Incomplete
+  wdlStatus: Incomplete
+  type: subtool
+TL_ec2a8d_d1.0b:
+  metadataPath: /vagrant/capanno-utils/tests/test_files/capanno/tools/samtools/1.x/samtools_idxstats/samtools-idxstats-metadata.yaml
+  name: idxstats
+  metadataStatus: Released
+  cwlStatus: Incomplete
+  nextflowStatus: Incomplete
+  snakemakeStatus: Incomplete
+  wdlStatus: Incomplete
+  type: subtool
+TL_ec2a8d_d0.0b:
+  metadataPath: /vagrant/capanno-utils/tests/test_files/capanno/tools/samtools/1.x/samtools_cat/samtools-cat-metadata.yaml
+  name: cat
+  metadataStatus: Released
+  cwlStatus: Incomplete
+  nextflowStatus: Incomplete
+  snakemakeStatus: Incomplete
+  wdlStatus: Incomplete
+  type: subtool
+TL_ec2a8d_52.0b:
+  metadataPath: /vagrant/capanno-utils/tests/test_files/capanno/tools/samtools/1.x/samtools_fastq/samtools-fastq-metadata.yaml
+  name: fastq
+  metadataStatus: Released
+  cwlStatus: Incomplete
+  nextflowStatus: Incomplete
+  snakemakeStatus: Incomplete
+  wdlStatus: Incomplete
+  type: subtool
+TL_ec2a8d_a4.0b:
+  metadataPath: /vagrant/capanno-utils/tests/test_files/capanno/tools/samtools/1.x/samtools_bedcov/samtools-bedcov-metadata.yaml
+  name: bedcov
+  metadataStatus: Released
+  cwlStatus: Incomplete
+  nextflowStatus: Incomplete
+  snakemakeStatus: Incomplete
+  wdlStatus: Incomplete
+  type: subtool
+TL_ec2a8d_3e.0b:
+  metadataPath: /vagrant/capanno-utils/tests/test_files/capanno/tools/samtools/1.x/samtools_depad/samtools-depad-metadata.yaml
+  name: depad
+  metadataStatus: Released
+  cwlStatus: Incomplete
+  nextflowStatus: Incomplete
+  snakemakeStatus: Incomplete
+  wdlStatus: Incomplete
+  type: subtool
+TL_ec2a8d_44.0b:
+  metadataPath: /vagrant/capanno-utils/tests/test_files/capanno/tools/samtools/1.x/samtools_stats/samtools-stats-metadata.yaml
+  name: stats
+  metadataStatus: Released
+  cwlStatus: Incomplete
+  nextflowStatus: Incomplete
+  snakemakeStatus: Incomplete
+  wdlStatus: Incomplete
+  type: subtool
+TL_ec2a8d_bb.0b:
+  metadataPath: /vagrant/capanno-utils/tests/test_files/capanno/tools/samtools/1.x/samtools_faidx/samtools-faidx-metadata.yaml
+  name: faidx
+  metadataStatus: Released
+  cwlStatus: Incomplete
+  nextflowStatus: Incomplete
+  snakemakeStatus: Incomplete
+  wdlStatus: Incomplete
+  type: subtool
+TL_ec2a8d_6a.0b:
+  metadataPath: /vagrant/capanno-utils/tests/test_files/capanno/tools/samtools/1.x/samtools_index/samtools-index-metadata.yaml
+  name: index
+  metadataStatus: Released
+  cwlStatus: Incomplete
+  nextflowStatus: Incomplete
+  snakemakeStatus: Incomplete
+  wdlStatus: Incomplete
+  type: subtool
+TL_ec2a8d_ca.0b:
+  metadataPath: /vagrant/capanno-utils/tests/test_files/capanno/tools/samtools/1.x/samtools_sort/samtools-sort-metadata.yaml
+  name: sort
+  metadataStatus: Released
+  cwlStatus: Incomplete
+  nextflowStatus: Incomplete
+  snakemakeStatus: Incomplete
+  wdlStatus: Incomplete
+  type: subtool
+TL_ec2a8d_02.0b:
+  metadataPath: /vagrant/capanno-utils/tests/test_files/capanno/tools/samtools/1.x/samtools_markdup/samtools-markdup-metadata.yaml
+  name: markdup
+  metadataStatus: Released
+  cwlStatus: Incomplete
+  nextflowStatus: Incomplete
+  snakemakeStatus: Incomplete
+  wdlStatus: Incomplete
+  type: subtool
+TL_ec2a8d_ac.0b:
+  metadataPath: /vagrant/capanno-utils/tests/test_files/capanno/tools/samtools/1.x/samtools_calmd/samtools-calmd-metadata.yaml
+  name: calmd
+  metadataStatus: Released
+  cwlStatus: Incomplete
+  nextflowStatus: Incomplete
+  snakemakeStatus: Incomplete
+  wdlStatus: Incomplete
+  type: subtool
+TL_ec2a8d_86.0b:
+  metadataPath: /vagrant/capanno-utils/tests/test_files/capanno/tools/samtools/1.x/samtools_rmdup/samtools-rmdup-metadata.yaml
+  name: rmdup
+  metadataStatus: Released
+  cwlStatus: Incomplete
+  nextflowStatus: Incomplete
+  snakemakeStatus: Incomplete
+  wdlStatus: Incomplete
+  type: subtool
+TL_ec2a8d_a2.0b:
+  metadataPath: /vagrant/capanno-utils/tests/test_files/capanno/tools/samtools/1.x/samtools_fixmate/samtools-fixmate-metadata.yaml
+  name: fixmate
+  metadataStatus: Released
+  cwlStatus: Incomplete
+  nextflowStatus: Incomplete
+  snakemakeStatus: Incomplete
+  wdlStatus: Incomplete
+  type: subtool
+TL_ec2a8d_a6.0b:
+  metadataPath: /vagrant/capanno-utils/tests/test_files/capanno/tools/samtools/1.x/samtools_flagstat/samtools-flagstat-metadata.yaml
+  name: flagstat
+  metadataStatus: Released
+  cwlStatus: Released
+  nextflowStatus: Incomplete
+  snakemakeStatus: Incomplete
+  wdlStatus: Incomplete
+  type: subtool
+TL_ec2a8d_31.0b:
+  metadataPath: /vagrant/capanno-utils/tests/test_files/capanno/tools/samtools/1.x/samtools_collate/samtools-collate-metadata.yaml
+  name: collate
+  metadataStatus: Released
+  cwlStatus: Incomplete
+  nextflowStatus: Incomplete
+  snakemakeStatus: Incomplete
+  wdlStatus: Incomplete
+  type: subtool
+TL_ec2a8d_2d.0b:
+  metadataPath: /vagrant/capanno-utils/tests/test_files/capanno/tools/samtools/1.x/samtools_fasta/samtools-fasta-metadata.yaml
+  name: fasta
+  metadataStatus: Released
+  cwlStatus: Incomplete
+  nextflowStatus: Incomplete
+  snakemakeStatus: Incomplete
+  wdlStatus: Incomplete
+  type: subtool
+TL_ec2a8d_a3.0b:
+  metadataPath: /vagrant/capanno-utils/tests/test_files/capanno/tools/samtools/1.x/samtools_fqidx/samtools-fqidx-metadata.yaml
+  name: fqidx
+  metadataStatus: Released
+  cwlStatus: Incomplete
+  nextflowStatus: Incomplete
+  snakemakeStatus: Incomplete
+  wdlStatus: Incomplete
+  type: subtool
+TL_ec2a8d_79.0b:
+  metadataPath: /vagrant/capanno-utils/tests/test_files/capanno/tools/samtools/1.x/samtools_targetcut/samtools-targetcut-metadata.yaml
+  name: targetcut
+  metadataStatus: Released
+  cwlStatus: Incomplete
+  nextflowStatus: Incomplete
+  snakemakeStatus: Incomplete
+  wdlStatus: Incomplete
+  type: subtool
+TL_ec2a8d_ee.0b:
+  metadataPath: /vagrant/capanno-utils/tests/test_files/capanno/tools/samtools/1.x/samtools_split/samtools-split-metadata.yaml
+  name: split
+  metadataStatus: Released
+  cwlStatus: Incomplete
+  nextflowStatus: Incomplete
+  snakemakeStatus: Incomplete
+  wdlStatus: Incomplete
+  type: subtool
+TL_ec2a8d_e0.0b:
+  metadataPath: /vagrant/capanno-utils/tests/test_files/capanno/tools/samtools/1.x/samtools_mpileup/samtools-mpileup-metadata.yaml
+  name: mpileup
+  metadataStatus: Released
+  cwlStatus: Incomplete
+  nextflowStatus: Incomplete
+  snakemakeStatus: Incomplete
+  wdlStatus: Incomplete
+  type: subtool
+TL_ec2a8d_7e.0b:
+  metadataPath: /vagrant/capanno-utils/tests/test_files/capanno/tools/samtools/1.x/samtools_phase/samtools-phase-metadata.yaml
+  name: phase
+  metadataStatus: Released
+  cwlStatus: Incomplete
+  nextflowStatus: Incomplete
+  snakemakeStatus: Incomplete
+  wdlStatus: Incomplete
+  type: subtool
+TL_ec2a8d_ab.0b:
+  metadataPath: /vagrant/capanno-utils/tests/test_files/capanno/tools/samtools/1.x/samtools_tview/samtools-tview-metadata.yaml
+  name: tview
+  metadataStatus: Released
+  cwlStatus: Incomplete
+  nextflowStatus: Incomplete
+  snakemakeStatus: Incomplete
+  wdlStatus: Incomplete
+  type: subtool
+TL_ec2a8d_4e.0b:
+  metadataPath: /vagrant/capanno-utils/tests/test_files/capanno/tools/samtools/1.x/samtools_flags/samtools-flags-metadata.yaml
+  name: flags
+  metadataStatus: Released
+  cwlStatus: Incomplete
+  nextflowStatus: Incomplete
+  snakemakeStatus: Incomplete
+  wdlStatus: Incomplete
+  type: subtool
+TL_ec2a8d_12.0b:
+  metadataPath: /vagrant/capanno-utils/tests/test_files/capanno/tools/samtools/1.x/samtools_depth/samtools-depth-metadata.yaml
+  name: depth
+  metadataStatus: Released
+  cwlStatus: Incomplete
+  nextflowStatus: Incomplete
+  snakemakeStatus: Incomplete
+  wdlStatus: Incomplete
+  type: subtool
+TL_ec2a8d_fd.0b:
+  metadataPath: /vagrant/capanno-utils/tests/test_files/capanno/tools/samtools/1.x/samtools_addreplacerg/samtools-addreplacerg-metadata.yaml
+  name: addreplacerg
+  metadataStatus: Released
+  cwlStatus: Incomplete
+  nextflowStatus: Incomplete
+  snakemakeStatus: Incomplete
+  wdlStatus: Incomplete
+  type: subtool
+TL_ec2a8d_65.0b:
+  metadataPath: /vagrant/capanno-utils/tests/test_files/capanno/tools/samtools/1.x/samtools_merge/samtools-merge-metadata.yaml
+  name: merge
+  metadataStatus: Released
+  cwlStatus: Incomplete
+  nextflowStatus: Incomplete
+  snakemakeStatus: Incomplete
+  wdlStatus: Incomplete
+  type: subtool

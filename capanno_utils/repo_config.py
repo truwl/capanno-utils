@@ -21,7 +21,7 @@ instance_file_pattern = re.compile(r'[0-9a-f]{4}\.ya?ml')
 
 instance_metadata_file_pattern = re.compile(r'[0-9a-f]{4}-metadata\.ya?ml')
 
-script_common_metadata_file_pattern = re.compile(r'[A-Za-z_]+-metadata\.yaml')
+metadata_file_pattern = re.compile(r'[.0-9A-Za-z_-]+-metadata\.ya?ml')
 
 parent_tool_identifier_pattern = re.compile(r'TL_[0-9a-f]{6}\.[0-9a-f]{2}$')
 
@@ -37,11 +37,11 @@ instances_dir_name = 'instances'
 
 content_repo_name = 'capanno'
 
-tools_dir_name = 'cwl-tools'
+tools_dir_name = 'tools'
 
-scripts_dir_name = 'cwl-scripts'
+scripts_dir_name = 'scripts'
 
-workflows_dir_name = 'cwl-workflows'
+workflows_dir_name = 'workflows'
 
 tool_identifier_prefix = 'TL'
 
@@ -53,7 +53,7 @@ tools_map_name = '.tools_map.yaml'
 
 scripts_maps_name = '.scripts_map.yaml'
 
-workflow_maps_name = 'workflows_map.yaml'
+workflow_maps_name = 'workflows_map.yaml'  # why are the others hidden and this one isn't?
 
 identifier_index_dir = Path('.cache')
 
@@ -61,12 +61,13 @@ tool_index_file_name = 'tools_index'
 
 tool_index_path = identifier_index_dir / tool_index_file_name
 
+
 def make_config_dict(base_path):
     base_path = Path(base_path)  # Make sure any string values are turned into Path objects.
     config_dict = {
         'base_path': base_path,
         'content_maps_dir': base_path / content_maps_dir_name,
-        'temp_dir': tempfile.TemporaryDirectory(prefix='cwlTest_'),
+        'temp_dir': tempfile.TemporaryDirectory(prefix=f"{content_repo_name}_Test_"),
     }
     return config_dict
 

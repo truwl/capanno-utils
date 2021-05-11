@@ -1,3 +1,6 @@
 [submodule "bio-cwl-tools-submodule"]
 	path = bio-cwl-tools-submodule
 	url = https://github.com/common-workflow-library/bio-cwl-tools.git
+[submodule "snakemake-wrappers"]
+	path = snakemake-wrappers
+	url = git@github.com:snakemake/snakemake-wrappers.git
