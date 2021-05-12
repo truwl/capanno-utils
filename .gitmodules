@@ -4,3 +4,6 @@
 [submodule "snakemake-wrappers"]
 	path = snakemake-wrappers
 	url = git@github.com:snakemake/snakemake-wrappers.git
+[submodule "nfmodules"]
+	path = nfmodules
+	url = git@github.com:nf-core/modules.git

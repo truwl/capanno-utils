@@ -270,7 +270,7 @@ class SubtoolMetadata(CommonPropsMixin, ToolMetadataBase):
     @classmethod
     def load_from_file(cls, file_path, ignore_empties=False, **kwargs):
         """Load subtool metadata into SubtoolMetadata from a yaml file.
-        The Subtool populates it's metadata from ParentMetadata
+        The Subtool populates its metadata from ParentMetadata
         """
         file_path = Path(file_path)
         with file_path.open('r') as file:
@@ -351,7 +351,7 @@ class SubtoolMetadata(CommonPropsMixin, ToolMetadataBase):
             raise ValueError(f"Subtool identifier {identifier} does not properly correspond to parent identifier {parent_identifier}")
         if not identifier.endswith(parent_identifier[-3:]):  # should be '.xx'
             raise ValueError(
-                f"Subtool identifier {identifier} does not properly correspond to parent identifier {parent_identifier}")
+                f"Subtool identifier {identifier} does not properly correspond to parent identifier {parent_identifier} for {self._parentMetadata.name} {self.name}")
         if not subtool_identifier_pattern.match(identifier):
             raise ValueError(f"Tool identifier not formatted correctly: {identifier}")
 

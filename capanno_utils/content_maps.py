@@ -99,6 +99,7 @@ def make_subtool_map(tool_name, tool_version, subtool_name, base_dir=None):
                                               base_dir=base_dir)
     subtool_metadata = SubtoolMetadata.load_from_file(subtool_metadata_path, check_index=False)
     subdir_map = {}
+
     subdir_map[subtool_metadata.identifier] = {'metadataPath': str(subtool_metadata_path),
                                                'name': subtool_metadata.name,
                                                'metadataStatus': subtool_metadata.metadataStatus,

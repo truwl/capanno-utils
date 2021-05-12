@@ -73,7 +73,7 @@ def main(argsl=None):
     elif base_type == 'workflow':
         raise NotImplementedError
     else:
-        raise ValueError
+        raise ValueError("{} not a recognized base_type".format(base_type))
     return dump_dict_to_yaml_output(output_map, args.output_path)
 
 
