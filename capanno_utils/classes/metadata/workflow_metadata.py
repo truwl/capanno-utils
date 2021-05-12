@@ -62,11 +62,15 @@ class WorkflowMetadata(CommonPropsMixin, WorkflowMetadataBase):
         return OrderedDict([
         ('name', None),
         ('softwareVersion', None),
+        ('current', None),
         ('description', None),
         ('identifier', None),
         ('metadataStatus', 'Incomplete'),
-        ('cwlStatus', 'Incomplete'),
-        ('callMap', None),
+        ('workflowStatus', 'Incomplete'),
+        ('workflowLanguage', 'wdl'),
+        ('callMap', None),  # This field is to make associations between called tasks/steps and underlying tools/scripts.
+        ('graphStatus', 'Incomplete'),
+        ('executable', False),  # if configured to execute on Truwl.
         ('codeRepository', None),
         ('WebSite', None),
         ('license', None),
@@ -75,7 +79,6 @@ class WorkflowMetadata(CommonPropsMixin, WorkflowMetadataBase):
         ('keywords', None),
         ('alternateName', None),
         ('creator', None),
-        ('programmingLanguage', None),
         ('datePublished', None),
     ])
 
@@ -100,6 +103,35 @@ class WorkflowMetadata(CommonPropsMixin, WorkflowMetadataBase):
         uuid_string = uuid.uuid4().hex[:4]
         workflowid = self._mk_identifier
         return f"{workflowid}.{uuid_string}"
+
+    @property
+    def workflowStatus(self):
+        return self._workflowStatus
+
+    @workflowStatus.setter
+    def workflowStatus(self, wf_status):
+        allowed_statuses = ('Incomplete', 'Draft', 'Released')
+        if not wf_status:
+            raise ValueError("workflowStatus must be set.")
+        elif wf_status not in allowed_statuses:
+            raise ValueError(f"worflowStatus must be on of  {allowed_statuses}, not {wf_status}")
+        else:
+            self._workflowStatus = wf_status
+
+    @property
+    def workflowLanguage(self):
+        return self._workflowLanguage
+
+    @workflowLanguage.setter
+    def workflowLanguage(self, wf_language):
+        allowed_languages = ('cwl', 'wdl', 'nextflow', 'snakemake')
+        if not wf_language:
+            raise ValueError("workflowLanguage must be set.")
+        elif wf_language not in allowed_languages:
+            raise ValueError(f"workflowLanguage must be on of  {allowed_languages}, not {wf_language}")
+        else:
+            self._workflowLanguage = wf_language
+
 
     @classmethod
     def load_from_file(cls, file_path, ignore_empties=False):
