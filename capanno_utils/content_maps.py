@@ -26,7 +26,7 @@ def make_tools_index(base_dir, index_path=tool_index_path):
     return index_path.resolve()
 
 
-def make_tools_map_dict(base_dir=None):
+def make_tools_map_dict(base_dir=None, specify_exists=False):
     tools_dir = get_root_tools_dir(base_dir=base_dir)
     tools_map = {}
 
@@ -38,11 +38,11 @@ def make_tools_map_dict(base_dir=None):
             if version_dir.name == '.DS_Store':
                 continue
             assert version_dir.is_dir()
-            tool_map = make_tool_version_dir_map(tool_dir.name, version_dir.name, base_dir=base_dir)
+            tool_map = make_tool_version_dir_map(tool_dir.name, version_dir.name, base_dir=base_dir, specify_exists=specify_exists)
             no_clobber_update(tools_map, tool_map)
     return tools_map
 
-def make_tools_map(outfile_path=None, base_dir=None):
+def make_tools_map(outfile_path=None, base_dir=None, specify_exists=False):
     """
     Make a yaml file that specifies paths and attributes of tools in tool_dir.
     :param tool_dir (Path): Path of directory that contains tools.
@@ -51,7 +51,7 @@ def make_tools_map(outfile_path=None, base_dir=None):
         None
     """
 
-    tools_map = make_tools_map_dict(base_dir=base_dir)
+    tools_map = make_tools_map_dict(base_dir=base_dir, specify_exists=specify_exists)
     dump_dict_to_yaml_output(tools_map, output=outfile_path)
     return outfile_path
 
@@ -68,7 +68,7 @@ def make_main_tool_map(tool_name, base_dir=None):
     return main_tool_map
 
 
-def make_tool_version_dir_map(tool_name, tool_version, base_dir=None):
+def make_tool_version_dir_map(tool_name, tool_version, base_dir=None, specify_exists=False):
     tool_version_map = {}
 
     tool_version_dir = get_tool_version_dir(tool_name, tool_version, base_dir=base_dir)
@@ -89,17 +89,33 @@ def make_tool_version_dir_map(tool_name, tool_version, base_dir=None):
         subtool_name = subtool_dir.name[tool_name_length + 1:]
         if subtool_name == '':
             subtool_name = None
-        subdir_map = make_subtool_map(tool_name, tool_version, subtool_name, base_dir=base_dir)
+        subdir_map = make_subtool_map(tool_name, tool_version, subtool_name, base_dir=base_dir, specify_exists=specify_exists)
         no_clobber_update(tool_version_map, subdir_map)
     return tool_version_map
 
 
-def make_subtool_map(tool_name, tool_version, subtool_name, base_dir=None):
+def make_subtool_map(tool_name, tool_version, subtool_name, base_dir=None, specify_exists=False):
     subtool_metadata_path = get_tool_metadata(tool_name, tool_version, subtool_name=subtool_name, parent=False,
                                               base_dir=base_dir)
     subtool_metadata = SubtoolMetadata.load_from_file(subtool_metadata_path, check_index=False)
     subdir_map = {}
-    subdir_map[subtool_metadata.identifier] = {'metadataPath': str(subtool_metadata_path),
+    subtool_rel_path = get_relative_path(subtool_metadata_path, base_path=base_dir)
+    if specify_exists:
+        files_exist = check_for_workflow_language_files(subtool_metadata_path)
+        subdir_map[subtool_metadata.identifier] = {'metadataPath': str(subtool_rel_path),
+                                               'name': subtool_metadata.name,
+                                               'metadataStatus': subtool_metadata.metadataStatus,
+                                               'cwlStatus': subtool_metadata.cwlStatus,
+                                               'cwlExists': files_exist['cwl'],
+                                               'nextflowStatus': subtool_metadata.nextflowStatus,
+                                               'nextflowExists': files_exist['nextflow'],
+                                               'snakemakeStatus': subtool_metadata.snakemakeStatus,
+                                               'snakemakeExists': files_exist['snakemake'],
+                                               'wdlStatus': subtool_metadata.wdlStatus,
+                                               'wdlExists': files_exist['wdl'],
+                                               'type': 'subtool'}
+    else:
+        subdir_map[subtool_metadata.identifier] = {'metadataPath': str(subtool_rel_path),
                                                'name': subtool_metadata.name,
                                                'metadataStatus': subtool_metadata.metadataStatus,
                                                'cwlStatus': subtool_metadata.cwlStatus,
@@ -108,6 +124,8 @@ def make_subtool_map(tool_name, tool_version, subtool_name, base_dir=None):
                                                'wdlStatus': subtool_metadata.wdlStatus,
                                                'type': 'subtool'}
     return subdir_map
+
+
 
 def make_tool_common_dir_map(tool_name, tool_version, base_dir):
     common_metadata_path = get_tool_common_dir(tool_name, tool_version, base_dir=base_dir) / common_tool_metadata_name
@@ -119,6 +137,19 @@ def make_tool_common_dir_map(tool_name, tool_version, base_dir):
                                                   'versionName': common_metadata.softwareVersion.versionName,
                                                   'type': 'parent'}
     return common_dir_map
+
+
+
+def check_for_workflow_language_files(subtool_metadata_path):
+    workflow_language_file_path_dict = get_tool_sources_from_metadata_path(subtool_metadata_path)
+    files_exist = {}
+    for source_type, source_path in workflow_language_file_path_dict.items():
+        files_exist[source_type] = source_path.exists()
+    return files_exist
+
+
+
+
 
 
 
@@ -224,9 +255,9 @@ def combine_yaml_files_into_dict(file_path, *file_paths):
     return combined_dict
 
 
-def make_master_map_dict(base_dir=None):
+def make_master_map_dict(base_dir=None, specify_exists=False):
     master_map = {}
-    master_map.update(make_tools_map_dict(base_dir=base_dir))
+    master_map.update(make_tools_map_dict(base_dir=base_dir, specify_exists=specify_exists))
     master_map.update(make_scripts_map_dict(base_dir=base_dir))
     master_map.update(make_workflow_maps_dict(base_dir=base_dir))
     return master_map

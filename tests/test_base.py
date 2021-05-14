@@ -1,9 +1,11 @@
 import tempfile
+import shutil
 from unittest import TestCase
 import os
 from pathlib import Path
 from capanno_utils import repo_config
-from capanno_utils.content_maps import make_tools_map, make_workflow_maps, make_script_maps
+from capanno_utils.helpers.get_paths import *
+from capanno_utils.content_maps import make_tools_map, make_workflow_maps, make_script_maps, make_tools_index
 
 test_constants = {'script_group1': 'ENCODE-DCC', 'script_version1': '1.1.x', 'script_project1': 'atac-seq-pipeline',
                   'test_software_version': {'versionName': 'test_version'}}
@@ -34,19 +36,28 @@ class TestBase(TestCase):
         outfile_path = self.get_content_map_paths()['workflow_maps']
         make_workflow_maps(outfile_path)
 
-    def make_empty_tools_index(self, output_dir):
-        output_dir = Path(output_dir)
-        tools_index_dir = output_dir / repo_config.identifier_index_dir
+    def make_empty_tools_index(self, root_repo_dir):
+        root_repo_dir = Path(root_repo_dir)
+        tools_index_dir = root_repo_dir / repo_config.identifier_index_dir
         tools_index_dir.mkdir()
-        tool_index_path = output_dir / repo_config.tool_index_path
+        tool_index_path = root_repo_dir / repo_config.tool_index_path
         tool_index_path.touch()
         return
 
     def make_empty_tools_dir(self, root_repo_path):
         output_dir = Path(root_repo_path)
         tools_dir = output_dir / repo_config.tools_dir_name
-        tools_dir.mkdir()
+        tools_dir.mkdir(parents=True)
         return
+
+    def copy_all_content_repo_tools(self, dest):
+        tool_src = self.src_content_dir / repo_config.tools_dir_name
+        tool_dest = Path(dest) / repo_config.tools_dir_name
+        shutil.copytree(tool_src, tool_dest)
+        make_tools_index(base_dir=dest)
+        return
+
+
 
     def setUp(self):
         self.test_dir = tempfile.TemporaryDirectory()
