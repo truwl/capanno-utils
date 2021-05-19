@@ -223,11 +223,11 @@ class SubtoolMetadata(CommonPropsMixin, ToolMetadataBase):
             ('description', None),
             ('keywords', None),
             ('alternateName', None),
-            ('extra', OrderedDict(
+            ('extra', dict(
                 [
-                    ('sha1', None),  # the sha1 hash of the cwlfile associated with this subtool
-                    ('dockerImage', None),  # the docker image pulled or referenced from this subtool's cwlfile
-                ])),
+                    ('sha1', None),
+                    ('dockerImage', None),
+                ])),# the sha1 hash of the cwlfile associated with this subtool # the docker image pulled or referenced from this subtool's cwlfile
             ('parentMetadata', '../common/common-metadata.yaml'),  # relative path to parentMetadata
             ('_parentMetadata', None),  # ParentMetadata instance. Can be loaded from parentMetadata or set directly.
             ('_primary_file_attrs', None),  # Keep track of attributes that are set directly from kwargs and not inherited from parent.
@@ -276,6 +276,7 @@ class SubtoolMetadata(CommonPropsMixin, ToolMetadataBase):
         with file_path.open('r') as file:
             file_dict = safe_load(file)
         file_dict.update(kwargs)
+        file_dict['parentMetadata'] = kwargs.get('parentMetadata', SubtoolMetadata._init_metadata()['parentMetadata'])  # This needs to be set when initializing. If not specified, set to default.
         file_dict['check_index'] = kwargs.get('check_index',
                                               True)  # Usually expect the identifier to be in the index already if loading from file.
         file_dict['_in_index'] = kwargs.get('_in_index',
@@ -378,7 +379,7 @@ class SubtoolMetadata(CommonPropsMixin, ToolMetadataBase):
     def mk_file(self, keys=None, replace_none=True, update_index=True):
         file_path = get_tool_metadata(self._parentMetadata.name, self._parentMetadata.softwareVersion.versionName, subtool_name=self.name, parent=False, base_dir=self.root_repo_path)
         if not file_path.parent.exists():
-            file_path.parent.mkdir()
+            file_path.parent.mkdir(parents=True)
         returned_path = super().mk_file(file_path, keys, replace_none)  # File is made here. Now need to add the key to the identifiers.
         if update_index:
             index_file_path = self.root_repo_path / tool_index_path
