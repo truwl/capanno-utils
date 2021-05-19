@@ -223,7 +223,7 @@ class SubtoolMetadata(CommonPropsMixin, ToolMetadataBase):
             ('description', None),
             ('keywords', None),
             ('alternateName', None),
-            ('extra', OrderedDict(
+            ('extra', dict(
                 [
                     ('sha1', None),
                     ('dockerImage', None),
