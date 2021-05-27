@@ -213,9 +213,9 @@ def make_script_map(group_name, project_name, version_name, script_name, base_di
     return script_map
 
 def make_workflow_maps_dict(base_dir=None):
-    cwl_workflows_dir = get_workflows_root_dir(base_dir=base_dir)
+    workflows_dir = get_workflows_root_dir(base_dir=base_dir)
     master_workflow_map = {}
-    for group_dir in cwl_workflows_dir.iterdir():
+    for group_dir in workflows_dir.iterdir():
         for project_dir in group_dir.iterdir():
             for version_dir in project_dir.iterdir():
                 for item in version_dir.iterdir():
@@ -233,14 +233,17 @@ def make_workflow_maps(outfile_name='workflow-maps', base_dir=None):
 
 def make_workflow_map(group_name, project_name, version, workflow_name, base_dir=None):
     workflow_map = {}
-    workflow_path = get_workflow_sources(group_name, project_name, version, workflow_name, base_dir=base_dir)['cwl']
-    workflow_rel_path = get_relative_path(workflow_path, base_path=base_dir)
-    workflow_metadata_path = get_metadata_path(workflow_path)
+    workflow_metadata_path = get_workflow_metadata(group_name, project_name, version, workflow_name, base_dir=base_dir)
     workflow_metadata = WorkflowMetadata.load_from_file(workflow_metadata_path)
-    workflow_map[workflow_metadata.identifier] = {'path': str(workflow_rel_path), 'name': workflow_metadata.name,
-                                                  'versionName': workflow_metadata.softwareVersion.versionName,
+    workflow_path = get_workflow_sources(group_name, project_name, version, workflow_name, base_dir=base_dir)[workflow_metadata.workflowLanguage]
+    workflow_metadata_rel_path = get_relative_path(workflow_path, base_path=base_dir)
+    # workflow_metadata_path = get_metadata_path(workflow_path)
+    workflow_map[workflow_metadata.identifier] = {'metadataPath': str(workflow_metadata_rel_path), 'name': workflow_metadata.name,
                                                   'metadataStatus': workflow_metadata.metadataStatus,
-                                                  'cwlStatus': workflow_metadata.cwlStatus}
+                                                  'workflowLanguage': workflow_metadata.workflowLanguage,
+                                                  'workflowStatus': workflow_metadata.workflowStatus,
+                                                  'versionName': workflow_metadata.softwareVersion.versionName,
+                                                }
     return workflow_map
 
 
