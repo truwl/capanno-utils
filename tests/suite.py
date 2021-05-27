@@ -7,6 +7,7 @@ from tests.test_add_content import TestAddToolMain, TestAddScriptMain
 from tests.test_add_tool import TestAddTool
 from tests.test_add_tool_instance import TestAddToolInstance
 from tests.test_add_workflows import TestAddWorkflow
+from tests.test_change_status import TestChangeStatus
 from tests.test_dict_tools import TestDictTools
 from tests.test_dump_cwl import TestDumpCwlTool
 from tests.test_input_templates import TestMakeCommandLineToolInputsTemplate
@@ -63,6 +64,13 @@ def suite_add_tool_instance():
 
 def suite_add_workflow():
     suite = defaultTestLoader.loadTestsFromTestCase(TestAddWorkflow)
+    return suite
+
+def suite_change_status():
+    """
+    Keep this test out of suite_full!! It is very long and should be used in isolation if needed.
+    """
+    suite = defaultTestLoader.loadTestsFromTestCase(TestChangeStatus)
     return suite
 
 def suite_content_maps():
@@ -145,6 +153,7 @@ def suite_dict():
                   'add_tool': suite_add_tool(),
                   'add_workflow': suite_add_workflow(),
                   'add_tool_instance': suite_add_tool_instance(),
+                  'change_status': suite_change_status(),
                   'content_maps': suite_content_maps(),
                   'dict_tools': suite_dict_tools(),
                   'dump_cwl': suite_dump_cwl(),
