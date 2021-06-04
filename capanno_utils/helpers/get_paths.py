@@ -562,7 +562,19 @@ def get_dir_type_from_path(abs_dir_path, content_root_repo_name=content_repo_nam
             assert path_parts[-2] == content_root_repo_name
             dir_type = 'base_dir'
         # import pdb; pdb.set_trace()
-        # dir type could be group_dir, project_dir, version_dir, common_dir, script_dir, instances_dir
+        elif path_parts[-2] == workflows_dir_name:
+            assert path_parts[-3] == content_root_repo_name
+            dir_type = 'group_dir'
+        elif path_parts[-3] == workflows_dir_name:
+            assert path_parts[-4] == content_root_repo_name
+            dir_type = 'project_dir'
+        elif path_parts[-4] == workflows_dir_name:
+            assert path_parts[-5] == content_root_repo_name
+            dir_type = 'version_dir'
+        elif path_parts[-5] == workflows_dir_name:
+            assert path_parts[-6] == content_root_repo_name
+            dir_type = 'group_dir'
+        # dir type script_dir, instances_dir
         else:
             raise NotImplementedError
     else:

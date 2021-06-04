@@ -6,9 +6,7 @@ from semantic_version import Version
 from capanno_utils.classes.metadata.tool_metadata import ParentToolMetadata, SubtoolMetadata
 from capanno_utils.classes.metadata.script_metadata import ScriptMetadata, CommonScriptMetadata
 from capanno_utils.classes.metadata.workflow_metadata import WorkflowMetadata
-from .content_maps import make_tools_map, make_main_tool_map, make_tool_version_dir_map, make_tool_common_dir_map, \
-    make_subtool_map, make_script_maps, make_group_script_map, make_project_script_map, make_script_version_map, \
-    make_script_map, make_workflow_maps, make_tools_map_dict
+from .content_maps import *
 from .helpers.get_paths import get_metadata_path, get_base_dir, get_tool_sources_from_metadata_path, get_workflow_sources_from_metadata_path
 from .helpers.validate_cwl import validate_cwl_doc
 from .helpers.validate_wdl import validate_wdl_doc
@@ -163,12 +161,11 @@ def validate_script_dir(group_name, project_name, version_name, script_name, bas
     validate_script_content_from_map(script_map, base_dir=base_dir)
     return
 
+# ## Workflows stuff
 
-def validate_workflows_dir(base_dir=None):
-    workflow_map_temp_file = tempfile.NamedTemporaryFile(prefix='workflows_map', suffix='.yaml', delete=True)
-    make_workflow_maps(workflow_map_temp_file.name, base_dir=base_dir)
-    with workflow_map_temp_file as workflow_map:
-        workflow_map_dict = safe_load(workflow_map)
+def validate_workflows_from_map(workflow_map_dict, base_dir=None):
+    if base_dir is None:
+        base_dir = get_base_dir()
     for identifier, values in workflow_map_dict.items():
         workflow_metadata = base_dir / values['metadataPath']
         validate_workflow_metadata(workflow_metadata)
@@ -176,14 +173,41 @@ def validate_workflows_dir(base_dir=None):
         wf_status = values['workflowStatus']
         if wf_status in ('Draft', 'Released'):
             wf_language = values['workflowLanguage']
-            workflow_source_dict = get_workflow_sources_from_metadata_path(workflow_metadata)
-            workflow_path = workflow_source_dict[wf_language]
+            try:
+                workflow_path = workflow_metadata.parent / values['workflowPath']
+            except TypeError:
+                print(values)
+                raise
             if not workflow_path.exists():
                 raise FileNotFoundError(f"{str(workflow_path)} does not exist.")
             logging.debug(
                 f"Make sure you validate {workflow_path}")  # Todo. Think I have good way to validate somewhere. Need to port here (needs to be put in a temporary directory with the tools and workflows that it calls.)
     return
 
+
+def validate_workflows_dir(base_dir=None):
+
+    workflow_map_dict = make_workflow_maps_dict(base_dir=base_dir)
+    validate_workflows_from_map(workflow_map_dict, base_dir)
+    return
+
+def validate_workflow_group_dir(group_name, base_dir=None):
+
+    workflow_map_dict = make_group_workflow_map(group_name, base_dir)
+    validate_workflows_from_map(workflow_map_dict, base_dir)
+    return
+
+def validate_workflow_project_dir(group_name, project_name, base_dir=None):
+    workflow_map_dict = make_project_workflow_map(group_name, project_name, base_dir)
+    validate_workflows_from_map(workflow_map_dict, base_dir)
+    return
+
+def validate_workflow_version_dir(group_name, project_name, version_name, base_dir=None):
+    workflow_map_dict = make_version_workflow_map(group_name, project_name, version_name, base_dir)
+    validate_workflows_from_map(workflow_map_dict, base_dir)
+    return
+
+# Whole repo
 
 def validate_repo(base_dir=None):
     validate_tools_dir(base_dir=base_dir)

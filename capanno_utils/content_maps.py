@@ -212,17 +212,17 @@ def make_script_map(group_name, project_name, version_name, script_name, base_di
                                                   'cwlStatus': script_metadata.cwlStatus}
     return script_map
 
+# Workflow maps
+
 def make_workflow_maps_dict(base_dir=None):
     workflows_dir = get_workflows_root_dir(base_dir=base_dir)
     master_workflow_map = {}
     for group_dir in workflows_dir.iterdir():
         for project_dir in group_dir.iterdir():
             for version_dir in project_dir.iterdir():
-                for item in version_dir.iterdir():
-                    if item.suffix == '.cwl':
-                        workflow_dict = make_workflow_map(group_dir.name, project_dir.name, version_dir.name, item.stem,
+                workflow_dict = make_workflow_map(group_dir.name, project_dir.name, version_dir.name, project_dir.name,
                                                           base_dir=base_dir)
-                        no_clobber_update(master_workflow_map, workflow_dict)
+                no_clobber_update(master_workflow_map, workflow_dict)
     return master_workflow_map
 
 def make_workflow_maps(outfile_name='workflow-maps', base_dir=None):
@@ -230,6 +230,25 @@ def make_workflow_maps(outfile_name='workflow-maps', base_dir=None):
     dump_dict_to_yaml_output(master_workflow_map, output=outfile_name)
     return
 
+def make_group_workflow_map(group_name, base_dir=None):
+    group_workflow_map = {}
+    workflow_group_dir = get_workflow_group_dir(group_name, base_dir)
+    for project_dir in workflow_group_dir.iterdir():
+        workflow_project_map = make_project_workflow_map(group_name, project_dir.name, base_dir)
+        no_clobber_update(group_workflow_map, workflow_project_map)
+    return group_workflow_map
+
+def make_project_workflow_map(group_name, project_name, base_dir=None):
+    workflow_project_map = {}
+    workflow_project_dir = get_workflow_project_dir(group_name, project_name, base_dir)
+    for version_dir in workflow_project_dir.iterdir():
+        version_map = make_workflow_map(group_name, project_name, version_dir.name, project_name, base_dir)
+        no_clobber_update(workflow_project_map, version_map)
+    return workflow_project_map
+
+def make_version_workflow_map(group_name, project_name, version_name, base_dir=None):
+    workflow_version_map = make_workflow_map(group_name, project_name, version_name, project_name, base_dir)
+    return workflow_version_map
 
 def make_workflow_map(group_name, project_name, version, workflow_name, base_dir=None):
     workflow_map = {}
@@ -242,6 +261,7 @@ def make_workflow_map(group_name, project_name, version, workflow_name, base_dir
                                                   'metadataStatus': workflow_metadata.metadataStatus,
                                                   'workflowLanguage': workflow_metadata.workflowLanguage,
                                                   'workflowStatus': workflow_metadata.workflowStatus,
+                                                  'workflowPath': workflow_metadata.runit_filename,
                                                   'versionName': workflow_metadata.softwareVersion.versionName,
                                                 }
     return workflow_map

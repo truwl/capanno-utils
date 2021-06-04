@@ -116,6 +116,15 @@ def main(argsl=None):
     elif base_type == 'workflow':
         if specific_type == 'base_dir':
             validate_workflows_dir(base_dir=args.root_path)
+        elif specific_type == 'group_dir':
+            group_name = full_path.parts[-1]
+            validate_workflow_group_dir(group_name, base_dir=args.root_path)
+        elif specific_type == 'project_dir':
+            group_name, project_name = full_path.parts[-2:]
+            validate_workflow_project_dir(group_name, project_name, base_dir=args.root_path)
+        elif specific_type == 'version_dir':
+            group_name, project_name, version_name = full_path.parts[-3:]
+            validate_workflow_version_dir(group_name, project_name, version_name, base_dir=args.root_path)
         elif specific_type == 'cwl':  # Todo. Add other wf language types.
             raise NotImplementedError
         elif specific_type == 'metadata':

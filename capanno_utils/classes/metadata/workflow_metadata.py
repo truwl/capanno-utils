@@ -72,6 +72,7 @@ class WorkflowMetadata(CommonPropsMixin, WorkflowMetadataBase):
         ('runit_filename', None),
         ('runit_pipeline_name', None),
         ('runit_git_hash', None),
+        ('inputs_file', None),
         ('callMap', None),  # This field is to make associations between called tasks/steps and underlying tools/scripts.
         ('graphStatus', 'Incomplete'),
         ('executable', False),  # if configured to execute on Truwl.
@@ -90,10 +91,10 @@ class WorkflowMetadata(CommonPropsMixin, WorkflowMetadataBase):
         if not identifier[:3] == f"{worklfow_identifier_prefix}_":
             raise ValueError(f"Workflow identifiers must start with '{worklfow_identifier_prefix}_' you provided {identifier}")
         else:
-            hex_pattern = r'[0-9a-f]{6}\.[0-9a-f]{2}$'
+            hex_pattern = r'[0-9a-f]{6}\.[0-9a-f]{2,3}$'
             match_obj = re.match(hex_pattern, identifier[3:])
             if not match_obj:
-                raise ValueError(f"Tool identifier not formatted correctly: {identifier}")
+                raise ValueError(f"Workflow identifier not formatted correctly: {identifier}")
         return identifier
 
     def _mk_identifier(self, start=0):
