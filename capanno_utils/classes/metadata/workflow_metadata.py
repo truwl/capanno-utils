@@ -68,6 +68,10 @@ class WorkflowMetadata(CommonPropsMixin, WorkflowMetadataBase):
         ('metadataStatus', 'Incomplete'),
         ('workflowStatus', 'Incomplete'),
         ('workflowLanguage', 'wdl'),
+        ('current', False),
+        ('runit_filename', None),
+        ('runit_pipeline_name', None),
+        ('runit_git_hash', None),
         ('callMap', None),  # This field is to make associations between called tasks/steps and underlying tools/scripts.
         ('graphStatus', 'Incomplete'),
         ('executable', False),  # if configured to execute on Truwl.
@@ -138,7 +142,10 @@ class WorkflowMetadata(CommonPropsMixin, WorkflowMetadataBase):
         file_path = Path(file_path)
         with file_path.open('r') as file:
             file_dict = safe_load(file)
-        return cls(**file_dict, ignore_empties=ignore_empties)
+        try:
+            return cls(**file_dict, ignore_empties=ignore_empties)
+        except AttributeError as e:
+            raise Exception(f"{e.args} in {file_path}") from e
 
     def make_instance(self):
         raise NotImplementedError

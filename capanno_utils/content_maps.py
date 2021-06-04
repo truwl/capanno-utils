@@ -236,7 +236,7 @@ def make_workflow_map(group_name, project_name, version, workflow_name, base_dir
     workflow_metadata_path = get_workflow_metadata(group_name, project_name, version, workflow_name, base_dir=base_dir)
     workflow_metadata = WorkflowMetadata.load_from_file(workflow_metadata_path)
     workflow_path = get_workflow_sources(group_name, project_name, version, workflow_name, base_dir=base_dir)[workflow_metadata.workflowLanguage]
-    workflow_metadata_rel_path = get_relative_path(workflow_path, base_path=base_dir)
+    workflow_metadata_rel_path = get_relative_path(workflow_metadata_path, base_path=base_dir)
     # workflow_metadata_path = get_metadata_path(workflow_path)
     workflow_map[workflow_metadata.identifier] = {'metadataPath': str(workflow_metadata_rel_path), 'name': workflow_metadata.name,
                                                   'metadataStatus': workflow_metadata.metadataStatus,

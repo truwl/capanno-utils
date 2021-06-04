@@ -558,8 +558,13 @@ def get_dir_type_from_path(abs_dir_path, content_root_repo_name=content_repo_nam
         else:
             raise ValueError
     elif base_type == 'workflow':
-        # dir type could be base_dir, group_dir, project_dir, version_dir, common_dir, script_dir, instances_dir
-        raise NotImplementedError
+        if path_parts[-1] == workflows_dir_name:
+            assert path_parts[-2] == content_root_repo_name
+            dir_type = 'base_dir'
+        # import pdb; pdb.set_trace()
+        # dir type could be group_dir, project_dir, version_dir, common_dir, script_dir, instances_dir
+        else:
+            raise NotImplementedError
     else:
         raise ValueError
 

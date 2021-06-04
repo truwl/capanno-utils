@@ -114,7 +114,9 @@ def main(argsl=None):
             raise ValueError(f"")
 
     elif base_type == 'workflow':
-        if specific_type == 'cwl':  # Todo. Add other wf language types.
+        if specific_type == 'base_dir':
+            validate_workflows_dir(base_dir=args.root_path)
+        elif specific_type == 'cwl':  # Todo. Add other wf language types.
             raise NotImplementedError
         elif specific_type == 'metadata':
             validate_workflow_metadata(full_path)

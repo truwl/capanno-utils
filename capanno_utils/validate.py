@@ -170,12 +170,14 @@ def validate_workflows_dir(base_dir=None):
     with workflow_map_temp_file as workflow_map:
         workflow_map_dict = safe_load(workflow_map)
     for identifier, values in workflow_map_dict.items():
-        workflow_path = base_dir / values['path']
-        workflow_metadata = get_metadata_path(workflow_path)
+        workflow_metadata = base_dir / values['metadataPath']
         validate_workflow_metadata(workflow_metadata)
 
-        cwl_status = values['cwlStatus']
-        if cwl_status in ('Draft', 'Released'):
+        wf_status = values['workflowStatus']
+        if wf_status in ('Draft', 'Released'):
+            wf_language = values['workflowLanguage']
+            workflow_source_dict = get_workflow_sources_from_metadata_path(workflow_metadata)
+            workflow_path = workflow_source_dict[wf_language]
             if not workflow_path.exists():
                 raise FileNotFoundError(f"{str(workflow_path)} does not exist.")
             logging.debug(
