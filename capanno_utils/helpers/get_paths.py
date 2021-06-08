@@ -290,7 +290,7 @@ def get_script_instance_metadata_path(group_name, project_name, version, script_
     return instance_metadata_path
 
 
-# cwl-workflows
+# workflows
 
 def get_workflows_root_dir(base_dir=None):
     if not base_dir:
@@ -323,6 +323,7 @@ def get_workflow_sources(group_name, project_name, version, workflow_name, base_
         workflow_path_dict[source_type] = workflow_ver_dir / f"{workflow_name}.{extension}"
     return workflow_path_dict
 
+
 def get_workflow_sources_from_metadata_path(metadata_path, base_dir=None):
     """
     Return the path dict for cwl, wdl, sm, and nf files from a metadata file path.
@@ -342,9 +343,10 @@ def get_workflow_sources_from_metadata_path(metadata_path, base_dir=None):
         workflow_path_dict[source_type] = source_path_dir / f"{source_path_root_name}.{extension}"
     return workflow_path_dict
 
-def get_workflow_metadata(group_name, project_name, version, workflow_name, base_dir=None):
+
+def get_workflow_metadata(group_name, project_name, version, base_dir=None):
     workflow_ver_dir = get_workflow_version_dir(group_name, project_name, version, base_dir=base_dir)
-    workflow_metadata_path = workflow_ver_dir / f"{workflow_name}-metadata.yaml"
+    workflow_metadata_path = workflow_ver_dir / f"{project_name}-metadata.yaml"
     return workflow_metadata_path
 
 
@@ -371,15 +373,22 @@ def get_workflow_instance_metadata(group_name, project_name, version, instance_h
     return instance_metadata_path
 
 
-def get_workflow_args_from_path(cwl_workflows_path):
-    cwl_workflows_path = Path(cwl_workflows_path)
-    path_parts = cwl_workflows_path.parts
-    file_name = path_parts[-1]
-    workflow_name = cwl_workflows_path.stem
-    workflow_version = path_parts[-2]
-    project_name = path_parts[-3]
-    group_name = path_parts[-4]
-    return group_name, project_name, workflow_version, workflow_name
+def get_workflow_args_from_path(workflow_path):
+    workflow_path = Path(workflow_path)
+    workflow_path_parts = workflow_path.parts
+    workflows_dir_index = workflow_path_parts.index(workflows_dir_name)
+    workflow_group = workflow_path_parts[workflows_dir_index + 1]
+    workflow_project = workflow_path_parts[workflows_dir_index + 2]
+    workflow_version = workflow_path_parts[workflows_dir_index + 3]
+    return workflow_group, workflow_project, workflow_version
+
+
+def get_workflow_metadata_from_workflow_path(workflow_path):
+    group_name, project_name, version_name = get_workflow_args_from_path(workflow_path)
+    base_dir = get_base_dir_from_abs_path(workflow_path)
+    workflow_metadata = get_workflow_metadata(group_name, project_name, version_name, base_dir=base_dir)
+    return workflow_metadata
+
 
 
 # helpers
@@ -391,6 +400,9 @@ def get_relative_path(full_path, base_path=None):
 
 
 def get_metadata_path(cwl_path):
+    """
+    Naming convention only works for tools and scripts.
+    """
     cwl_path = Path(cwl_path)
     path_dir = cwl_path.parent
     metafile_name = f"{cwl_path.stem}-metadata.yaml"

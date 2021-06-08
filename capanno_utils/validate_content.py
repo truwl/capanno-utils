@@ -82,7 +82,7 @@ def main(argsl=None):
                 subtool_name = None
             validate_subtool_dir(tool_name, version_name, subtool_name=subtool_name, base_dir=args.root_path)
         else:
-            raise ValueError(f"")
+            raise ValueError(f"Cannot validate tool path {full_path}")
     elif base_type == 'script':
         if specific_type == 'cwl':  # Todo. Add support for other wf types.
             validate_cwl_doc(full_path)
@@ -111,7 +111,7 @@ def main(argsl=None):
             group_name, project_name, version_name, script_name = full_path.parts[-5:-1]
             validate_script_dir(group_name, project_name, version_name, script_name, base_dir=args.root_path)
         else:
-            raise ValueError(f"")
+            raise ValueError(f"Cannot validate script path {full_path}")
 
     elif base_type == 'workflow':
         if specific_type == 'base_dir':
@@ -134,7 +134,7 @@ def main(argsl=None):
         elif specific_type == 'instance_metadata':
             raise NotImplementedError
         else:
-            raise ValueError(f"")
+            raise ValueError(f"Cannot validate workflow path {full_path}")
     elif base_type == 'repo_root':
         validate_repo(full_path)
 

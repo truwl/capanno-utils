@@ -220,7 +220,7 @@ def make_workflow_maps_dict(base_dir=None):
     for group_dir in workflows_dir.iterdir():
         for project_dir in group_dir.iterdir():
             for version_dir in project_dir.iterdir():
-                workflow_dict = make_workflow_map(group_dir.name, project_dir.name, version_dir.name, project_dir.name,
+                workflow_dict = make_workflow_map(group_dir.name, project_dir.name, version_dir.name,
                                                           base_dir=base_dir)
                 no_clobber_update(master_workflow_map, workflow_dict)
     return master_workflow_map
@@ -250,13 +250,11 @@ def make_version_workflow_map(group_name, project_name, version_name, base_dir=N
     workflow_version_map = make_workflow_map(group_name, project_name, version_name, project_name, base_dir)
     return workflow_version_map
 
-def make_workflow_map(group_name, project_name, version, workflow_name, base_dir=None):
+def make_workflow_map(group_name, project_name, version, base_dir=None):
     workflow_map = {}
-    workflow_metadata_path = get_workflow_metadata(group_name, project_name, version, workflow_name, base_dir=base_dir)
+    workflow_metadata_path = get_workflow_metadata(group_name, project_name, version, base_dir=base_dir)
     workflow_metadata = WorkflowMetadata.load_from_file(workflow_metadata_path)
-    workflow_path = get_workflow_sources(group_name, project_name, version, workflow_name, base_dir=base_dir)[workflow_metadata.workflowLanguage]
     workflow_metadata_rel_path = get_relative_path(workflow_metadata_path, base_path=base_dir)
-    # workflow_metadata_path = get_metadata_path(workflow_path)
     workflow_map[workflow_metadata.identifier] = {'metadataPath': str(workflow_metadata_rel_path), 'name': workflow_metadata.name,
                                                   'metadataStatus': workflow_metadata.metadataStatus,
                                                   'workflowLanguage': workflow_metadata.workflowLanguage,
