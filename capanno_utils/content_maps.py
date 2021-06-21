@@ -259,7 +259,7 @@ def make_workflow_map(group_name, project_name, version, base_dir=None):
                                                   'metadataStatus': workflow_metadata.metadataStatus,
                                                   'workflowLanguage': workflow_metadata.workflowLanguage,
                                                   'workflowStatus': workflow_metadata.workflowStatus,
-                                                  'workflowPath': workflow_metadata.runit_filename,
+                                                  'workflowPath': workflow_metadata.workflowFile,
                                                   'versionName': workflow_metadata.softwareVersion.versionName,
                                                 }
     return workflow_map

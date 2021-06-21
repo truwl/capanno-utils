@@ -69,10 +69,10 @@ class WorkflowMetadata(CommonPropsMixin, WorkflowMetadataBase):
         ('workflowStatus', 'Incomplete'),
         ('workflowLanguage', 'wdl'),
         ('current', False),
-        ('runit_filename', None),
-        ('runit_pipeline_name', None),
-        ('runit_git_hash', None),
-        ('inputs_file', None),
+        ('workflowFile', None), # Workflow file.
+        ('workflowName', None),
+        ('gitTag', None),
+        ('inputsTemplate', None),
         ('callMap', None),  # This field is to make associations between called tasks/steps and underlying tools/scripts.
         ('graphStatus', 'Incomplete'),
         ('executable', False),  # if configured to execute on Truwl.
