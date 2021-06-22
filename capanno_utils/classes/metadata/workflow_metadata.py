@@ -70,7 +70,7 @@ class WorkflowMetadata(CommonPropsMixin, WorkflowMetadataBase):
         ('workflowLanguage', 'wdl'),
         ('current', False),
         ('workflowFile', None), # Workflow file.
-        ('workflowName', None),
+        ('repoName', None),
         ('gitTag', None),
         ('inputsTemplate', None),
         ('callMap', None),  # This field is to make associations between called tasks/steps and underlying tools/scripts.
