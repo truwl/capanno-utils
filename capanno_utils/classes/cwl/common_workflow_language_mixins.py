@@ -209,8 +209,9 @@ class CommandInputParameterMixin:
             """
             if hasattr(complex_type_field, 'type'):
                 complex_type_field_dict = complex_type_field.save()
-                if complex_type_field.type == 'array':
+                if complex_type_field.type in ('array', 'enum'):
                     del complex_type_field_dict['name']
+
             else:
                 complex_type_field_dict = complex_type_field.save()
             return complex_type_field_dict

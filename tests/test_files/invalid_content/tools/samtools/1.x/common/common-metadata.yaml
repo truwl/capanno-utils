@@ -22,12 +22,14 @@ downloadURL: null
 extra: {biotoolsID: samtools}
 featureList: [sort, index, idxstats, flagstat, stats, bedcov, depth, merge, cat, faidx,
   fqidx, tview, split, quickcheck, dict, fixmate, mpileup, rmdup, targetcut, phase,
-  calmd, flags, fastq, fasta, addreplacerg, collate, reheader, depad, markdup]
+  calmd, flags, fastq, fasta, addreplacerg, collate, reheader, depad, markdup, bam2fq_interleaved,
+  nfindex, view_filter, view_count_alignments, view_sam2bam]
 identifier: TL_ec2a8d.0b
-keywords: [http://edamontology.org/topic_0102, http://edamontology.org/topic_0080,
-  http://edamontology.org/topic_3168, http://edamontology.org/operation_0227, http://edamontology.org/operation_3096,
-  http://edamontology.org/operation_1812, http://edamontology.org/operation_0337,
-  http://edamontology.org/operation_0335]
+keywords: [http://edamontology.org/topic_3673, http://edamontology.org/topic_0102,
+  http://edamontology.org/topic_0080, http://edamontology.org/topic_3168, http://edamontology.org/operation_2409,
+  http://edamontology.org/operation_3227, http://edamontology.org/operation_0227,
+  http://edamontology.org/operation_3096, http://edamontology.org/operation_1812,
+  http://edamontology.org/operation_0337, http://edamontology.org/operation_0335]
 license: MIT
 metadataStatus: Released
 name: samtools
@@ -35,5 +37,6 @@ programmingLanguage: [C]
 publication:
 - {headline: null, identifier: 10.1093/bioinformatics/btp352}
 softwareVersion:
-  includedVersions: [1.2, 1.3, 1.3.1, 1.4, 1.4.1, 1.5, 1.6, 1.7, 1.8, 1.9]
+  includedVersions: ['1.2', '1.3', 1.3.1, '1.4', 1.4.1, '1.5', '1.6', '1.7', '1.8',
+    '1.9']
   versionName: 1.x

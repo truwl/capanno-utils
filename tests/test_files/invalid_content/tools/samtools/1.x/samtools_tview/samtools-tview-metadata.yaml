@@ -1,6 +1,10 @@
+name: tview
 metadataStatus: Released
 cwlStatus: Incomplete
-name: tview
+nextflowStatus: Incomplete
+snakemakeStatus: Incomplete
+wdlStatus: Incomplete
+version: 0.1.0
 identifier: TL_ec2a8d_ab.0b
 description: "samtools tview [-p chr:pos] [-s STR] [-d display] <in.sorted.bam> [ref.fasta]\n\
   Text alignment viewer (based on the ncurses library). In the viewer, press `?' for\
@@ -10,4 +14,7 @@ keywords:
   - name:
     category:
 alternateName:
+extra:
+  sha1:
+  dockerImage:
 parentMetadata: ../common/common-metadata.yaml
