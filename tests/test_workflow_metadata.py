@@ -15,16 +15,16 @@ class TestWorkflowMetadata(TestBase):
 
     def test_make_workflow_metadata(self):
         test_name = 'Test wf name'
-        wf = WorkflowMetadata(name=test_name, softwareVersion=test_constants['test_software_version'], metadataStatus='Released', cwlStatus='Incomplete')
+        wf = WorkflowMetadata(name=test_name, softwareVersion=test_constants['test_software_version'], metadataStatus='Released', workflowStatus='Incomplete', workflowLanguage='cwl')
         self.assertEqual(test_name, wf.name)
 
     def test_load_from_file(self):
-        metafile_path = get_workflow_metadata('example_workflows', 'cat_sort', 'master', 'cat_sort')
+        metafile_path = get_workflow_metadata('example_workflows', 'cat_sort', 'master')
         wf_meta = WorkflowMetadata.load_from_file(metafile_path)
         self.assertEqual(wf_meta.name, 'cat sort')
 
     def test_mk_file(self):
-        metafile_path = get_workflow_metadata('example_workflows', 'cat_sort', 'master', 'cat_sort')
+        metafile_path = get_workflow_metadata('example_workflows', 'cat_sort', 'master')
         wf_meta = WorkflowMetadata.load_from_file(metafile_path)
         test_filename = Path(config[os.environ.get('CONFIG_KEY')]['temp_dir'].name) / 'wf_test_metadata.yaml'
         wf_meta.mk_file(test_filename)

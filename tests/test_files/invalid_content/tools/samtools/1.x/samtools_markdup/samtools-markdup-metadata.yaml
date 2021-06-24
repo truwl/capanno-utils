@@ -1,6 +1,10 @@
+name: markdup
 metadataStatus: Released
 cwlStatus: Incomplete
-name: markdup
+nextflowStatus: Incomplete
+snakemakeStatus: Incomplete
+wdlStatus: Incomplete
+version: 0.1.0
 identifier: TL_ec2a8d_02.0b
 description: "samtools markdup [-l length] [-r] [-s] [-T] [-S] in.algsort.bam out.bam\n\
   Mark duplicate alignments from a coordinate sorted file that has been run through\
@@ -10,4 +14,7 @@ keywords:
   - name:
     category:
 alternateName:
+extra:
+  sha1:
+  dockerImage:
 parentMetadata: ../common/common-metadata.yaml

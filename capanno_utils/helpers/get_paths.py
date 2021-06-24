@@ -1,8 +1,10 @@
 import os
 import re
 from pathlib import Path
+import logging
 from typing import List, Set, Dict, Tuple, Optional
-
+from ruamel.yaml import safe_load
+from capanno_utils import repo_config as default_cfg
 from capanno_utils.repo_config import *
 
 
@@ -10,6 +12,20 @@ from capanno_utils.repo_config import *
 # for parent directories. More maintainable if we change path structure. Maybe not.
 
 # Misc
+
+def get_repo_config(base_dir):
+    base_dir = Path(base_dir)
+    config_dict = default_cfg.config_dict
+    repo_config_path = base_dir / 'repo_config.yaml'
+    if repo_config_path.exists():
+        with repo_config_path.open('r') as f:
+            repo_config_dict = safe_load(f)
+    else:
+        repo_config_dict = {}
+        logging.debug(f"No repo specific configuration found for {base_dir}, using defaults.")
+    config_dict.update(repo_config_dict) # overwrite default values with repo specific values.
+    return config_dict
+
 
 def get_inputs_schema_template():
     schema_template_path = Path.cwd() / 'tests/test_files/schema_salad/inputs_schema_template.yml'
@@ -163,19 +179,23 @@ def get_tool_cwl_from_instance_path(cwl_instance_path):
     subtool_cwl_path = get_tool_sources(tool_name, tool_version, subtool_name)
     return subtool_cwl_path
 
-
 def get_tool_instance_path(tool_name, tool_version, input_hash, subtool_name=None, base_dir=None):
     tool_inst_dir = get_tool_instances_dir(tool_name, tool_version, subtool_name=subtool_name, base_dir=base_dir)
     inputs_path = tool_inst_dir / f"{input_hash}.yaml"
-
     return inputs_path
 
-def get_tool_instance_path_from_tool_instance_metadata_path(tool_instance_metadata_path):
-    tool_instance_metadata_path = Path(tool_instance_metadata_path)
-    instance_metadata_file_name = tool_instance_metadata_path.stem
-    instance_file_name = f"{instance_metadata_file_name[:4]}.yaml"
-    tool_instance_path = Path(tool_instance_metadata_path).parent/ instance_file_name
+def get_instance_path_from_instance_metadata_path(instance_metadata_path, instance_suffix='.yaml'):
+    instance_metadata_path = Path(instance_metadata_path)
+    instance_file_name = instance_metadata_path.stem[:-len('-metadata')] + instance_suffix
+    tool_instance_path = Path(instance_metadata_path).parent / instance_file_name
     return tool_instance_path
+
+
+def get_instance_metadata_paths_in_instance_dir(instances_dir):
+    instances_dir = Path(instances_dir)
+    instance_metadata_files = [metadata_file for metadata_file in instances_dir.iterdir() if
+                      metadata_file.name.endswith('-metadata.yaml')]
+    return instance_metadata_files
 
 def get_tool_instance_metadata_path(tool_name, tool_version, input_hash, subtool_name=None, base_dir=None):
     tool_inst_dir = get_tool_instances_dir(tool_name, tool_version, subtool_name=subtool_name, base_dir=base_dir)
@@ -290,7 +310,7 @@ def get_script_instance_metadata_path(group_name, project_name, version, script_
     return instance_metadata_path
 
 
-# cwl-workflows
+# workflows
 
 def get_workflows_root_dir(base_dir=None):
     if not base_dir:
@@ -323,6 +343,7 @@ def get_workflow_sources(group_name, project_name, version, workflow_name, base_
         workflow_path_dict[source_type] = workflow_ver_dir / f"{workflow_name}.{extension}"
     return workflow_path_dict
 
+
 def get_workflow_sources_from_metadata_path(metadata_path, base_dir=None):
     """
     Return the path dict for cwl, wdl, sm, and nf files from a metadata file path.
@@ -342,44 +363,52 @@ def get_workflow_sources_from_metadata_path(metadata_path, base_dir=None):
         workflow_path_dict[source_type] = source_path_dir / f"{source_path_root_name}.{extension}"
     return workflow_path_dict
 
-def get_workflow_metadata(group_name, project_name, version, workflow_name, base_dir=None):
+
+def get_workflow_metadata(group_name, project_name, version, base_dir=None):
     workflow_ver_dir = get_workflow_version_dir(group_name, project_name, version, base_dir=base_dir)
-    workflow_metadata_path = workflow_ver_dir / f"{workflow_name}-metadata.yaml"
+    workflow_metadata_path = workflow_ver_dir / f"{project_name}-metadata.yaml"
     return workflow_metadata_path
 
 
-def get_workflow_inputs_dir(group_name, project_name, version, base_dir=None):
-    cwl_workflow_dir = get_workflow_version_dir(group_name, project_name, version, base_dir=base_dir)
-    instances_dir = cwl_workflow_dir / instances_dir_name
+def get_workflow_instances_dir(group_name, project_name, version, base_dir=None):
+    workflow_ver_dir = get_workflow_version_dir(group_name, project_name, version, base_dir=base_dir)
+    instances_dir = workflow_ver_dir / instances_dir_name
     return instances_dir
 
 
-def get_workflow_instance_dir_from_cwl_path(cwl_path):
-    cwl_path = Path(cwl_path)
-    instances_dir = cwl_path.parent / instances_dir_name
+def get_workflow_instance_dir_from_metadata_path(workflow_metadata_path):
+    workflow_metadata_path = Path(workflow_metadata_path)
+    instances_dir = workflow_metadata_path.parent / instances_dir_name
     return instances_dir
 
 
 def get_workflow_instance_path(group_name, project_name, version, instance_hash, base_dir=None):
-    workflow_instances_dir = get_workflow_inputs_dir(group_name, project_name, version, base_dir=base_dir)
+    workflow_instances_dir = get_workflow_instances_dir(group_name, project_name, version, base_dir=base_dir)
     instance_path = workflow_instances_dir / f"{instance_hash}.yaml"
     return instance_path
 
 def get_workflow_instance_metadata(group_name, project_name, version, instance_hash, base_dir=None):
-    workflow_instances_dir = get_workflow_inputs_dir(group_name, project_name, version, base_dir=base_dir)
+    workflow_instances_dir = get_workflow_instances_dir(group_name, project_name, version, base_dir=base_dir)
     instance_metadata_path = workflow_instances_dir / f"{instance_hash}-metadata.yaml"
     return instance_metadata_path
 
 
-def get_workflow_args_from_path(cwl_workflows_path):
-    cwl_workflows_path = Path(cwl_workflows_path)
-    path_parts = cwl_workflows_path.parts
-    file_name = path_parts[-1]
-    workflow_name = cwl_workflows_path.stem
-    workflow_version = path_parts[-2]
-    project_name = path_parts[-3]
-    group_name = path_parts[-4]
-    return group_name, project_name, workflow_version, workflow_name
+def get_workflow_args_from_path(workflow_path):
+    workflow_path = Path(workflow_path)
+    workflow_path_parts = workflow_path.parts
+    workflows_dir_index = workflow_path_parts.index(workflows_dir_name)
+    workflow_group = workflow_path_parts[workflows_dir_index + 1]
+    workflow_project = workflow_path_parts[workflows_dir_index + 2]
+    workflow_version = workflow_path_parts[workflows_dir_index + 3]
+    return workflow_group, workflow_project, workflow_version
+
+
+def get_workflow_metadata_from_workflow_path(workflow_path):
+    group_name, project_name, version_name = get_workflow_args_from_path(workflow_path)
+    base_dir = get_base_dir_from_abs_path(workflow_path)
+    workflow_metadata = get_workflow_metadata(group_name, project_name, version_name, base_dir=base_dir)
+    return workflow_metadata
+
 
 
 # helpers
@@ -391,6 +420,9 @@ def get_relative_path(full_path, base_path=None):
 
 
 def get_metadata_path(cwl_path):
+    """
+    Naming convention only works for tools and scripts.
+    """
     cwl_path = Path(cwl_path)
     path_dir = cwl_path.parent
     metafile_name = f"{cwl_path.stem}-metadata.yaml"
@@ -558,8 +590,25 @@ def get_dir_type_from_path(abs_dir_path, content_root_repo_name=content_repo_nam
         else:
             raise ValueError
     elif base_type == 'workflow':
-        # dir type could be base_dir, group_dir, project_dir, version_dir, common_dir, script_dir, instances_dir
-        raise NotImplementedError
+        if path_parts[-1] == workflows_dir_name:
+            assert path_parts[-2] == content_root_repo_name
+            dir_type = 'base_dir'
+        # import pdb; pdb.set_trace()
+        elif path_parts[-2] == workflows_dir_name:
+            assert path_parts[-3] == content_root_repo_name
+            dir_type = 'group_dir'
+        elif path_parts[-3] == workflows_dir_name:
+            assert path_parts[-4] == content_root_repo_name
+            dir_type = 'project_dir'
+        elif path_parts[-4] == workflows_dir_name:
+            assert path_parts[-5] == content_root_repo_name
+            dir_type = 'version_dir'
+        elif path_parts[-5] == workflows_dir_name:
+            assert path_parts[-6] == content_root_repo_name
+            dir_type = 'group_dir'
+        # dir type script_dir, instances_dir
+        else:
+            raise NotImplementedError
     else:
         raise ValueError
 

@@ -1,6 +1,10 @@
+name: calmd
 metadataStatus: Released
 cwlStatus: Incomplete
-name: calmd
+nextflowStatus: Incomplete
+snakemakeStatus: Incomplete
+wdlStatus: Incomplete
+version: 0.1.0
 identifier: TL_ec2a8d_ac.0b
 description: "samtools calmd [-Eeubr] [-C capQcoef] aln.bam ref.fasta\nGenerate the\
   \ MD tag. If the MD tag is already present, this command will give a warning if\
@@ -13,4 +17,7 @@ keywords:
   - name:
     category:
 alternateName:
+extra:
+  sha1:
+  dockerImage:
 parentMetadata: ../common/common-metadata.yaml

@@ -62,11 +62,20 @@ class WorkflowMetadata(CommonPropsMixin, WorkflowMetadataBase):
         return OrderedDict([
         ('name', None),
         ('softwareVersion', None),
+        ('current', None),
         ('description', None),
         ('identifier', None),
         ('metadataStatus', 'Incomplete'),
-        ('cwlStatus', 'Incomplete'),
-        ('callMap', None),
+        ('workflowStatus', 'Incomplete'),
+        ('workflowLanguage', 'wdl'),
+        ('current', False),
+        ('workflowFile', None), # Workflow file.
+        ('repoName', None),
+        ('gitTag', None),
+        ('inputsTemplate', None),
+        ('callMap', None),  # This field is to make associations between called tasks/steps and underlying tools/scripts.
+        ('graphStatus', 'Incomplete'),
+        ('executable', False),  # if configured to execute on Truwl.
         ('codeRepository', None),
         ('WebSite', None),
         ('license', None),
@@ -75,7 +84,6 @@ class WorkflowMetadata(CommonPropsMixin, WorkflowMetadataBase):
         ('keywords', None),
         ('alternateName', None),
         ('creator', None),
-        ('programmingLanguage', None),
         ('datePublished', None),
     ])
 
@@ -83,10 +91,10 @@ class WorkflowMetadata(CommonPropsMixin, WorkflowMetadataBase):
         if not identifier[:3] == f"{worklfow_identifier_prefix}_":
             raise ValueError(f"Workflow identifiers must start with '{worklfow_identifier_prefix}_' you provided {identifier}")
         else:
-            hex_pattern = r'[0-9a-f]{6}\.[0-9a-f]{2}$'
+            hex_pattern = r'[0-9a-f]{6}\.[0-9a-f]{2,3}$'
             match_obj = re.match(hex_pattern, identifier[3:])
             if not match_obj:
-                raise ValueError(f"Tool identifier not formatted correctly: {identifier}")
+                raise ValueError(f"Workflow identifier not formatted correctly: {identifier}")
         return identifier
 
     def _mk_identifier(self, start=0):
@@ -101,12 +109,44 @@ class WorkflowMetadata(CommonPropsMixin, WorkflowMetadataBase):
         workflowid = self._mk_identifier
         return f"{workflowid}.{uuid_string}"
 
+    @property
+    def workflowStatus(self):
+        return self._workflowStatus
+
+    @workflowStatus.setter
+    def workflowStatus(self, wf_status):
+        allowed_statuses = ('Incomplete', 'Draft', 'Released')
+        if not wf_status:
+            raise ValueError("workflowStatus must be set.")
+        elif wf_status not in allowed_statuses:
+            raise ValueError(f"worflowStatus must be on of  {allowed_statuses}, not {wf_status}")
+        else:
+            self._workflowStatus = wf_status
+
+    @property
+    def workflowLanguage(self):
+        return self._workflowLanguage
+
+    @workflowLanguage.setter
+    def workflowLanguage(self, wf_language):
+        allowed_languages = ('cwl', 'wdl', 'nextflow', 'snakemake')
+        if not wf_language:
+            raise ValueError("workflowLanguage must be set.")
+        elif wf_language not in allowed_languages:
+            raise ValueError(f"workflowLanguage must be on of  {allowed_languages}, not {wf_language}")
+        else:
+            self._workflowLanguage = wf_language
+
+
     @classmethod
     def load_from_file(cls, file_path, ignore_empties=False):
         file_path = Path(file_path)
         with file_path.open('r') as file:
             file_dict = safe_load(file)
-        return cls(**file_dict, ignore_empties=ignore_empties)
+        try:
+            return cls(**file_dict, ignore_empties=ignore_empties)
+        except AttributeError as e:
+            raise Exception(f"{e.args} in {file_path}") from e
 
     def make_instance(self):
         raise NotImplementedError

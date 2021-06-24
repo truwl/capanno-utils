@@ -1,6 +1,10 @@
+name: flags
 metadataStatus: Released
 cwlStatus: Incomplete
-name: flags
+nextflowStatus: Incomplete
+snakemakeStatus: Incomplete
+wdlStatus: Incomplete
+version: 0.1.0
 identifier: TL_ec2a8d_4e.0b
 description: "samtools flags INT|STR[,...]\nConvert between textual and numeric flag\
   \ representation.\nFLAGS:\n0x1\tPAIRED\tpaired-end (or multiple-segment) sequencing\
@@ -15,4 +19,7 @@ keywords:
   - name:
     category:
 alternateName:
+extra:
+  sha1:
+  dockerImage:
 parentMetadata: ../common/common-metadata.yaml
