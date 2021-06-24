@@ -1,7 +1,14 @@
 
 import requests
 import logging
+import sys
 # from .classes.metadata import ToolMetadata
+
+logging.basicConfig(stream=sys.stderr)
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.WARNING)
+
+# from capanno_utils.helpers.get_metadata_from_biotools import get_metadata_from_biotools;get_metadata_from_biotools('picard')
 
 def get_metadata_from_biotools(biotoolsID):
     """
@@ -12,10 +19,12 @@ def get_metadata_from_biotools(biotoolsID):
     """
     params = {'format': 'json'}
     attrs = {'biotoolsID': f'"{biotoolsID}"'}
-    r = requests.get(f"https://bio.tools/api/t/", params={**params, **attrs})
+    requests.packages.urllib3.disable_warnings()
+    r = requests.get(f"https://bio.tools/api/t/", params={**params, **attrs}, verify=False)
     biotools_dict = r.json()
     if biotools_dict['count'] != 1:
         logging.error(f"bio.tools returned {biotools_dict['count']} results. Expected 1")
+        return None
     return biotools_dict
 
 def _handle_publication(publication_list):
@@ -67,11 +76,16 @@ def pop_websites_and_repo(homepage, link, documentation):
     return {'WebSite': websites if websites else None, 'codeRepository': code_repo}
 
 
-def make_tool_metadata_kwargs_from_biotools(biotools_id, tool_name=None):
+def make_tool_metadata_kwargs_from_biotools(biotools_id):
+    logger.debug("Trying to fetch metadata for biotools {}".format(biotools_id))
     meta_dict = get_metadata_from_biotools(biotools_id)
+    if meta_dict is None:
+        logger.error("Error find {} biotools".format(biotools_id))
+    if 'list' not in meta_dict:
+        logger.error("Error {} with ".format(meta_dict,biotools_id))
     meta_data = meta_dict['list'][0]
     tool_kwargs = {}
-    tool_kwargs['name'] = tool_name if tool_name else meta_data['name']
+    tool_kwargs['name'] = meta_data['name']
     tool_kwargs['description'] = meta_data['description']
     tool_kwargs['license'] = meta_data['license']
     tool_kwargs['publication'] = _handle_publication(meta_data.get('publication'))

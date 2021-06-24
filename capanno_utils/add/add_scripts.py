@@ -1,7 +1,8 @@
 
 from pathlib import Path
+from capanno_utils.repo_config import scripts_dir_name
 from capanno_utils.classes.metadata.script_metadata import ScriptMetadata, CommonScriptMetadata
-from capanno_utils.classes.cwl.make_cwl import initialize_command_line_tool_file_script
+from capanno_utils.initialize_wf_files import initialize_command_line_tool_file_script
 
 def _get_script_directory(group_name, project_name, script_version, root_repo_path):
     """
@@ -11,7 +12,7 @@ def _get_script_directory(group_name, project_name, script_version, root_repo_pa
     :param script_version:
     :return:
     """
-    base_path = Path(root_repo_path) / 'cwl-scripts' / group_name / project_name / script_version
+    base_path = Path(root_repo_path) / scripts_dir_name / group_name / project_name / script_version
     if base_path.exists():
         if not base_path.is_dir():
             raise TypeError(f"{base_path} must be a directory")
@@ -44,5 +45,8 @@ def add_script(group_name, project_name, script_version, script_name, root_repo_
     if init_cwl:
         initialize_command_line_tool_file_script(group_name, project_name, script_version, script_name, base_dir=root_repo_path)
     return
+
+def add_script_instance(group_name, project_name, script_version, script_name, init_job_file=True, base_dir=Path.cwd()):
+    raise NotImplementedError(f"Need to make script instance metadata classes first")
 
 

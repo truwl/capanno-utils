@@ -1,0 +1,8 @@
+WF_1f4d8f.cb:
+  metadataPath: workflows/example_workflows/cat_sort/master/cat_sort-metadata.yaml
+  name: cat sort
+  metadataStatus: Released
+  workflowLanguage: cwl
+  workflowStatus: Released
+  workflowPath:
+  versionName: master

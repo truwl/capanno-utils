@@ -1,6 +1,4 @@
 from setuptools import setup, find_packages
-from semantic_version import Version
-
 
 """
 To release package update `package_version` and commit/push changes, then run
@@ -13,8 +11,8 @@ for twine upload to work, must have credentials in .pypirc file
 with open('README.md', 'r') as fh:
     long_description = fh.read()
 
-package_version = Version(major=0, minor=1, patch=0, prerelease=('alpha', '1'))
-# package_version = Version('0.5.0')  # Use this when installing locally with pip install -e
+
+package_version = '0.9.2a1'
 
 setup(
     name='capanno_utils',
@@ -27,7 +25,7 @@ setup(
     description='Tool for managing bioinformatics content repositories.',
     long_description=long_description,
     long_description_content_type="text/markdown",
-    install_requires = [
+    install_requires=[
         'setuptools',
         'requests',
         'ruamel.yaml >= 0.15, <=0.16',
@@ -36,8 +34,12 @@ setup(
         'cwltool',
     ],
     entry_points={
-        'console_scripts': ["capanno-validate=capanno_utils.validate_content:main", "capanno-add=capanno_utils.add_content:main"]
-                  },
+        'console_scripts': ["capanno-validate=capanno_utils.validate_content:main",
+                            "capanno-add=capanno_utils.add_content:main",
+                            "capanno-map=capanno_utils.make_content_maps:main",
+                            "capanno-id=capanno_utils.make_ids:main",
+                            "capanno-status=capanno_utils.change_status:main"]
+    },
     classifiers=[
         "Development Status :: 3 - Alpha",
         "License :: OSI Approved :: Apache Software License",

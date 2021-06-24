@@ -4,10 +4,11 @@ import shutil
 from pathlib import Path
 from ruamel.yaml import safe_load, dump
 from tests.test_base import TestBase
+from capanno_utils.content_maps import make_tools_index
 from capanno_utils.helpers.get_paths import get_tool_version_dir, get_root_tools_dir, get_tool_common_dir, get_script_version_dir, get_root_scripts_dir
 
 
-tool_args_list = [('cat', '8.x'), ('samtools', '1.x'), ('gawk', '4.1.x'), ('sort', '8.x'), ('STAR', '2.5'), ('md5sum', '8.x')]
+tool_args_list = [('cat', '8.x'), ('samtools', '1.x'), ('gawk', '4.1.x'), ('sort', '8.x'), ('STAR', '2.5'), ('STAR', '2.7.x'), ('md5sum', '8.x')]
 
 script_args_list = [
     ('ENCODE-DCC', 'atac-seq-pipeline', '1.1.x'),
@@ -23,14 +24,14 @@ invalid_content_dir = TestBase.invalid_content_dir
 
 
 def teardown_tools():
-    """Just delete whole cwl-tools directory. Removes anything that was manually copied too."""
+    """Just delete whole tools directory. Removes anything that was manually copied too."""
     test_tools_dir = get_root_tools_dir(base_dir=test_content_dir)
     invalid_tools_dir = get_root_tools_dir(base_dir=invalid_content_dir)
-    print(test_tools_dir)
     if test_tools_dir.exists():
         print(f"Removing {test_tools_dir}")
         shutil.rmtree(str(test_tools_dir))
     if invalid_tools_dir.exists():
+        print(f"Removing {invalid_tools_dir}")
         shutil.rmtree(str(invalid_tools_dir))
     return
 
@@ -39,12 +40,15 @@ def copy_tools():
         src_tool_dir = get_tool_version_dir(*tool_args, base_dir=src_content_dir)
         dest_tool_dir = get_tool_version_dir(*tool_args, base_dir=test_content_dir)
         shutil.copytree(src_tool_dir, dest_tool_dir)
+    make_tools_index(base_dir=test_content_dir)
+    return
 
 def copy_to_invalid_tools():
     for tool_args in tool_args_list:
         src_tool_dir = get_tool_version_dir(*tool_args, base_dir=src_content_dir)
         invalid_tool_dir = get_tool_version_dir(*tool_args, base_dir=invalid_content_dir)
         shutil.copytree(src_tool_dir, invalid_tool_dir)
+    make_tools_index(base_dir=invalid_content_dir)
     return
 
 
@@ -105,5 +109,5 @@ def main():
     populate_scripts()
 
 if  __name__ == "__main__":
-    print(test_content_dir)
+    print(f"Updating {test_content_dir}")
     sys.exit(main())

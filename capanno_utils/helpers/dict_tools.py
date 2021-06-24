@@ -1,4 +1,3 @@
-
 def get_dict_from_list(dict_list, target_key_name, value):
     """
     Find a dictionary in a list dictionaries that has a particular value for a key.
@@ -27,3 +26,14 @@ def get_dict_from_list(dict_list, target_key_name, value):
         return my_dict, target_index
     else:
         raise NotImplementedError("Should never hit this.")
+
+def no_clobber_update(dict_, update_dict):
+    update_dict_keys = set(update_dict.keys())
+    dict_keys = set(dict_.keys())
+    duplicate_keys = list(dict_keys & update_dict_keys)
+    if duplicate_keys:
+        duplicate_dicts = [{duplicate_key: [dict_[duplicate_key], update_dict[duplicate_key]]} for duplicate_key in duplicate_keys]
+        raise ValueError(f"Duplicate keys found. {duplicate_dicts}")
+    else:
+        return dict_.update(update_dict)
+

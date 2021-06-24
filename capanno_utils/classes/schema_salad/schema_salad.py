@@ -1,19 +1,19 @@
-
 import tempfile
 from pathlib import Path
 from urllib.parse import urlparse
 from copy import deepcopy
-from ruamel.yaml import YAML
+from ruamel.yaml.comments import CommentedMap
 from schema_salad.ref_resolver import file_uri, Loader
 from schema_salad.jsonld_context import salad_to_jsonld_context
 from schema_salad.schema import get_metaschema, validate_doc, collect_namespaces, make_avro, make_avro_schema_from_avro
-from capanno_utils.classes.cwl.command_line_tool import load_document
-from capanno_utils.helpers.string_tools import uri_name
+from capanno_utils.classes.cwl.common_workflow_language import load_document
+from capanno_utils.helpers.string_tools import get_shortened_id
 from capanno_utils.helpers.dict_tools import get_dict_from_list
-
+from capanno_utils.helpers.file_management import dump_dict_to_yaml_output
 
 
 class SaladSchemaBase:
+    # Could we use schema_salad.schema.get_metaschema() or something instead?
     metaschema_base = {'$base': 'https://w3id.org/cwl/salad#',
                        '$graph': [{'doc': '# Schema\n', 'name': 'Schema', 'type': 'documentation'},
                                   {'doc': ['Salad data types are based on Avro schema declarations.  '
@@ -135,9 +135,9 @@ class SaladSchemaBase:
                                        'rdfs': 'http://www.w3.org/2000/01/rdf-schema#',
                                        'sld': 'https://w3id.org/cwl/salad#',
                                        'xsd': 'http://www.w3.org/2001/XMLSchema#'}}
+
     def __init__(self):
         pass
-
 
 
 class InputsSchema:
@@ -145,7 +145,7 @@ class InputsSchema:
                      '$namespaces': {'cwl': 'https://w3id.org/cwl/cwl#',
                                      'rdfs': 'http://www.w3.org/2000/01/rdf-schema#',
                                      'sld': 'https://w3id.org/cwl/salad#'},
-                     '$graph': [ {'$import': 'null'},  # Replace with path to metaschema-base temp file.
+                     '$graph': [{'$import': 'null'},  # Replace with path to metaschema-base temp file.
                                 {'extends': 'sld:PrimitiveType',
                                  'name': 'CWLType',
                                  'symbols': ['cwl:File', 'cwl:Directory'],
@@ -209,13 +209,14 @@ class InputsSchema:
                                  'fields': None,
                                  'name': 'InputsField',
                                  'type': 'record'}],
-                    }
+                     }
 
-    def __init__(self, cwl_path):
-        if not isinstance(cwl_path, Path):
-            cwl_path = Path(cwl_path)
-        self.cwl_path = cwl_path
-        cwl_document = load_document(str(self.cwl_path))
+    def __init__(self, cwl_doc):
+        if isinstance(cwl_doc, (str, Path)):
+            self.cwl_path = cwl_doc
+            cwl_document = load_document(str(self.cwl_path))
+        else:  # assume cwl_doc is CommandLineTool object.
+            cwl_document = cwl_doc
         self._cwl_inputs = cwl_document.inputs
         self._cwl_schema_def_requirement = cwl_document.get_schema_def_requirement()
 
@@ -225,45 +226,48 @@ class InputsSchema:
 
     @property
     def cwl_schema_def_requirement(self):
-        return self._cwl_schema_def_requirement
+        return self._cwl_schema_def_requirement # set in __init__
 
     def validate_inputs(self, document_path):
-        metaschema_path = self._make_metaschema_base_file()
-        inputs_schema_path = self._make_temp_schema_file(metaschema_path)
-        self._schema_salad_validate(inputs_schema_path, document_path)
+        """
+
+        :param document_path:
+        :return:
+        """
+        with tempfile.NamedTemporaryFile(prefix='metaschema_base', suffix='.yml') as tmp_meta_base:
+            dump_dict_to_yaml_output(SaladSchemaBase.metaschema_base, tmp_meta_base.name)  # Convenient to put it in tmp directory where inputs schema will live.
+            with tempfile.NamedTemporaryFile(prefix='inputs_schema', suffix='.yml') as tmp:
+                self._make_inputs_schema_file(tmp_meta_base.name, tmp.name)
+                self._schema_salad_validate(tmp.name, document_path)
         return
 
-    def _make_schema_dict(self):
+    def _make_inputs_schema_dict(self):
+        """
+        Make the schema from inputs to validate job file with.
+        :return (dict):
+        """
         inputs_fields = {}
-        for input in self.cwl_inputs:
-            inputs_fields[uri_name(input.id)] = {'type': input._handle_input_type_field(input.type, self.cwl_schema_def_requirement)}
+        for input in self.cwl_inputs:  # inputs is a list of CommandInputParameter
+            inputs_fields[get_shortened_id(input.id)] = {
+                'type': input._handle_input_type_field(self.cwl_schema_def_requirement)}
 
         schema_dict = deepcopy(InputsSchema.template_dict)
         _, inputs_field_index = get_dict_from_list(schema_dict['$graph'], 'name', 'InputsField')
         schema_dict['$graph'][inputs_field_index]['fields'] = inputs_fields
-        return  schema_dict
+        return schema_dict
 
-    def _make_metaschema_base_file(self):
-        yaml = YAML(pure=True)
-        yaml.default_flow_style = False
-        yaml.indent(mapping=2, sequence=4, offset=2)
-        metaschema_file = tempfile.NamedTemporaryFile(delete=False, prefix='metaschema_base', suffix='.yml')
-        with metaschema_file as tempf:
-            yaml.dump(SaladSchemaBase.metaschema_base, tempf)
-        return metaschema_file.name
+    def _make_inputs_schema_file(self, metaschema_path, out_file):
+        """
 
-
-    def _make_temp_schema_file(self, metaschema_path):
-        schema_dict = self._make_schema_dict()
+        :param metaschema_path:
+        :param out_file:
+        :return:
+        """
+        schema_dict = self._make_inputs_schema_dict()
         import_dict, import_index = get_dict_from_list(schema_dict['$graph'], '$import', 'null')
         schema_dict['$graph'][import_index] = {'$import': metaschema_path}
-        yaml = YAML(pure=True)
-        yaml.default_flow_style = False
-        yaml.indent(mapping=2, sequence=4, offset=2)
-        schema_file = tempfile.NamedTemporaryFile(delete=False, prefix='inputs_schema', suffix='.yml')
-        with schema_file as tempf:
-            yaml.dump(schema_dict, tempf)
-        return schema_file.name
+        dump_dict_to_yaml_output(schema_dict, out_file)
+        return
 
     def _schema_salad_validate(self, schema_path, document_path):
         '''
@@ -310,6 +314,30 @@ class InputsSchema:
                                                              checklinks=False)  # This is what's getting us around file link checking.
 
         validate_doc(avsc_names, document, document_loader, strict=strict,
-                                              strict_foreign_properties=strict_foreign_properties)
+                     strict_foreign_properties=strict_foreign_properties)
 
         return
+
+    @staticmethod
+    def _make_input_value_field(command_input_parameter, schema_def_requirement):
+        template_param_value, comment = command_input_parameter.make_input_value_field(schema_def_requirement)
+        return template_param_value, comment
+
+    def make_template(self):
+        """
+        Make a cwl job file template.
+        Inspired by cwl-tool --make-template (calls cwl-tool.main.generate_input_template https://github.com/common-workflow-language/cwltool/blob/main/cwltool/main.py)
+        :return:
+        """
+        template = CommentedMap()
+        for input in self.cwl_inputs:
+            input_name = get_shortened_id(input.id)
+            template_param_value, comment = self._make_input_value_field(input, self._cwl_schema_def_requirement)
+            template.insert(0, input_name, template_param_value, comment)
+        return template
+
+    def make_template_file(self, template_file):
+        template = self.make_template()
+        dump_dict_to_yaml_output(template, template_file)
+        return
+

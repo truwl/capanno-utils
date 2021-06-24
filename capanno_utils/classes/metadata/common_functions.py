@@ -18,29 +18,6 @@ def _mk_hashes(arg1, *args):
     return hashes
 
 
-def mk_tool_identifier(name, version, start=0):
-    name_hash, version_hash = _mk_hashes(name, version)
-    identifier = f"TL_{name_hash[start:start + 6]}.{version_hash[:2]}"
-    return identifier
-
-
-def mk_tool_instance_identifier(tool_identifier):
-    uuid_string = uuid.uuid4().hex[:4]
-    return f"{tool_identifier}.{uuid_string}"
-
-
-def mk_subtool_identifier():
-    raise NotImplementedError
-
-
-def mk_script_identifier():
-    raise NotImplementedError
-
-
-def mk_workflow_identifier():
-    raise NotImplementedError
-
-
 def mk_empty_prop_object(property_name):
     """
     Should only call this to override a None value for a property.
@@ -142,6 +119,8 @@ class CommonPropsMixin:
                 people = [Person(**person) for person in person_list]
             elif isinstance(person_list[0], Person):
                 people = person_list
+            else:
+                raise NotImplementedError
         else:
             people = None
         self._creator = people
@@ -201,6 +180,22 @@ class CommonPropsMixin:
             websites = None
         self._website = websites
 
+
+
+    @property
+    def metadataStatus(self):
+        return self._metadataStatus
+
+    @metadataStatus.setter
+    def metadataStatus(self, metadata_status):
+        allowed_statuses = ('Incomplete', 'Draft', 'Released')
+        if not metadata_status:
+            raise ValueError("metadataStatus must be set.")
+        elif metadata_status not in allowed_statuses:
+            raise ValueError(f"metadataStatus must be on of  {allowed_statuses}, not {metadata_status}")
+        else:
+            self._metadataStatus = metadata_status
+
     @property
     def cwlStatus(self):
         return self._cwlStatus
@@ -216,16 +211,43 @@ class CommonPropsMixin:
             self._cwlStatus = cwl_status
 
     @property
-    def metadataStatus(self):
-        return self._metadataStatus
+    def snakemakeStatus(self):
+        return self._snakemakeStatus
 
-    @metadataStatus.setter
-    def metadataStatus(self, metadata_status):
+    @snakemakeStatus.setter
+    def snakemakeStatus(self, snakemake_status):
         allowed_statuses = ('Incomplete', 'Draft', 'Released')
-        if not metadata_status:
-            raise ValueError("cwlStatus must be set.")
-        elif metadata_status not in allowed_statuses:
-            raise ValueError(f"cwlStatus must be on of  {allowed_statuses}, not {metadata_status}")
+        if not snakemake_status:
+            raise ValueError("snakemakeStatus must be set.")
+        elif snakemake_status not in allowed_statuses:
+            raise ValueError(f"snakemakeStatus must be on of  {allowed_statuses}, not {snakemake_status}")
         else:
-            self._metadataStatus = metadata_status
+            self._snakemakeStatus = snakemake_status
 
+    @property
+    def wdlStatus(self):
+        return self._wdlStatus
+
+    @wdlStatus.setter
+    def wdlStatus(self, wdl_status):
+        allowed_statuses = ('Incomplete', 'Draft', 'Released')
+        if not wdl_status:
+            raise ValueError("wdlStatus must be set.")
+        elif wdl_status not in allowed_statuses:
+            raise ValueError(f"wdlStatus must be on of  {allowed_statuses}, not {wdl_status}")
+        else:
+            self._wdlStatus = wdl_status
+
+    @property
+    def nextflowStatus(self):
+        return self._nextflowStatus
+
+    @nextflowStatus.setter
+    def nextflowStatus(self, nf_status):
+        allowed_statuses = ('Incomplete', 'Draft', 'Released')
+        if not nf_status:
+            raise ValueError("nextflowStatus must be set.")
+        elif nf_status not in allowed_statuses:
+            raise ValueError(f"nextflowStatus must be on of  {allowed_statuses}, not {nf_status}")
+        else:
+            self._nextflowStatus = nf_status

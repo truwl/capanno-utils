@@ -33,17 +33,31 @@ class AttributeBase(ABC):
     @staticmethod
     @abstractmethod
     def _attrs():
-        return frozenset([])
+        return tuple()
 
 
     @property
     def attrs(self):
         return self._attrs()
 
-    def dump(self):
+
+
+    def dump(self):  # dump a shared property class into a Commented Map which can be written to a file as yaml.
         map_object = CommentedMap()
         for attribute in self.attrs:
-            map_object[attribute] = getattr(self, attribute)
+            attr_value = getattr(self, attribute)
+            if isinstance(attr_value, list):
+                attribute_list = []
+                for list_item in attr_value:
+                    if isinstance(list_item, object_attributes):
+                        attribute_list.append(list_item.dump())
+                    else:
+                        attribute_list.append(list_item)
+                map_object[attribute] = attribute_list
+            elif isinstance(attr_value, object_attributes):
+                map_object[attribute] = attr_value.dump()
+            else:
+                map_object[attribute] = getattr(self, attribute)
         return map_object
 
 
@@ -83,7 +97,7 @@ class CodeRepository(AttributeBase):
 
     @staticmethod
     def _attrs():
-        return frozenset(['name', 'URL'])
+        return ('name', 'URL')
 
 
 class WebSite(AttributeBase):
@@ -127,7 +141,7 @@ class WebSite(AttributeBase):
 
     @staticmethod
     def _attrs():
-        return frozenset(['name', 'description', 'URL'])
+        return ('name', 'description', 'URL')
 
 
 class Publication(AttributeBase):
@@ -157,7 +171,7 @@ class Publication(AttributeBase):
 
     @staticmethod
     def _attrs():
-        return frozenset(['identifier', 'headline'])
+        return ('identifier', 'headline')
 
 
 class Person(AttributeBase):
@@ -194,7 +208,7 @@ class Person(AttributeBase):
 
     @staticmethod
     def _attrs():
-        return frozenset(['name', 'email', 'identifier'])
+        return ('name', 'email', 'identifier')
 
 
 class Keyword(AttributeBase):
@@ -246,7 +260,7 @@ class Keyword(AttributeBase):
 
     @staticmethod
     def _attrs():
-        return frozenset(['name', 'category', 'uri'])
+        return ('name', 'category', 'uri')
 
 
 class SoftwareVersion(AttributeBase):
@@ -279,7 +293,7 @@ class SoftwareVersion(AttributeBase):
 
     @staticmethod
     def _attrs():
-        return frozenset(['versionName', 'includedVersions'])
+        return ('versionName', 'includedVersions')
 
 
 class ParentScript(AttributeBase):
@@ -317,7 +331,7 @@ class ParentScript(AttributeBase):
 
     @staticmethod
     def _attrs():
-        return frozenset(['name','version', 'identifier'])
+        return ('name','version', 'identifier')
 
 
 class Tool(AttributeBase):
@@ -364,7 +378,7 @@ class Tool(AttributeBase):
 
     @staticmethod
     def _attrs():
-        return frozenset(['name', 'alternateName', 'version', 'identifier'])
+        return ('name', 'alternateName', 'version', 'identifier')
 
 
 class CallMap(AttributeBase):
@@ -393,15 +407,18 @@ class CallMap(AttributeBase):
 
     @staticmethod
     def _attrs():
-        return frozenset(['id', 'identifier'])
+        return ('id', 'identifier')
 
 
 class IOObject(AttributeBase):
-
-    def __init__(self, identifier=None, path=None):
+    """
+    An input or output File or Directory.
+    """
+    def __init__(self, identifier=None, path=None, uri=None):
         super().__init__()
-        self._identifier = identifier
-        self._path = path
+        self.identifier = identifier
+        self.path = path
+        self.uri = uri
 
     @property
     def identifier(self):
@@ -413,23 +430,40 @@ class IOObject(AttributeBase):
 
     @property
     def path(self):
+        """Path on a local machine. Can generate uri from this. Not needed if """
         return self._path
 
     @path.setter
     def path(self, new_path):
         self._path = new_path
 
+    @property
+    def uri(self):
+        return self._uri
+
+    @uri.setter
+    def uri(self, new_uri):
+        self._uri = new_uri
 
     @staticmethod
     def _attrs():
-        return frozenset(['identifier', 'path'])
+        return ('identifier', 'path', 'uri')
 
 class IOObjectItem(AttributeBase):
-    def __init__(self, id_=None, io_object=IOObject()):
+    """
+    Represents an individual file or file_collection/directory object associated with an id in a tool or workflow file.
+    """
+    def __init__(self, id, new_io_object=None, **io_object_kwargs):
         super().__init__()
 
-        self._id = id_
-        self._io_object = io_object
+        self.id = id
+        if new_io_object:
+            self.io_object = new_io_object
+        else:
+            self.io_object = IOObject(**io_object_kwargs)
+
+
+
 
     @property
     def id(self):
@@ -438,14 +472,6 @@ class IOObjectItem(AttributeBase):
     @id.setter
     def id(self, new_id):
         self._id = new_id
-
-    @property
-    def identifier(self):
-        return self._io_object._identifier
-
-    @identifier.setter
-    def identifier(self, new_identifier):
-        self._io_object._identifier = new_identifier
 
     @property
     def path(self):
@@ -459,9 +485,16 @@ class IOObjectItem(AttributeBase):
     def io_object(self):
         return self._io_object
 
+    @io_object.setter
+    def io_object(self, new_io_object):
+        assert isinstance(new_io_object, IOObject)
+        self._io_object = new_io_object
+
+
+
     @staticmethod
     def _attrs():
-        return frozenset(['id', 'io_object'])
+        return ('id', 'io_object')
 
     def dump(self):
         map_object = CommentedMap()
@@ -470,17 +503,46 @@ class IOObjectItem(AttributeBase):
         return map_object
 
 class IOArrayItem(AttributeBase):
-    def __init__(self, id_, objects=None):
+    def __init__(self, id, objects=None):
         super().__init__()
-        self._id = id_
-        self._objects = objects if objects else [IOObject()]
+        self._id = id
+        if not objects:
+            objects = [IOObject()]
+        for index, object in enumerate(objects):
+            if isinstance(object, IOObject):
+                continue
+            elif isinstance(object, dict):
+                objects[index] = IOObject(**object)
+            else:
+                raise ValueError
+
+        self.objects = objects
+
+    @property
+    def id(self):
+        return self._id
+
+    @id.setter
+    def id(self, new_id):
+        self._id = new_id
+
+    @property
+    def objects(self):
+        return self._objects
+
+    @objects.setter
+    def objects(self, new_objects):
+        for object in new_objects:
+            assert isinstance(object, IOObject)
+        self._objects = new_objects
 
     @staticmethod
     def _attrs():
-        return frozenset(['id', 'objects'])
+        return ('id', 'objects')
+
 
 
 
 
 object_attributes = (
-CodeRepository, Person, Publication, WebSite, Keyword, Tool, ParentScript, IOObjectItem, CallMap, SoftwareVersion)
+CodeRepository, Person, Publication, WebSite, Keyword, Tool, ParentScript, IOObjectItem, CallMap, SoftwareVersion, IOObject, IOObjectItem, IOArrayItem)
