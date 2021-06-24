@@ -379,26 +379,50 @@ class CommandLineBindingMixin:
 class CommandOutputParameterMixin:
 
 
-    def _handle_output_type_field(self, type_field):
+    def _handle_output_type_field(self):
+
+        def format_complex_type(complex_type_field):  # Duplicated from CommandInputParameterMixin._handle_input_type_field. Refactor someday.
+            """
+            Deal with record, enum, and array types here. Convert these to map types (OrderedDict) without extra stuff (name fields)
+            :param complex_type_field:
+            :return:
+            """
+            if hasattr(complex_type_field, 'type'):
+                complex_type_field_dict = complex_type_field.save()
+                if complex_type_field.type in ('array', 'enum'):
+                    del complex_type_field_dict['name']
+
+            else:
+                complex_type_field_dict = complex_type_field.save()
+            return complex_type_field_dict
+        type_field = self.type
         if isinstance(type_field, str):
-            input_type = type_field
+            try:
+                assert type_field in (*cwl_types, 'stdout')
+            except AssertionError:
+                raise NotImplementedError(f"Need to handle output type {type_field}")
+            output_type = type_field
         elif isinstance(type_field, list):
-            input_type = []
+            output_type = []
             for _type in type_field:
                 if isinstance(_type, str):
-                    input_type.append(_type)
+                    try:
+                        assert _type in (*cwl_types, 'stdout')
+                    except AssertionError:
+                        raise NotImplementedError(f"Need to handle output type {_type}")
+                    output_type.append(_type)
                 else:
-                    input_type.append(_type.save())
+                    output_type.append(format_complex_type(_type))
         else:
-            input_type = type_field.save()
-        return input_type
+            output_type = format_complex_type(type_field)
+        return output_type
 
     def get_ordered_output(self):
         output_map = CommentedMap()
         if self.label:
             output_map['label'] = self.label
         if self.type:
-            output_map['type'] = self._handle_output_type_field(self.type)
+            output_map['type'] = self._handle_output_type_field()
         if self.outputBinding:
             output_map['outputBinding'] = self.outputBinding.save()
         if self.format:
