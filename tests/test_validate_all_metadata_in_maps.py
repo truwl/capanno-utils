@@ -44,7 +44,7 @@ class TestValidateContent(TestBase):
             workflow_map = safe_load(wm)
             base_path = config[os.environ['CONFIG_KEY']]['base_path']
 
-        for workflow_identifier, workflow_values in workflow_map.items():
-            metadata_path = base_path / get_metadata_path(workflow_values['path'])
+        for workflow_identifier, workflow_map_values in workflow_map.items():
+            metadata_path = base_path / workflow_map_values['metadataPath']
             main([str(metadata_path), '-q'])
         return

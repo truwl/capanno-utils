@@ -73,7 +73,7 @@ class TestGetTypesFromPath(TestBase):
         cwl_workflow_type_tuple = get_types_from_path(workflow_cwl_path)
         self.assertEqual(cwl_workflow_type_tuple, ('workflow', 'cwl'))
 
-        workflow_metadata_path = get_workflow_metadata(group_name, project_name, workflow_version, workflow_name)
+        workflow_metadata_path = get_workflow_metadata(group_name, project_name, workflow_version)
         workflow_metadata_type_tuple = get_types_from_path(workflow_metadata_path)
         self.assertEqual(workflow_metadata_type_tuple, ('workflow', 'metadata'))
 

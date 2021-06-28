@@ -1,6 +1,10 @@
+name: bedcov
 metadataStatus: Released
 cwlStatus: Incomplete
-name: bedcov
+nextflowStatus: Incomplete
+snakemakeStatus: Incomplete
+wdlStatus: Incomplete
+version: 0.1.0
 identifier: TL_ec2a8d_a4.0b
 description: "samtools bedcov [options] region.bed in1.sam|in1.bam|in1.cram[...]\n\
   Reports the total read base count (i.e. the sum of per base read depths) for each\
@@ -11,4 +15,7 @@ keywords:
   - name:
     category:
 alternateName:
+extra:
+  sha1:
+  dockerImage:
 parentMetadata: ../common/common-metadata.yaml

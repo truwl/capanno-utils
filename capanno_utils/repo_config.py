@@ -81,3 +81,25 @@ _test = make_config_dict(test_rel_content_path)
 _travis = make_config_dict(travis_root)
 
 config = {'TEST': _test, 'DEFAULT': _default, 'TRAVIS': _travis}
+
+
+def make_full_config_dict():
+    config_dict = _default
+    constants = dict([
+        ('content_maps_dir_name', 'content_maps'),
+        ('main_tool_subtool_name', '__main__'),
+        ('common_dir_name', 'common'),
+        ('common_tool_metadata_name', 'common-metadata.yaml'),
+        ('instances_dir_name', 'instances'),
+        ('content_repo_name', 'capanno'),
+        ('tools_dir_name', 'tools'),
+        ('scripts_dir_name', 'scripts'),
+        ('workflows_dir_name', 'workflows'),
+        ('scripts_maps_name', '.scripts_map.yaml'),
+        ('workflow_maps_name', 'workflows_map.yaml'),
+        ('tool_index_file_name', 'tools_index'),
+    ])
+    config_dict.update(constants)
+    return config_dict
+
+config_dict = make_full_config_dict()

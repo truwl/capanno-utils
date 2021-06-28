@@ -52,6 +52,30 @@ TL_cadc8c_54.47:
   snakemakeStatus: Incomplete
   wdlStatus: Incomplete
   type: subtool
+TL_8ab263.6f:
+  metadataPath: tools/STAR/2.7.x/common/common-metadata.yaml
+  metadataStatus: Released
+  name: STAR
+  versionName: 2.7.x
+  type: parent
+TL_8ab263_dd.6f:
+  metadataPath: tools/STAR/2.7.x/STAR_genomeGenerate/STAR-genomeGenerate-metadata.yaml
+  name: genomeGenerate
+  metadataStatus: Released
+  cwlStatus: Released
+  nextflowStatus: Incomplete
+  snakemakeStatus: Released
+  wdlStatus: Incomplete
+  type: subtool
+TL_8ab263_aa.6f:
+  metadataPath: tools/STAR/2.7.x/STAR_alignReads/STAR-alignReads-metadata.yaml
+  name: alignReads
+  metadataStatus: Released
+  cwlStatus: Released
+  nextflowStatus: Incomplete
+  snakemakeStatus: Released
+  wdlStatus: Incomplete
+  type: subtool
 TL_8ab263.82:
   metadataPath: tools/STAR/2.5/common/common-metadata.yaml
   metadataStatus: Released
@@ -70,7 +94,7 @@ TL_8ab263_95.82:
 TL_8ab263_15.82:
   metadataPath: tools/STAR/2.5/STAR_liftOver/STAR-liftOver-metadata.yaml
   name: liftOver
-  metadataStatus: Incomplete
+  metadataStatus: Released
   cwlStatus: Incomplete
   nextflowStatus: Incomplete
   snakemakeStatus: Incomplete
@@ -148,7 +172,7 @@ TL_ec2a8d_d1.0b:
   metadataStatus: Released
   cwlStatus: Incomplete
   nextflowStatus: Incomplete
-  snakemakeStatus: Incomplete
+  snakemakeStatus: Released
   wdlStatus: Incomplete
   type: subtool
 TL_ec2a8d_d0.0b:
@@ -164,7 +188,7 @@ TL_ec2a8d_52.0b:
   metadataPath: tools/samtools/1.x/samtools_fastq/samtools-fastq-metadata.yaml
   name: fastq
   metadataStatus: Released
-  cwlStatus: Incomplete
+  cwlStatus: Released
   nextflowStatus: Incomplete
   snakemakeStatus: Incomplete
   wdlStatus: Incomplete
@@ -174,6 +198,15 @@ TL_ec2a8d_a4.0b:
   name: bedcov
   metadataStatus: Released
   cwlStatus: Incomplete
+  nextflowStatus: Incomplete
+  snakemakeStatus: Incomplete
+  wdlStatus: Incomplete
+  type: subtool
+TL_ec2a8d_64.0b:
+  metadataPath: tools/samtools/1.x/samtools_view_filter/samtools-view_filter-metadata.yaml
+  name: view_filter
+  metadataStatus: Released
+  cwlStatus: Released
   nextflowStatus: Incomplete
   snakemakeStatus: Incomplete
   wdlStatus: Incomplete
@@ -191,6 +224,24 @@ TL_ec2a8d_44.0b:
   metadataPath: tools/samtools/1.x/samtools_stats/samtools-stats-metadata.yaml
   name: stats
   metadataStatus: Released
+  cwlStatus: Released
+  nextflowStatus: Incomplete
+  snakemakeStatus: Released
+  wdlStatus: Incomplete
+  type: subtool
+TL_ec2a8d_c4.0b:
+  metadataPath: tools/samtools/1.x/samtools_view_count_alignments/samtools-view_count_alignments-metadata.yaml
+  name: view_count_alignments
+  metadataStatus: Released
+  cwlStatus: Released
+  nextflowStatus: Incomplete
+  snakemakeStatus: Incomplete
+  wdlStatus: Incomplete
+  type: subtool
+TL_ec2a8d_b4.0b:
+  metadataPath: tools/samtools/1.x/samtools_dict/samtools-dict-metadata.yaml
+  name: dict
+  metadataStatus: Released
   cwlStatus: Incomplete
   nextflowStatus: Incomplete
   snakemakeStatus: Incomplete
@@ -200,25 +251,34 @@ TL_ec2a8d_bb.0b:
   metadataPath: tools/samtools/1.x/samtools_faidx/samtools-faidx-metadata.yaml
   name: faidx
   metadataStatus: Released
-  cwlStatus: Incomplete
+  cwlStatus: Released
   nextflowStatus: Incomplete
   snakemakeStatus: Incomplete
   wdlStatus: Incomplete
   type: subtool
-TL_ec2a8d_6a.0b:
+TL_ec2a8d_a9.0b:
   metadataPath: tools/samtools/1.x/samtools_index/samtools-index-metadata.yaml
   name: index
   metadataStatus: Released
-  cwlStatus: Incomplete
-  nextflowStatus: Incomplete
-  snakemakeStatus: Incomplete
+  cwlStatus: Released
+  nextflowStatus: Released
+  snakemakeStatus: Released
   wdlStatus: Incomplete
   type: subtool
 TL_ec2a8d_ca.0b:
   metadataPath: tools/samtools/1.x/samtools_sort/samtools-sort-metadata.yaml
   name: sort
   metadataStatus: Released
-  cwlStatus: Incomplete
+  cwlStatus: Released
+  nextflowStatus: Incomplete
+  snakemakeStatus: Released
+  wdlStatus: Incomplete
+  type: subtool
+TL_ec2a8d_b7.0b:
+  metadataPath: tools/samtools/1.x/samtools_view_sam2bam/samtools-view_sam2bam-metadata.yaml
+  name: view_sam2bam
+  metadataStatus: Released
+  cwlStatus: Released
   nextflowStatus: Incomplete
   snakemakeStatus: Incomplete
   wdlStatus: Incomplete
@@ -265,7 +325,7 @@ TL_ec2a8d_a6.0b:
   metadataStatus: Released
   cwlStatus: Released
   nextflowStatus: Incomplete
-  snakemakeStatus: Incomplete
+  snakemakeStatus: Released
   wdlStatus: Incomplete
   type: subtool
 TL_ec2a8d_31.0b:
@@ -319,7 +379,7 @@ TL_ec2a8d_e0.0b:
   metadataStatus: Released
   cwlStatus: Incomplete
   nextflowStatus: Incomplete
-  snakemakeStatus: Incomplete
+  snakemakeStatus: Released
   wdlStatus: Incomplete
   type: subtool
 TL_ec2a8d_7e.0b:
@@ -329,6 +389,15 @@ TL_ec2a8d_7e.0b:
   cwlStatus: Incomplete
   nextflowStatus: Incomplete
   snakemakeStatus: Incomplete
+  wdlStatus: Incomplete
+  type: subtool
+TL_ec2a8d_4c.0b:
+  metadataPath: tools/samtools/1.x/samtools_bam2fq_interleaved/samtools-bam2fq_interleaved-metadata.yaml
+  name: bam2fq_interleaved
+  metadataStatus: Released
+  cwlStatus: Incomplete
+  nextflowStatus: Incomplete
+  snakemakeStatus: Released
   wdlStatus: Incomplete
   type: subtool
 TL_ec2a8d_ab.0b:
@@ -371,8 +440,8 @@ TL_ec2a8d_65.0b:
   metadataPath: tools/samtools/1.x/samtools_merge/samtools-merge-metadata.yaml
   name: merge
   metadataStatus: Released
-  cwlStatus: Incomplete
+  cwlStatus: Released
   nextflowStatus: Incomplete
-  snakemakeStatus: Incomplete
+  snakemakeStatus: Released
   wdlStatus: Incomplete
   type: subtool

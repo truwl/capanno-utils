@@ -1,6 +1,10 @@
+name: cat
 metadataStatus: Released
 cwlStatus: Incomplete
-name: cat
+nextflowStatus: Incomplete
+snakemakeStatus: Incomplete
+wdlStatus: Incomplete
+version: 0.1.0
 identifier: TL_ec2a8d_d0.0b
 description: "samtools cat [-b list] [-h header.sam] [-o out.bam] in1.bam in2.bam\
   \ [ ... ]\nConcatenate BAMs or CRAMs. Although this works on either BAM or CRAM,\
@@ -11,4 +15,7 @@ keywords:
   - name:
     category:
 alternateName:
+extra:
+  sha1:
+  dockerImage:
 parentMetadata: ../common/common-metadata.yaml

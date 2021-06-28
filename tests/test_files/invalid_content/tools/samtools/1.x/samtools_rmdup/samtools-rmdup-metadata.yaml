@@ -1,10 +1,17 @@
+name: rmdup
 metadataStatus: Released
 cwlStatus: Incomplete
-name: rmdup
+nextflowStatus: Incomplete
+snakemakeStatus: Incomplete
+wdlStatus: Incomplete
+version: 0.1.0
 identifier: TL_ec2a8d_86.0b
 description:
 keywords:
   - name:
     category:
 alternateName:
+extra:
+  sha1:
+  dockerImage:
 parentMetadata: ../common/common-metadata.yaml

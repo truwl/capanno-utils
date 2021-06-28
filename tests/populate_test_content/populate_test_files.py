@@ -8,7 +8,7 @@ from capanno_utils.content_maps import make_tools_index
 from capanno_utils.helpers.get_paths import get_tool_version_dir, get_root_tools_dir, get_tool_common_dir, get_script_version_dir, get_root_scripts_dir
 
 
-tool_args_list = [('cat', '8.x'), ('samtools', '1.x'), ('gawk', '4.1.x'), ('sort', '8.x'), ('STAR', '2.5'), ('md5sum', '8.x')]
+tool_args_list = [('cat', '8.x'), ('samtools', '1.x'), ('gawk', '4.1.x'), ('sort', '8.x'), ('STAR', '2.5'), ('STAR', '2.7.x'), ('md5sum', '8.x')]
 
 script_args_list = [
     ('ENCODE-DCC', 'atac-seq-pipeline', '1.1.x'),
@@ -24,7 +24,7 @@ invalid_content_dir = TestBase.invalid_content_dir
 
 
 def teardown_tools():
-    """Just delete whole cwl-tools directory. Removes anything that was manually copied too."""
+    """Just delete whole tools directory. Removes anything that was manually copied too."""
     test_tools_dir = get_root_tools_dir(base_dir=test_content_dir)
     invalid_tools_dir = get_root_tools_dir(base_dir=invalid_content_dir)
     if test_tools_dir.exists():
