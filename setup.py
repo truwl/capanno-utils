@@ -45,5 +45,5 @@ setup(
         "Development Status :: 3 - Alpha",
         "License :: OSI Approved :: Apache Software License",
     ],
-    python_requires=">=3",
+    python_requires=">=3.6",
 )
