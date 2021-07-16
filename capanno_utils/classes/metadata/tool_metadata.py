@@ -216,7 +216,6 @@ class SubtoolMetadata(CommonPropsMixin, ToolMetadataBase):
             ('nextflowStatus', 'Incomplete'),
             ('snakemakeStatus', 'Incomplete'),
             ('wdlStatus', 'Incomplete'),
-            ('version', '0.1'),
             ('root_repo_path', None),  # These need to be set before identifier.
             ('tool_identifiers', None),
             ('identifier', None),
