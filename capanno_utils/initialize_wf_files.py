@@ -89,16 +89,20 @@ def _initialize_nf_tool_from_url(url, nf_path):
 def initialize_tool_wf_file_tool(tool_name, version_name, subtool_name, init_cwl, init_wdl, init_sm, init_nf, base_dir, ):
     tool_sources = get_tool_sources(tool_name, version_name, subtool_name=subtool_name, base_dir=base_dir)
     cwl_path, wdl_path, sm_path, nf_path = tuple(tool_sources.values())
-    if init_cwl == False:  # Why did I do this? Was there a problem with None values...
+    if not init_cwl:
         pass
     else:
         if init_cwl == True:
             base_command = f"{tool_name} {subtool_name}" if subtool_name != main_tool_subtool_name else tool_name
             _initialize_command_line_tool_file_yaml(base_command, cwl_path)
         else:
-            assert isinstance(init_cwl, str)  # expect this to be a url.
+            try:
+                assert isinstance(init_cwl, str)  # expect this to be a url.
+            except AssertionError:
+                print(f"init_cwl is {init_cwl}")
+                raise
             _initialize_command_line_tool_from_url(init_cwl, cwl_path)
-    if init_wdl == False:
+    if not init_wdl:
         pass
     else:
         if init_wdl == True:
@@ -106,14 +110,14 @@ def initialize_tool_wf_file_tool(tool_name, version_name, subtool_name, init_cwl
         else:
             assert isinstance(init_wdl, str)
             _initialize_wdl_task_from_url(init_wdl, wdl_path)
-    if init_sm == False:
+    if not init_sm:
         pass
     else:
         if init_sm == True:
             _initialize_empty_sm_rule(sm_path)
         else:
             _initialize_sm_rule_from_url(init_sm, sm_path)
-    if init_nf == False:
+    if not init_nf:
         pass
     else:
         if init_nf == True:

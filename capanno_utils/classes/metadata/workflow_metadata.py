@@ -3,6 +3,7 @@
 # * file 'LICENSE.txt', which is part of this source code package.
 
 from collections import OrderedDict
+import uuid
 from pathlib import Path
 import re
 from abc import abstractmethod
