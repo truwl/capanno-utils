@@ -28,8 +28,11 @@ def add_tool(tool_name, version_name, subtool_names=None, biotools_id=None, has_
     if has_primary:  # Need to append __main__ onto subtools.
         if subtool_names:
             subtool_names.append(main_tool_subtool_name)
-        else:
+        else: # __main__ is only subtool specified.
             subtool_names = [main_tool_subtool_name]
+            if isinstance(init_cwl, str):
+                init_cwl = {main_tool_subtool_name: init_cwl}
+
     if refresh_index:
         make_tools_index(base_dir=root_repo_path)
     common_dir = get_tool_common_dir(tool_name, version_name, base_dir=root_repo_path)
@@ -56,7 +59,11 @@ def add_tool(tool_name, version_name, subtool_names=None, biotools_id=None, has_
             instances_dir.mkdir()
             git_keep_file = instances_dir / '.gitkeep'
             git_keep_file.touch()
-            initialize_tool_wf_file_tool(tool_name, version_name, subtool, init_cwl=init_cwl, init_wdl=init_wdl, init_sm=init_sm, init_nf=init_nf, base_dir=root_repo_path)
+            if isinstance(init_cwl, dict):
+                init_cwl_ = init_cwl.get(subtool, False)  # Not initialized if not specified.
+            else:
+                init_cwl_ = init_cwl
+            initialize_tool_wf_file_tool(tool_name, version_name, subtool, init_cwl=init_cwl_, init_wdl=init_wdl, init_sm=init_sm, init_nf=init_nf, base_dir=root_repo_path)
     parent_metadata.mk_file(root_repo_path)
     return
 

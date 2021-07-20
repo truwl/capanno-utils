@@ -7,6 +7,7 @@ import sys
 import argparse
 from pathlib import Path
 from capanno_utils import repo_config
+from capanno_utils.add.custom_actions import keyvalueparse
 from capanno_utils.add.add_tools import add_tool, add_subtool, add_tool_instance
 from capanno_utils.add.add_scripts import add_script, add_common_script_metadata
 from capanno_utils.add.add_workflows import add_workflow
@@ -23,25 +24,25 @@ def get_parser():
     subparsers = parser.add_subparsers(description='Specify the command to run.', dest='command')
 
     # add_tool parser
-    addtool = subparsers.add_parser('tool', help='add a new standalone tool.')
-    addtool.add_argument('tool_name', type=str, help="The name of the tool to add.")
-    addtool.add_argument('version_name', type=str, help="The version of the tool to add.")
-    addtool.add_argument('subtool_names', nargs='*', type=str, help="The names subtool names to initialize directories for.")
-    addtool.add_argument('--biotoolsID', type=str, help='biotools id from https://bio.tools')
-    addtool.add_argument('--has-primary', action='store_true', help='Tool is called directly without a subtool.')
-    addtool.add_argument('--init-cwl', action='store_true', help="If specified, CWL CommandLineTool files will be intiated for the subtools and primary tool if it exists.")
+    addtool = subparsers.add_parser('tool', help='Add a new tool to the repository.')
+    addtool.add_argument('tool_name', type=str, help="The name of the tool.")
+    addtool.add_argument('version_name', type=str, help="The version name of the tool.")
+    addtool.add_argument('subtool_names', nargs='*', type=str, help="The names of the subtools/subcommands for the tool. Directories and files will be initialized for the specified subtools.")
+    addtool.add_argument('--biotoolsID', type=str, help='biotools id from https://bio.tools. Metadata fields will be populated with data from bio.tools if specified')
+    addtool.add_argument('--has-primary', action='store_true', help='Specify if tool is callable without a subcommand.')
+    addtool.add_argument('--init-cwl', nargs='*', action=keyvalueparse, help="If specified without arguments, CWL CommandLineTool files will be intiated from a template for the subtools and primary tool if it exists. url's to CWL files for individual subtools may also be provided in a series of arguments in the form subtoolName1=url1.")
     addtool.add_argument('--init-wdl', action='store_true', help="If specified, wdl task files will be intiated for the subtools and primary tool if it exists.")
     addtool.add_argument('--init-nf', action='store_true',
                          help="If specified, nextflow files will be intiated for the subtools and primary tool if it exists.")
     addtool.add_argument('--init-sm', action='store_true',
                          help="If specified, snakemake files will be intiated for the subtools and primary tool if it exists.")
-    addtool.add_argument('--no-clobber', action='store_true', help="skip if exists", default=False)
+    addtool.add_argument('--no-clobber', action='store_true', help="Do not overwrite the existing tool_name, version_name combination in the repository, if it already exists.", default=False)
 
     # add_subtool parser
-    addsubtool = subparsers.add_parser('subtool', help='add a subtool. A parent must exist.')
-    addsubtool.add_argument('tool_name', help='The primary name of the tool.')
+    addsubtool = subparsers.add_parser('subtool', help='Add a subtool to a tool directory. An entry for the tool_name/tool_version must already exist.')
+    addsubtool.add_argument('tool_name', help='The name of the tool.')
     addsubtool.add_argument('version_name', help='The version name of the tool.')
-    addsubtool.add_argument('subtool_name', help="The name of the subtool. The subtool name must be present in the parent's featureList field.")
+    addsubtool.add_argument('subtool_name', help="The name of the subtool to add. The subtool name must be present in the common-metadata featureList field. The featureList field can be updated automatically with the --update-featureList option.")
     addsubtool.add_argument('-u', '--update-featureList', action='store_true', help='Update the featureList of the Application Suite metadata to contain new subtool.')
     addsubtool.add_argument('--init-cwl', nargs='?', type=str, default=False, const=True,
                          help="If specified, CWL CommandLineTool files will be intiated. If a url is provided, the file will be intialized from the url.")
@@ -51,7 +52,7 @@ def get_parser():
                             help="If specified, a nextflow file will be intiated . If a url is provided, the file will be intialized from the url.")
     addsubtool.add_argument('--init-sm', nargs='?', type=str, default=False, const=True,
                             help="If specified, a snakemake file will be intiated. If a url is provided, the file will be intialized from the url.")
-    addsubtool.add_argument('--no-clobber', action='store_true', help="skip if exists", default=False)
+    addsubtool.add_argument('--no-clobber', action='store_true', help="Do not overwrite the existing tool_name, version_name, subtool name combination in the repository, if it already exists.", default=False)
 
     # add_tool instance parser
     addtoolinstance = subparsers.add_parser('tool-instance', help='Add a tool instance.')
@@ -68,10 +69,10 @@ def get_parser():
     addscriptcommon.add_argument('filename', help="The name of common metadata file. File extensions and '-metadata.yaml' postfix must be omitted.")
 
     # add_script parser
-    addscript = subparsers.add_parser('script', help='add a script')
+    addscript = subparsers.add_parser('script', help='add a new script to the repository.')
     addscript.add_argument('group_name', help='The name of the group directory that the script will go into.')
     addscript.add_argument('project_name', help='The name of the project directory that the script will go into.')
-    addscript.add_argument('script_version', help='The version of the script.')
+    addscript.add_argument('script_version', help='The version name of the script.')
     addscript.add_argument('script_name', help='The name of the script. File extensions should be omitted. Replace spaces with underscores')
     addscript.add_argument('--parent-metadata', '-p', nargs='+', help="path(s) to common script metadata that the script should inherit from.")
     addscript.add_argument('--init-cwl', action='store_true',

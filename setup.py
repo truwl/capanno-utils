@@ -12,7 +12,7 @@ with open('README.md', 'r') as fh:
     long_description = fh.read()
 
 
-package_version = '0.9.2a1'
+package_version = '0.9.5a'
 
 setup(
     name='capanno_utils',
@@ -32,6 +32,7 @@ setup(
         'semantic-version',
         'pandoc-include',
         'cwltool',
+        'miniwdl'
     ],
     entry_points={
         'console_scripts': ["capanno-validate=capanno_utils.validate_content:main",
@@ -44,5 +45,5 @@ setup(
         "Development Status :: 3 - Alpha",
         "License :: OSI Approved :: Apache Software License",
     ],
-    python_requires=">=3",
+    python_requires=">=3.6",
 )

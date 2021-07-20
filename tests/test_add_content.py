@@ -41,6 +41,31 @@ class TestAddToolMain(TestBase):
             add_content_main(['--no-refresh-index', '-p', tmp_dir, 'tool', tool_name, tool_version] + subtools + options)
         return
 
+    def test_add_tool_with_subtools_with_init_urls(self):
+        cwl_url = 'https://raw.githubusercontent.com/common-workflow-library/bio-cwl-tools/release/bandage/bandage-image.cwl'
+        tool_name = 'test_biotools'
+        tool_version = 'fake.3'
+        biotools_id = 'malvirus'
+        subtools = ['subtool1', 'subtool2', 'subtool3']
+        options = ['--biotoolsID', biotools_id]
+        init_cwl = ['--init-cwl', f"subtool1={cwl_url}", f"subtool2={cwl_url}"]
+        with TemporaryDirectory(prefix='add_with_url') as tmp_dir:
+            self.make_empty_tools_index(tmp_dir)
+            add_content_main(
+                ['--no-refresh-index', '-p', tmp_dir, 'tool', tool_name, tool_version] + subtools + options + init_cwl)
+
+    def test_add_tool_with_subtools_with_init_url_main_only(self):
+        cwl_url = 'https://raw.githubusercontent.com/common-workflow-library/bio-cwl-tools/release/bandage/bandage-image.cwl'
+        tool_name = 'test_biotools'
+        tool_version = 'fake.3'
+        biotools_id = 'malvirus'
+        options = ['--biotoolsID', biotools_id, '--has-primary']
+        init_cwl = ['--init-cwl', cwl_url]
+        with TemporaryDirectory(prefix='add_with_url') as tmp_dir:
+            self.make_empty_tools_index(tmp_dir)
+            add_content_main(
+                ['--no-refresh-index', '-p', tmp_dir, 'tool', tool_name, tool_version] + options + init_cwl)
+
     # @skip('')
     def test_add_subtool(self):
         with TemporaryDirectory(prefix='add_subtool_') as tmp_dir:
