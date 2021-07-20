@@ -22,7 +22,7 @@ class MetadataBase(ABC):
     @staticmethod
     @abstractmethod
     def _init_metadata():
-        return dict([('name', None), ('version', None), ('metadataStatus', None)])
+        return dict([('name', None), ('metadataStatus', None)])
 
     @property
     def name(self):
@@ -32,25 +32,6 @@ class MetadataBase(ABC):
     def name(self, new_name):
         # Can put validators here.
         self._name = new_name
-
-
-    @property
-    def version(self):
-        return str(self._version)
-
-    @version.setter
-    def version(self, new_version):
-        new_version = str(new_version)
-        is_semantic = semantic_version.validate(new_version)
-        if is_semantic:
-            v = semantic_version.Version(new_version)
-        else:
-            try:
-                v = semantic_version.Version(new_version, partial=True)
-            except ValueError:
-                raise ValueError(f"'{new_version}'' is not a valid partial semantic version.")
-            v = semantic_version.Version.coerce(str(v))
-        self._version = str(v)
 
     @property
     def root_repo_path(self):

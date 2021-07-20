@@ -1,4 +1,5 @@
-Tools actively under development. Documentation will be updated when ready for outside use!
+# General
+`capanno-utils` is a companion tool to manage metadata and workflow language files for bioinformatics tools in the [capanno](https://github.com/truwl/capanno) and similar repositories. Usage examples and additional documentation can be found in that repository. It is recommended to start with the [Getting Started](https://github.com/truwl/capanno/blob/master/docs/Getting_Started.md) documentation.
 
 ## Create the parser using the latest and greatest CWL and schema-salad versions
 ```
