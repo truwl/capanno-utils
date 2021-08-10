@@ -12,7 +12,7 @@ with open('README.md', 'r') as fh:
     long_description = fh.read()
 
 
-package_version = '0.9.5a'
+package_version = '0.9.6a'
 
 setup(
     name='capanno_utils',
