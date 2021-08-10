@@ -10,7 +10,7 @@ from abc import abstractmethod
 from ruamel.yaml import safe_load
 from capanno_utils.repo_config import *
 from ...classes.metadata.shared_properties import CodeRepository, WebSite, Person, Publication, Keyword, CallMap
-from ...classes.metadata.common_functions import _mk_hashes, CommonPropsMixin
+from ...classes.metadata.common_functions import _mk_hashes, CommonPropsMixin, SoftwarePropsMixin
 from ...classes.metadata.metadata_base import MetadataBase
 
 class WorkflowMetadataBase(MetadataBase):
@@ -56,20 +56,19 @@ class WorkflowMetadataBase(MetadataBase):
 
 
 
-class WorkflowMetadata(CommonPropsMixin, WorkflowMetadataBase):
+class WorkflowMetadata(CommonPropsMixin, SoftwarePropsMixin, WorkflowMetadataBase):
 
     @staticmethod
     def _init_metadata():
         return OrderedDict([
         ('name', None),
         ('softwareVersion', None),
-        ('current', None),
+        ('current', False),
         ('description', None),
         ('identifier', None),
         ('metadataStatus', 'Incomplete'),
         ('workflowStatus', 'Incomplete'),
         ('workflowLanguage', 'wdl'),
-        ('current', False),
         ('workflowFile', None), # Workflow file.
         ('repoName', None),
         ('gitTag', None),
