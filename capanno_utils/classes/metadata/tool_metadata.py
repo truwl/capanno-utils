@@ -11,7 +11,7 @@ from ...helpers.get_paths import *
 from ...classes.metadata.metadata_base import MetadataBase
 from ...classes.metadata.shared_properties import CodeRepository, Person, WebSite, Keyword, IOObjectItem, IOArrayItem
 from ...helpers.get_metadata_from_biotools import make_tool_metadata_kwargs_from_biotools
-from ...classes.metadata.common_functions import _mk_hashes, CommonPropsMixin
+from ...classes.metadata.common_functions import _mk_hashes, CommonPropsMixin, WorkflowLanguageStatusMixin, SoftwarePropsMixin
 
 
 class ToolMetadataBase(MetadataBase):
@@ -80,7 +80,7 @@ class ToolMetadataBase(MetadataBase):
             raise
 
 
-class ParentToolMetadata(CommonPropsMixin, ToolMetadataBase):
+class ParentToolMetadata(CommonPropsMixin, SoftwarePropsMixin, ToolMetadataBase):
 
     @staticmethod
     def _init_metadata():
@@ -203,7 +203,7 @@ class ParentToolMetadata(CommonPropsMixin, ToolMetadataBase):
         return returned_path
 
 
-class SubtoolMetadata(CommonPropsMixin, ToolMetadataBase):
+class SubtoolMetadata(CommonPropsMixin, WorkflowLanguageStatusMixin, ToolMetadataBase):
 
     @staticmethod
     def _init_metadata():
@@ -211,6 +211,7 @@ class SubtoolMetadata(CommonPropsMixin, ToolMetadataBase):
             ('name', None),
             ('check_index', None),  # Will be set to False (default) in __init__
             ('_in_index', False),  # Only used if check_index is True. Will be set to False (default) in __init__
+            ('current', False),
             ('metadataStatus', 'Incomplete'),
             ('cwlStatus', 'Incomplete'),
             ('nextflowStatus', 'Incomplete'),

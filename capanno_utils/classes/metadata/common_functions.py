@@ -42,6 +42,8 @@ def is_attr_empty(attribute):
                 break
     elif isinstance(attribute, object_attributes):
         is_empty = attribute.is_empty()
+    elif isinstance(attribute, bool):  # True or False has been provided.
+        is_empty = False
     else:
         if attribute:
             is_empty = False
@@ -50,17 +52,68 @@ def is_attr_empty(attribute):
     return is_empty
 
 
-class CommonPropsMixin:
+class WorkflowLanguageStatusMixin:
+
     @property
-    def name(self):
-        return self._name
+    def cwlStatus(self):
+        return self._cwlStatus
 
-    @name.setter
-    def name(self, new_name):
-        if not new_name:
-            raise ValueError(f"'name'' must be set.")
-        self._name = new_name
+    @cwlStatus.setter
+    def cwlStatus(self, cwl_status):
+        allowed_statuses = ('Incomplete', 'Draft', 'Released')
+        if not cwl_status:
+            raise ValueError("cwlStatus must be set.")
+        elif cwl_status not in allowed_statuses:
+            raise ValueError(f"cwlStatus must be on of  {allowed_statuses}, not {cwl_status}")
+        else:
+            self._cwlStatus = cwl_status
 
+    @property
+    def snakemakeStatus(self):
+        return self._snakemakeStatus
+
+    @snakemakeStatus.setter
+    def snakemakeStatus(self, snakemake_status):
+        allowed_statuses = ('Incomplete', 'Draft', 'Released')
+        if not snakemake_status:
+            raise ValueError("snakemakeStatus must be set.")
+        elif snakemake_status not in allowed_statuses:
+            raise ValueError(f"snakemakeStatus must be on of  {allowed_statuses}, not {snakemake_status}")
+        else:
+            self._snakemakeStatus = snakemake_status
+
+    @property
+    def wdlStatus(self):
+        return self._wdlStatus
+
+    @wdlStatus.setter
+    def wdlStatus(self, wdl_status):
+        allowed_statuses = ('Incomplete', 'Draft', 'Released')
+        if not wdl_status:
+            raise ValueError("wdlStatus must be set.")
+        elif wdl_status not in allowed_statuses:
+            raise ValueError(f"wdlStatus must be on of  {allowed_statuses}, not {wdl_status}")
+        else:
+            self._wdlStatus = wdl_status
+
+    @property
+    def nextflowStatus(self):
+        return self._nextflowStatus
+
+    @nextflowStatus.setter
+    def nextflowStatus(self, nf_status):
+        allowed_statuses = ('Incomplete', 'Draft', 'Released')
+        if not nf_status:
+            raise ValueError("nextflowStatus must be set.")
+        elif nf_status not in allowed_statuses:
+            raise ValueError(f"nextflowStatus must be on of  {allowed_statuses}, not {nf_status}")
+        else:
+            self._nextflowStatus = nf_status
+
+class SoftwarePropsMixin:
+    """
+    This is used by ParentToolMetadata, ScriptMetadata, and WorkflowMetadata
+    """
     @property
     def softwareVersion(self):
         return (self._softwareVersion)
@@ -80,6 +133,18 @@ class CommonPropsMixin:
             raise TypeError(f"Cannot create softwareVersion with {software_version_info}")
         self._softwareVersion = software_version
         return
+
+    @property
+    def current(self):
+        return self._current
+
+    @current.setter
+    def current(self, is_current):
+        if not isinstance(is_current, bool):
+            raise ValueError(f"current must be a boolean value, you specified {is_current}")
+        self._current = is_current
+        return
+
 
     @property
     def publication(self):
@@ -143,6 +208,51 @@ class CommonPropsMixin:
         self._codeRepository = code_repo
 
     @property
+    def WebSite(self):
+        return self._website
+
+    @WebSite.setter
+    def WebSite(self, website_list):
+        if website_list:
+            if isinstance(website_list[0], WebSite):
+                websites = website_list
+            elif isinstance(website_list[0], dict):
+                websites = [WebSite(**website_dict) for website_dict in website_list]
+            else:
+                raise TypeError(f"Cannot create WebSite with {website_list}")
+        else:
+            websites = None
+        self._website = websites
+
+    @property
+    def license(self):
+        return self._license
+
+    @license.setter
+    def license(self, license_identifier):
+        self._license = license_identifier  # use spdx identifiers
+
+class CommonPropsMixin:
+    @property
+    def name(self):
+        return self._name
+
+    @name.setter
+    def name(self, new_name):
+        if not new_name:
+            raise ValueError(f"'name'' must be set.")
+        self._name = new_name
+
+    @property
+    def description(self):
+        return self._description
+
+    @description.setter
+    def description(self, description_):
+        # Accept markdown
+        self._description = description_
+
+    @property
     def keywords(self):
         return self._keywords
 
@@ -164,25 +274,6 @@ class CommonPropsMixin:
         self._keywords = keywords
 
     @property
-    def WebSite(self):
-        return self._website
-
-    @WebSite.setter
-    def WebSite(self, website_list):
-        if website_list:
-            if isinstance(website_list[0], WebSite):
-                websites = website_list
-            elif isinstance(website_list[0], dict):
-                websites = [WebSite(**website_dict) for website_dict in website_list]
-            else:
-                raise TypeError(f"Cannot create WebSite with {website_list}")
-        else:
-            websites = None
-        self._website = websites
-
-
-
-    @property
     def metadataStatus(self):
         return self._metadataStatus
 
@@ -196,58 +287,3 @@ class CommonPropsMixin:
         else:
             self._metadataStatus = metadata_status
 
-    @property
-    def cwlStatus(self):
-        return self._cwlStatus
-
-    @cwlStatus.setter
-    def cwlStatus(self, cwl_status):
-        allowed_statuses = ('Incomplete', 'Draft', 'Released')
-        if not cwl_status:
-            raise ValueError("cwlStatus must be set.")
-        elif cwl_status not in allowed_statuses:
-            raise ValueError(f"cwlStatus must be on of  {allowed_statuses}, not {cwl_status}")
-        else:
-            self._cwlStatus = cwl_status
-
-    @property
-    def snakemakeStatus(self):
-        return self._snakemakeStatus
-
-    @snakemakeStatus.setter
-    def snakemakeStatus(self, snakemake_status):
-        allowed_statuses = ('Incomplete', 'Draft', 'Released')
-        if not snakemake_status:
-            raise ValueError("snakemakeStatus must be set.")
-        elif snakemake_status not in allowed_statuses:
-            raise ValueError(f"snakemakeStatus must be on of  {allowed_statuses}, not {snakemake_status}")
-        else:
-            self._snakemakeStatus = snakemake_status
-
-    @property
-    def wdlStatus(self):
-        return self._wdlStatus
-
-    @wdlStatus.setter
-    def wdlStatus(self, wdl_status):
-        allowed_statuses = ('Incomplete', 'Draft', 'Released')
-        if not wdl_status:
-            raise ValueError("wdlStatus must be set.")
-        elif wdl_status not in allowed_statuses:
-            raise ValueError(f"wdlStatus must be on of  {allowed_statuses}, not {wdl_status}")
-        else:
-            self._wdlStatus = wdl_status
-
-    @property
-    def nextflowStatus(self):
-        return self._nextflowStatus
-
-    @nextflowStatus.setter
-    def nextflowStatus(self, nf_status):
-        allowed_statuses = ('Incomplete', 'Draft', 'Released')
-        if not nf_status:
-            raise ValueError("nextflowStatus must be set.")
-        elif nf_status not in allowed_statuses:
-            raise ValueError(f"nextflowStatus must be on of  {allowed_statuses}, not {nf_status}")
-        else:
-            self._nextflowStatus = nf_status

@@ -29,6 +29,10 @@ subtool_identifier_pattern = re.compile(r'TL_[0-9a-f]{6}_[0-9a-f]{2}\.[0-9a-f]{2
 
 tool_instance_identifier_pattern = re.compile(r'TL_[0-9a-f]{6}_[0-9a-f]{2}\.[0-9a-f]{2}\.[0-9a-f]{4}$')
 
+workflow_identifier_pattern = re.compile(r'WF_[0-9a-f]{6}\.[0-9a-f]{2}$')
+
+workflow_instance_identifier_pattern = re.compile(r'WF_[0-9a-f]{6}\.[0-9a-f]{2}\.[0-9a-f]{4}$')
+
 common_dir_name = 'common'
 
 common_tool_metadata_name = 'common-metadata.yaml'
