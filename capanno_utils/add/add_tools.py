@@ -115,7 +115,7 @@ def add_subtool(tool_name, tool_version, subtool_name, root_repo_path=Path.cwd()
 
 def add_tool_instance(tool_name, tool_version, subtool_name, init_job_file=True, root_repo_path=Path.cwd()):
     subtool_path = get_tool_metadata(tool_name, tool_version, subtool_name, base_dir=root_repo_path)
-    subtool_metadata = SubtoolMetadata.load_from_file(subtool_path, root_repo_path=root_repo_path, _in_index=False)
+    subtool_metadata = SubtoolMetadata.load_from_file(subtool_path, root_repo_path=root_repo_path, _in_index=True)
     instance_meta = subtool_metadata.mk_instance()
     instance_metadata_path = instance_meta.mk_file(base_dir=root_repo_path)
     input_hash = instance_meta.identifier[-4:]
