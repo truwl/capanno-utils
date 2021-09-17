@@ -36,12 +36,16 @@ class TestBase(TestCase):
         outfile_path = self.get_content_map_paths()['workflow_maps']
         make_workflow_maps(outfile_path)
 
-    def make_empty_tools_index(self, root_repo_dir):
+    def make_empty_tools_index(self, root_repo_dir, add_identifiers=None):
         root_repo_dir = Path(root_repo_dir)
         tools_index_dir = root_repo_dir / repo_config.identifier_index_dir
         tools_index_dir.mkdir()
         tool_index_path = root_repo_dir / repo_config.tool_index_path
-        tool_index_path.touch()
+        if add_identifiers:
+            with tool_index_path.open('w') as f:
+                for identifier in add_identifiers: f.write(f"{identifier}\n")
+        else:
+            tool_index_path.touch()
         return
 
     def make_empty_tools_dir(self, root_repo_path):

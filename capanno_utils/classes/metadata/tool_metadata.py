@@ -247,6 +247,7 @@ class SubtoolMetadata(CommonPropsMixin, WorkflowLanguageStatusMixin, ToolMetadat
             assert isinstance(self._parentMetadata, ParentToolMetadata)
         else:
             self.parentMetadata = kwargs['parentMetadata']  # must have a path if it isn't set directly.
+            # import pdb; pdb.set_trace()
             self._load_parent_metadata(_metadata_file_path, root_repo_path=kwargs.get('root_repo_path'), ignore_empties=ignore_empties, check_index_parent=kwargs.get('check_index'),
                                        parent_in_index=kwargs.get('_in_index'))  # sets self._parentMetadata
         self._primary_file_attrs = []
