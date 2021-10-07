@@ -96,10 +96,22 @@ class TestAddToolMain(TestBase):
         subtool_name = 'alignReads'
         tool_directory = get_main_tool_dir(tool_name, base_dir=self.test_content_dir)
         with TemporaryDirectory() as tmp_dir:
-            self.make_empty_tools_index(tmp_dir)
+            self.make_empty_tools_index(tmp_dir, add_identifiers=['TL_8ab263.82', 'TL_8ab263_a4.82'])
             tool_temp_path = Path(tmp_dir) / tools_dir_name / tool_name
             copytree(tool_directory, tool_temp_path)
             add_content_main(['-p', tmp_dir, 'tool-instance', tool_name, tool_version, subtool_name])
+            assert True  # Just provides a place for a breakpoint to take a look.at tmp_dir
+        return
+
+    def test_add_tool_instance_main(self):
+        tool_name = 'cat'
+        tool_version = '8.x'
+        tool_directory = get_main_tool_dir(tool_name, base_dir=self.test_content_dir)
+        with TemporaryDirectory() as tmp_dir:
+            self.make_empty_tools_index(tmp_dir, add_identifiers=['TL_d077f2.47', 'TL_d077f2_54.47'])
+            tool_temp_path = Path(tmp_dir) / tools_dir_name / tool_name
+            copytree(tool_directory, tool_temp_path)
+            add_content_main(['-p', tmp_dir, 'tool-instance', tool_name, tool_version])
             assert True  # Just provides a place for a breakpoint to take a look.at tmp_dir
         return
 
