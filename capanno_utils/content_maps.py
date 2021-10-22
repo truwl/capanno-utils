@@ -242,12 +242,12 @@ def make_project_workflow_map(group_name, project_name, base_dir=None):
     workflow_project_map = {}
     workflow_project_dir = get_workflow_project_dir(group_name, project_name, base_dir)
     for version_dir in workflow_project_dir.iterdir():
-        version_map = make_workflow_map(group_name, project_name, version_dir.name, project_name, base_dir)
+        version_map = make_workflow_map(group_name, project_name, version_dir.name, base_dir)
         no_clobber_update(workflow_project_map, version_map)
     return workflow_project_map
 
 def make_version_workflow_map(group_name, project_name, version_name, base_dir=None):
-    workflow_version_map = make_workflow_map(group_name, project_name, version_name, project_name, base_dir)
+    workflow_version_map = make_workflow_map(group_name, project_name, version_name, base_dir)
     return workflow_version_map
 
 def make_workflow_map(group_name, project_name, version, base_dir=None):

@@ -52,6 +52,15 @@ def is_attr_empty(attribute):
     return is_empty
 
 
+def get_description_from_file(metadata_file_path, description_file_name='description.md'):
+    description_path = metadata_file_path.parent / description_file_name
+    if description_path.exists():
+        with description_path.open('r') as f:
+            description = f.read()
+    else:
+        description = None
+    return description
+
 class WorkflowLanguageStatusMixin:
 
     @property
@@ -242,6 +251,14 @@ class CommonPropsMixin:
         if not new_name:
             raise ValueError(f"'name'' must be set.")
         self._name = new_name
+
+    @property
+    def shortDescription(self):
+        return self._shortDescription
+
+    @shortDescription.setter
+    def shortDescription(self, short_description):
+        self._shortDescription = short_description
 
     @property
     def description(self):

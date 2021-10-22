@@ -12,7 +12,7 @@ with open('README.md', 'r') as fh:
     long_description = fh.read()
 
 
-package_version = '0.9.6'
+package_version = '0.10.0'
 
 setup(
     name='capanno_utils',
@@ -28,7 +28,7 @@ setup(
     install_requires=[
         'setuptools',
         'requests',
-        'ruamel.yaml >= 0.15, <=0.16',
+        'ruamel.yaml',
         'semantic-version',
         'pandoc-include',
         'cwltool',

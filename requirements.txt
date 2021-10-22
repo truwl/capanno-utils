@@ -1,8 +1,7 @@
 requests==2.21.0
-cwltool==3.0.20200720165847
+cwltool
 cwlgen==0.4.0
-cwl-utils==0.7 #just make the parser command_line_tool.py from scratch, however
-schema-salad==7.0.20200811075006
+schema-salad==8.2.20211020114435
 ruamel.yaml
 semantic-version
 miniwdl
