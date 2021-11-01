@@ -587,4 +587,4 @@ class IOArrayItem(AttributeBase):
 
 
 object_attributes = (
-CodeRepository, Person, Publication, WebSite, VideoObject, Keyword, Tool, ParentScript, IOObjectItem, CallMap, SoftwareVersion, IOObject, IOObjectItem, IOArrayItem)
+CodeRepository, VideoObject, Person, Publication, WebSite, VideoObject, Keyword, Tool, ParentScript, IOObjectItem, CallMap, SoftwareVersion, IOObject, IOObjectItem, IOArrayItem)
