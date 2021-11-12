@@ -218,8 +218,17 @@ def make_workflow_maps_dict(base_dir=None):
     workflows_dir = get_workflows_root_dir(base_dir=base_dir)
     master_workflow_map = {}
     for group_dir in workflows_dir.iterdir():
+        if group_dir.name == '.DS_Store':
+            continue
+        assert group_dir.is_dir()
         for project_dir in group_dir.iterdir():
+            if project_dir.name == '.DS_Store':
+                continue
+            assert project_dir.is_dir()
             for version_dir in project_dir.iterdir():
+                if version_dir.name == '.DS_Store':
+                    continue
+                assert version_dir.is_dir()
                 workflow_dict = make_workflow_map(group_dir.name, project_dir.name, version_dir.name,
                                                           base_dir=base_dir)
                 no_clobber_update(master_workflow_map, workflow_dict)
