@@ -34,6 +34,16 @@ class MetadataBase(ABC):
         self._name = new_name
 
     @property
+    def shortDescription(self):
+        return self._shortDescription
+
+    @shortDescription.setter
+    def shortDescription(self, short_description):
+        assert type(short_description, str)
+        assert len(short_description) < 500
+        self._shortDescription = short_description
+
+    @property
     def root_repo_path(self):
         return self._root_repo_path
 

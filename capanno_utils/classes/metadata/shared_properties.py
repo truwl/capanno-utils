@@ -143,6 +143,48 @@ class WebSite(AttributeBase):
     def _attrs():
         return ('name', 'description', 'URL')
 
+class VideoObject(AttributeBase):
+    def __init__(self, name=None, description=None, URL=None):
+        super().__init__()
+        self._name = name
+        self._description = description
+        self._URL = URL
+
+    @property
+    def name(self):
+        return self._name
+
+    @name.setter
+    def name(self, new_name):
+        self._name = new_name
+
+    @property
+    def description(self):
+        return self._description
+
+    @description.setter
+    def description(self, new_description):
+        self._description = new_description
+
+    @property
+    def URL(self):
+        return self._URL
+
+    @URL.setter
+    def URL(self, new_URL):
+        if new_URL:
+            valid_schemes = ['https', 'http']
+            parse_result = urlparse(new_URL)
+            if parse_result.scheme not in valid_schemes:
+                raise ValueError(f"URL scheme should be in {valid_schemes}")
+        else:
+            new_URL = None
+        self._URL = new_URL
+        return
+
+    @staticmethod
+    def _attrs():
+        return ('name', 'description', 'URL')
 
 class Publication(AttributeBase):
     def __init__(self, identifier=None, headline=None):
@@ -545,4 +587,4 @@ class IOArrayItem(AttributeBase):
 
 
 object_attributes = (
-CodeRepository, Person, Publication, WebSite, Keyword, Tool, ParentScript, IOObjectItem, CallMap, SoftwareVersion, IOObject, IOObjectItem, IOArrayItem)
+CodeRepository, VideoObject, Person, Publication, WebSite, VideoObject, Keyword, Tool, ParentScript, IOObjectItem, CallMap, SoftwareVersion, IOObject, IOObjectItem, IOArrayItem)

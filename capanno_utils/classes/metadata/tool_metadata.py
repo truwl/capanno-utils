@@ -11,7 +11,7 @@ from ...helpers.get_paths import *
 from ...classes.metadata.metadata_base import MetadataBase
 from ...classes.metadata.shared_properties import CodeRepository, Person, WebSite, Keyword, IOObjectItem, IOArrayItem
 from ...helpers.get_metadata_from_biotools import make_tool_metadata_kwargs_from_biotools
-from ...classes.metadata.common_functions import _mk_hashes, CommonPropsMixin, WorkflowLanguageStatusMixin, SoftwarePropsMixin
+from ...classes.metadata.common_functions import _mk_hashes, CommonPropsMixin, WorkflowLanguageStatusMixin, SoftwarePropsMixin, get_description_from_file
 
 
 class ToolMetadataBase(MetadataBase):
@@ -98,6 +98,7 @@ class ParentToolMetadata(CommonPropsMixin, SoftwarePropsMixin, ToolMetadataBase)
             ('identifier', None),
             ('featureList', None),
             ('metadataStatus', 'Incomplete'),
+            ('shortDescription', None),
             ('description', None),
             ('codeRepository', None),
             ('license', None),
@@ -173,6 +174,8 @@ class ParentToolMetadata(CommonPropsMixin, SoftwarePropsMixin, ToolMetadataBase)
         except KeyError:
             if file_dict.get('check_index'):
                 file_dict['root_repo_path'] = Path(*file_path.parts[:-5])  # This should be the root_repo_path relative to a parent metadata file.
+        if not file_dict.get('description'):  # No description specified. Check for it in file.
+            file_dict['description'] = get_description_from_file(file_path)
         return cls(**file_dict, ignore_empties=ignore_empties)
 
     @classmethod

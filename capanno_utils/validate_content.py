@@ -29,7 +29,6 @@ def main(argsl=None):
     parser = get_parser()
     args = parser.parse_args(argsl)
 
-    # from pdb import set_trace; set_trace()
     if args.path.is_absolute():
         full_path = args.path
     else:
