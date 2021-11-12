@@ -7,7 +7,7 @@ schema-salad-tool --codegen python https://github.com/common-workflow-language/c
 ```
 or
 ```
-curl https://raw.githubusercontent.com/common-workflow-language/cwl-utils/main/cwl_utils/parser_v1_2.py > capanno_utils/classes/cwl/common_workflow_language.py
+curl https://raw.githubusercontent.com/common-workflow-language/cwl-utils/main/cwl_utils/parser/cwl_v1_2.py > capanno_utils/classes/cwl/common_workflow_language.py
 ```
 ## Add the 10 mixins by hand
 ```

@@ -16,7 +16,7 @@ def get_parser():
     parser.add_argument('version',type=str,
                         help='Provide the version of the tool, script, or workflow')
     parser.add_argument('-p', '--root-repo-path', dest='root_path', type=Path, default=Path.cwd(),
-                        help="Specify the root path of your cwl content repo if it is not the current working directory.")
+                        help="Specify the root path of your content repo if it is not the current working directory.")
     parser.add_argument('-q', '--quiet', dest='quiet', action='store_true', help="Silence messages to stdout")
 
     return parser
@@ -29,7 +29,7 @@ def main(argsl=None):
     parser = get_parser()
     args = parser.parse_args(argsl)
     if args.type == 'workflow':
-        kwargs = {"name": args.name, "softwareVersion": {"versionName": args.version, "includedVersions": args.version}, "cwlStatus": "Released"}
+        kwargs = {"name": args.name, "softwareVersion": {"versionName": args.version, "includedVersions": args.version}, "metadataStatus": "Released"}
         wf = WorkflowMetadata(**kwargs)
         print(wf._mk_identifier())
     elif args.type == 'workflowinstance':
@@ -37,7 +37,7 @@ def main(argsl=None):
             uuid_string = uuid.uuid4().hex[:4]
             print(f"{args.identifier}.{uuid_string}")
         else:
-            kwargs = {"name": args.name, "softwareVersion": {"versionName": args.version, "includedVersions": args.version}, "cwlStatus": "Released"}
+            kwargs = {"name": args.name, "softwareVersion": {"versionName": args.version, "includedVersions": args.version}, "metadataStatus": "Released"}
             wf = WorkflowMetadata(**kwargs)
             print(wf._make_workflow_inst_identifier())
 

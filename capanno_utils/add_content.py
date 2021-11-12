@@ -117,6 +117,7 @@ def main(argsl=None):
     elif args.command == 'script-instance':
         raise NotImplementedError
     elif args.command == 'workflow':
+        print(add_workflow.__name__)
         add_workflow(args.group_name, args.workflow_name, args.workflow_version)
     else:
         parser.print_help()

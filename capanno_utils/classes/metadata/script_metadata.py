@@ -3,7 +3,7 @@ import re
 from collections import OrderedDict
 from ruamel.yaml import safe_load
 from capanno_utils.repo_config import *
-from ...classes.metadata.common_functions import is_attr_empty, CommonPropsMixin, WorkflowLanguageStatusMixin, SoftwarePropsMixin, _mk_hashes
+from ...classes.metadata.common_functions import is_attr_empty, CommonPropsMixin, WorkflowLanguageStatusMixin, SoftwarePropsMixin, _mk_hashes, get_description_from_file
 from ...classes.metadata.shared_properties import WebSite, CodeRepository, Person, Publication, Keyword, ParentScript, \
     Tool
 from ...classes.metadata.metadata_base import MetadataBase
@@ -243,6 +243,7 @@ class CommonScriptMetadata(CommonPropsMixin, SoftwarePropsMixin, ScriptMetadataB
         # Only attributes which can be common to multiple scripts. Skips validation of codeRepository
         return OrderedDict([
             ('softwareVersion', None),
+            ('shortDescription', None),
             ('description', None),
             ('codeRepository', None),
             ('WebSite', None),
@@ -287,5 +288,7 @@ class CommonScriptMetadata(CommonPropsMixin, SoftwarePropsMixin, ScriptMetadataB
         file_path = Path(file_path)
         with file_path.open('r') as file:
             file_dict = safe_load(file)
+        if not file_dict.get('description'):  # No description specified. Check for it in file.
+           file_dict['description'] = get_description_from_file(file_path)
         new_instance = cls(**file_dict)
         return new_instance

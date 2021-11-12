@@ -9,8 +9,8 @@ import re
 from abc import abstractmethod
 from ruamel.yaml import safe_load
 from capanno_utils.repo_config import *
-from ...classes.metadata.shared_properties import CodeRepository, WebSite, Person, Publication, Keyword, CallMap
-from ...classes.metadata.common_functions import _mk_hashes, CommonPropsMixin, SoftwarePropsMixin
+from ...classes.metadata.shared_properties import CodeRepository, WebSite, Person, Publication, Keyword, CallMap, VideoObject
+from ...classes.metadata.common_functions import _mk_hashes, CommonPropsMixin, SoftwarePropsMixin, get_description_from_file
 from ...classes.metadata.metadata_base import MetadataBase
 
 class WorkflowMetadataBase(MetadataBase):
@@ -64,10 +64,11 @@ class WorkflowMetadata(CommonPropsMixin, SoftwarePropsMixin, WorkflowMetadataBas
         ('name', None),
         ('softwareVersion', None),
         ('current', False),
-        ('description', None),
+        ('description', "do I at least work?"),
+        ('shortDescription', None),
         ('identifier', None),
         ('metadataStatus', 'Incomplete'),
-        ('workflowStatus', 'Incomplete'),
+        ('workflowStatus', 'Draft'),
         ('workflowLanguage', 'wdl'),
         ('workflowFile', None), # Workflow file.
         ('repoName', None),
@@ -77,6 +78,7 @@ class WorkflowMetadata(CommonPropsMixin, SoftwarePropsMixin, WorkflowMetadataBas
         ('graphStatus', 'Incomplete'),
         ('executable', False),  # if configured to execute on Truwl.
         ('codeRepository', None),
+        ('videos', None),
         ('WebSite', None),
         ('license', None),
         ('contactPoint', None),
@@ -137,14 +139,41 @@ class WorkflowMetadata(CommonPropsMixin, SoftwarePropsMixin, WorkflowMetadataBas
         else:
             self._workflowLanguage = wf_language
 
+    @property
+    def videos(self):
+        return self._videos
+
+    @videos.setter
+    def videos(self, video_list):
+        if video_list:
+            if isinstance(video_list[0], VideoObject):
+                videos = video_list
+            elif isinstance(video_list[0], dict):
+                videos = [VideoObject(**video_dict) for video_dict in video_list]
+            else:
+                raise TypeError(f"Cannot create VideoObject with {video_list}")
+        else:
+            videos = None
+        self._videos = videos
+
+    @property
+    def license(self):
+        return self._license
+
+    @license.setter
+    def license(self, license_identifier):
+        self._license = license_identifier  # use spdx identifiers
+
 
     @classmethod
     def load_from_file(cls, file_path, ignore_empties=False):
         file_path = Path(file_path)
         with file_path.open('r') as file:
-            file_dict = safe_load(file)
+            wf_kwargs_dict = safe_load(file)
+        if not wf_kwargs_dict.get('description'):  # No description specified. Check for it in file.
+            wf_kwargs_dict['description'] = get_description_from_file(file_path)
         try:
-            return cls(**file_dict, ignore_empties=ignore_empties)
+            return cls(**wf_kwargs_dict, ignore_empties=ignore_empties)
         except AttributeError as e:
             raise Exception(f"{e.args} in {file_path}") from e
 

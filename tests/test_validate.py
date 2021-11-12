@@ -4,6 +4,7 @@ from pathlib import Path
 from capanno_utils.helpers.get_paths import get_tool_metadata
 from capanno_utils.validate import metadata_validator_factory
 from capanno_utils.classes.metadata.tool_metadata import ParentToolMetadata, SubtoolMetadata
+from capanno_utils.classes.metadata.workflow_metadata import WorkflowMetadata
 
 
 class TestValidateMetadata(TestBase):
@@ -49,4 +50,9 @@ class TestValidateMetadata(TestBase):
         with self.assertRaises(ValueError):
             validate_subtool_metadata(metadata_path)
         return
+
+    # def test_validate_workflow_metadata(self):
+    #     validate_workflow_metadata = metadata_validator_factory(WorkflowMetadata)
+    #     metadata_path = Path('/vagrant/capanno/workflows/ENCODE-DCC/chip-seq-pipeline2/v1.6.0/chip-seq-pipeline2-metadata.yaml')
+    #     validate_workflow_metadata(metadata_path)
 
